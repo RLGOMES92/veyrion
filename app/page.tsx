@@ -19,13 +19,13 @@ const schemas:Record<Exclude<ModuleKey,"dashboard">,{title:string;fields:{key:st
 
 type CsvPreviewRow={payload:Record<string,any>;issue:string};
 function parseCsv(text:string){
- const clean=text.replace(/^\\uFEFF/,"");const first=clean.split(/\\r?\\n/,1)[0]||"";
+ const clean=text.replace(/^\\uFEFF/,"");const first=clean.split(/\\r?\n/,1)[0]||"";
  const delimiter=(first.match(/;/g)||[]).length>(first.match(/,/g)||[]).length?";":",";
  const matrix:string[][]=[];let row:string[]=[];let cell="";let quoted=false;
- for(let i=0;i<clean.length;i++){const ch=clean[i];if(ch==='"'){if(quoted&&clean[i+1]==='"'){cell+='"';i++}else quoted=!quoted}else if(ch===delimiter&&!quoted){row.push(cell.trim());cell=""}else if((ch==="\\n"||ch==="\\r")&&!quoted){if(ch==="\\r"&&clean[i+1]==="\\n")i++;row.push(cell.trim());if(row.some(v=>v!==""))matrix.push(row);row=[];cell=""}else cell+=ch}
+ for(let i=0;i<clean.length;i++){const ch=clean[i];if(ch==='"'){if(quoted&&clean[i+1]==='"'){cell+='"';i++}else quoted=!quoted}else if(ch===delimiter&&!quoted){row.push(cell.trim());cell=""}else if((ch==="\n"||ch==="\\r")&&!quoted){if(ch==="\\r"&&clean[i+1]==="\n")i++;row.push(cell.trim());if(row.some(v=>v!==""))matrix.push(row);row=[];cell=""}else cell+=ch}
  row.push(cell.trim());if(row.some(v=>v!==""))matrix.push(row);
  if(matrix.length<2)throw new Error("O CSV precisa ter cabeçalho e pelo menos uma linha.");
- return {headers:matrix[0].map(h=>h.toLowerCase().normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").replace(/[^a-z0-9]/g,"")),records:matrix.slice(1)};
+ return {headers:matrix[0].map(h=>h.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]/g,"")),records:matrix.slice(1)};
 }
 \nconst money=(v:any)=>Number(v||0).toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
 export default function Home(){
