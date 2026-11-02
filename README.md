@@ -274,18 +274,18 @@ O índice de pontualidade considera somente cobranças com `due_date` e `paid_da
 Esses indicadores refletem apenas os lançamentos existentes no VEYRION. Não há consulta bancária, conciliação automática, análise de crédito ou envio automático de cobrança. Revise os valores, datas, nomes de empresas e vínculos antes de tomar decisões.
 
 
-## Confirmação manual de recebimento
+## Registro manual de recebimentos
 
-Na lista de receitas em atraso, a ação **Confirmar recebimento** permite registrar manualmente que o valor foi efetivamente recebido. A confirmação solicita validação do operador, altera o status para `Pago` e grava a data local do dia em `paid_date`. No modo demonstração, a mudança permanece somente no estado local.
+Na lista de receitas em atraso, a ação **Registrar pagamento** solicita o valor efetivamente recebido, a data e a forma de pagamento. O evento é acrescentado ao histórico; pagamentos parciais mantêm o saldo em aberto e o recebimento integral altera o status para `Pago`. No modo demonstração, a mudança permanece somente no estado local.
 
-A ação não consulta extratos bancários nem faz conciliação automática. Confirme somente após verificar o recebimento real. Se outro operador já tiver atualizado o lançamento, a operação informa que os dados precisam ser atualizados antes de nova confirmação.
+O registro é manual: o sistema não consulta extratos bancários nem confirma crédito. Para evitar que dois operadores sobrescrevam parcelas simultâneas, a gravação compara a versão `updated_at` da cobrança com a versão carregada. Se outro operador editar ou registrar um pagamento primeiro, a atualização concorrente é bloqueada e o usuário precisa reabrir os dados atualizados antes de tentar novamente.
 
 
 ## Pagamentos parciais e saldo por cobrança
 
 A ação **Registrar pagamento** na lista de receitas em atraso aceita um valor recebido menor ou igual ao saldo em aberto e solicita a data efetiva do recebimento. Cada parcela é adicionada a `payment_history`; o total acumulado fica em `paid_amount` e o saldo em `remaining_amount`. O status passa a `Parcial` enquanto houver saldo e a `Pago` quando a cobrança estiver quitada. O painel calcula recebido, em aberto e vencido pelo saldo remanescente, sem contar o valor original integral como ainda devido.
 
-A confirmação é manual: registre somente valores efetivamente recebidos e confira a data. O sistema não consulta banco, não concilia extratos automaticamente e não substitui uma rotina contábil. Em ambiente com múltiplos operadores, atualize os dados antes de registrar parcelas sucessivas; a gravação do histórico no payload não é uma transação bancária nem uma conciliação atômica.
+A confirmação é manual: registre somente valores efetivamente recebidos e confira a data. O sistema não consulta banco, não concilia extratos automaticamente e não substitui uma rotina contábil. Em ambiente com múltiplos operadores, a atualização usa comparação otimista de `updated_at` para impedir que uma versão antiga sobrescreva pagamentos mais recentes. Isso protege a gravação concorrente do registro, mas não é uma transação bancária nem uma conciliação automática.
 
 
 ### Detalhamento do histórico de pagamentos
