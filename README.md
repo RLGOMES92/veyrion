@@ -123,3 +123,9 @@ O painel **Previsão comercial** considera oportunidades abertas (exclui Ganha e
 O painel **Empresas prioritárias** calcula uma nota heurística de potencial de locação a partir dos dados preenchidos no cadastro: porte (até 25 pontos), demanda estimada de notebooks (até 30), setor (até 15), interesse declarado em locação (até 20) e existência de canal/pessoa de contato (até 10). A nota é limitada a 100 e não usa dados externos nem presume demanda quando os campos estão vazios.
 
 A classe de prospecção é A (70+), B (40–69) ou C (abaixo de 40). A qualidade/completude do cadastro aparece separadamente da nota, com indicação dos dados que ainda faltam. A fila prioriza empresas com follow-up vencido ou previsto para hoje e, em seguida, potencial e prioridade comercial. Empresas nas etapas **Cliente** e **Sem interesse** não aparecem na fila de novos alvos. Essa classificação apoia a organização da equipe; não substitui qualificação humana, pesquisa da empresa ou confirmação do interesse.
+
+## Ações comerciais a partir da prospecção
+
+Na fila **Empresas prioritárias** e nos cartões do quadro de prospecção, a ação **Criar tarefa** abre um follow-up pré-preenchido com empresa, contato, próxima ação e data de retorno. A prioridade da tarefa deriva da prioridade comercial cadastrada (Alta → Urgente; Média → Alta; demais → Normal). O contexto disponível — canal de contato, demanda estimada, interesse declarado e observações — é incluído nas notas, e o identificador interno da empresa e a pontuação estimada acompanham o registro da tarefa.
+
+A tarefa só é gravada depois que o usuário revisa e clica em **Salvar registro**. Depois disso, ela aparece no módulo **Tarefas** e na agenda/central de follow-ups, onde pode ser acompanhada e atualizada. A criação não envia mensagens nem realiza ligações automaticamente.
