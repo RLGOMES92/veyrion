@@ -29,7 +29,7 @@ export default function Home(){
  async function signOut(){await supabase?.auth.signOut();setUser(null);setRows([]);setDemo(false);setModalOpen(false)}
  function openForm(r?:RecordItem){setEditing(r||null);setForm(r?Object.fromEntries(Object.entries(r.payload).map(([k,v])=>[k,String(v??"")])):{});setModalOpen(true);}
  async function save(){if(!user||module==="dashboard")return;const schema=schemas[module];for(const f of schema.fields){if(f.required&&!form[f.key]?.trim()){setNotice("Preencha: "+f.label);return}}
- const payload={...form};for(const f of schema.fields)if(f.type==="number")payload[f.key]=Number(form[f.key]||0);
+ const payload:Record<string,any>={...form};for(const f of schema.fields)if(f.type==="number")payload[f.key]=Number(form[f.key]||0);
  if(demo){const now=new Date().toISOString();const localRecord:RecordItem={id:editing?.id||("demo-"+Date.now()),module,payload,created_at:editing?.created_at||now};setRows(prev=>editing?prev.map(x=>x.id===editing.id?localRecord:x):[localRecord,...prev]);setEditing(null);setForm({});setModalOpen(false);setNotice("Registro salvo apenas nesta demonstração; nada foi enviado ao banco.");return}
  if(!supabase)return;setLoading(true);const result=editing?await supabase.from("workspace_records").update({payload}).eq("id",editing.id).select().single():await supabase.from("workspace_records").insert({module,payload}).select().single();
  if(result.error)setNotice(result.error.message);else{setRows(prev=>editing?prev.map(x=>x.id===editing.id?result.data as RecordItem:x):[result.data as RecordItem,...prev]);setEditing(null);setForm({});setModalOpen(false);setNotice("Registro salvo.")}setLoading(false)}
