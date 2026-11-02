@@ -37,6 +37,18 @@ Acesse http://localhost:3000.
 ## Integrações previstas (não ativadas)
 O arquivo `.env.example` lista variáveis para OpenAI, WhatsApp Cloud API, Zoho e SMTP. A presença dessas variáveis não significa que a integração esteja ativa. Implementar cada conector exige credenciais reais, URLs de webhook, templates aprovados e testes. Nenhum segredo deve ser commitado no GitHub.
 
+## Gestão individual de equipamentos
+
+O módulo de equipamentos mantém um registro por notebook, com patrimônio/etiqueta, marca, modelo, número de série, configuração, condição, custos, valor de locação, localização, garantia e observações de manutenção. O número de série é validado para evitar duplicidade no cadastro.
+
+O ciclo operacional disponível é:
+1. **Disponível:** pode ser reservado para um contrato em preparação, aguardando assinatura ou ativo.
+2. **Reservado:** fica vinculado ao contrato e à empresa; a equipe pode registrar a entrega.
+3. **Alugado:** registra a entrega e a data de início da posse pelo cliente.
+4. **Devolvido:** a ação de devolução registra a data e libera o vínculo atual, mantendo a referência do último contrato para histórico.
+
+A reserva e a entrega são registros administrativos. O sistema não confirma movimentação física, assinatura ou disponibilidade real sem conferência da equipe. A baixa de devolução retorna o item a Disponível; inspecione o notebook antes de disponibilizá-lo novamente. Para equipamentos em manutenção, atualize o status após a devolução e registre as observações.
+
 ## Conversão de propostas aceitas em contratos
 
 Uma proposta com status **Aceita** pode ser convertida em um registro do módulo **Contratos e locações** pela ação "Gerar contrato". O sistema aproveita os dados comerciais, cliente, equipamento, quantidade, prazo e valores da proposta, gera um número de contrato e registra a referência interna da proposta para evitar conversões duplicadas.
