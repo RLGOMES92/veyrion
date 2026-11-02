@@ -139,3 +139,24 @@ A ordenação combina prioridade da cadência, pontuação de potencial e priori
 ## Abordagens comerciais por canal
 
 Na fila de empresas prioritárias, a ação **Abordar** prepara um rascunho para WhatsApp, e-mail ou LinkedIn. O texto considera somente dados já cadastrados (nome da empresa, contato, setor, demanda estimada e observações), evita afirmar necessidades não confirmadas e pode ser editado antes de copiar. No e-mail, também sugere assunto. A ferramenta não envia mensagens nem confirma destinatário, entrega ou leitura; a equipe deve revisar, personalizar e respeitar as preferências de contato e regras aplicáveis antes de usar.
+
+## Inteligência de mercado e prospecção regional
+
+O módulo **Empresas** inclui o painel **Inteligência de mercado · Prospecção regional**, com filtros sobre a base de empresas já cadastrada:
+- Região/cidade (busca textual no campo Cidade / UF).
+- Setor empresarial.
+- Porte informado por número de funcionários: pequena (até 99), média (100–499) e grande (500+).
+- Visualização da demanda de notebooks cadastrada, pontuação heurística e origem da informação.
+- Acesso ao cadastro existente e criação de tarefas de follow-up.
+- Atalho para registrar uma empresa pesquisada manualmente, já identificada como **Empresa pesquisada**, com data e origem sugeridas para preenchimento.
+
+O painel **não realiza busca na internet, raspagem, enriquecimento automático ou consulta a bases empresariais externas**. Ele filtra os registros existentes no CRM. O cadastro manual e a importação CSV são os caminhos atuais para incluir empresas verificadas. Registre uma referência rastreável em **Fonte / referência da pesquisa**, revise a data e não preencha decisores ou demanda sem evidência. Os limites de porte são filtros operacionais configuráveis pela equipe, não uma classificação legal de porte empresarial.
+
+### Fluxo recomendado de pesquisa
+1. Pesquise empresas em fontes públicas ou bases autorizadas, fora do VEYRION, e valide nome, cidade, setor e site.
+2. Registre a origem e a data da consulta; inclua apenas dados profissionais necessários e pertinentes.
+3. Importe uma planilha CSV no módulo Empresas ou use **Registrar empresa pesquisada**.
+4. Complete porte, contato/decisor e demanda somente quando houver fonte confiável.
+5. Use a nota de potencial como apoio à priorização, abra o cadastro e crie uma tarefa para a próxima ação.
+
+A integração futura com fontes externas deverá ser implementada por conectores autorizados, com origem, data de atualização, limites de uso e revisão humana. Nenhuma coleta externa é ativada por esta entrega.
