@@ -115,7 +115,7 @@ export default function Home(){
   setLoading(true);
   for(const contract of candidates){
    const p=contract.payload||{},startDate=String(p.start_date||"").slice(0,10);
-   if(!/^\\d{4}-\\d{2}-\\d{2}$/.test(startDate)||startDate>todayKey){missing++;continue}
+   if(!/^\d{4}-\d{2}-\d{2}$/.test(startDate)||startDate>todayKey){missing++;continue}
    const [year,month]=competence.split("-").map(Number),startDay=Number(startDate.slice(8,10));
    const lastDay=new Date(year,month,0).getDate(),dueDate=year+"-"+String(month).padStart(2,"0")+"-"+String(Math.min(startDay,lastDay)).padStart(2,"0");
    const status=dueDate<todayKey?"Pendente":"Previsto";
