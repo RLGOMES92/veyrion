@@ -26,7 +26,7 @@ export default function Home(){
  const visible=useMemo(()=>rows.filter(r=>r.module===module&&JSON.stringify(r.payload).toLowerCase().includes(query.toLowerCase())),[rows,module,query]);
  const stats=useMemo(()=>({companies:rows.filter(r=>r.module==="companies").length,contacts:rows.filter(r=>r.module==="contacts").length,open:rows.filter(r=>r.module==="opportunities"&&!["Ganha","Perdida"].includes(r.payload.stage)).length,assets:rows.filter(r=>r.module==="assets"&&r.payload.status==="Disponível").length,won:rows.filter(r=>r.module==="opportunities"&&r.payload.stage==="Ganha").reduce((s,r)=>s+Number(r.payload.value||0),0)}),[rows]);
  async function signIn(){if(!supabase){setNotice("Configure NEXT_PUBLIC_SUPABASE_URL e NEXT_PUBLIC_SUPABASE_ANON_KEY no ambiente da Vercel.");return}setLoading(true);const {error}=await supabase.auth.signInWithOtp({email,options:{emailRedirectTo:location.origin}});setNotice(error?error.message:"Link de acesso enviado. Confira seu e-mail.");setLoading(false)}
- async function signOut(){await supabase?.auth.signOut();setUser(null);setRows([])}
+ async function signOut(){await supabase?.auth.signOut();setUser(null);setRows([]);setDemo(false);setModalOpen(false)}
  function openForm(r?:RecordItem){setEditing(r||null);setForm(r?Object.fromEntries(Object.entries(r.payload).map(([k,v])=>[k,String(v??"")])):{});setModalOpen(true);}
  async function save(){if(!user||module==="dashboard")return;const schema=schemas[module];for(const f of schema.fields){if(f.required&&!form[f.key]?.trim()){setNotice("Preencha: "+f.label);return}}
  const payload={...form};for(const f of schema.fields)if(f.type==="number")payload[f.key]=Number(form[f.key]||0);
