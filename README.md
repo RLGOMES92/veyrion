@@ -178,3 +178,8 @@ O painel sinaliza possíveis duplicidades por nome normalizado + cidade, apenas 
 ## Centro de Campanhas B2B
 
 O módulo **Campanhas B2B** permite segmentar empresas já cadastradas por macro-região operacional, setor e porte informado (pequena até 99 funcionários, média de 100 a 499 e grande a partir de 500), selecionar registros e salvar campanhas com objetivo, canal, status, data, responsável, mensagem-base e observações. A campanha guarda os IDs das empresas selecionadas e a quantidade no momento da criação; a lista de empresas é uma seleção da carteira existente, não uma busca externa. A equipe deve revisar os dados e personalizar cada abordagem. A campanha não dispara mensagens, não confirma entrega/leitura e não mede respostas automaticamente. Use o histórico de interações e as etapas das empresas para registrar os resultados reais.
+
+
+### Indicadores do Centro de Campanhas
+
+O painel de desempenho das campanhas calcula contatos com base em interações ou data de último contato registrada; respostas com base em resultados explícitos do histórico; reuniões e propostas com base em resultados do histórico ou etapas comerciais correspondentes; e ganhos com base nas etapas Cliente/Ganha. Uma empresa pode contribuir para mais de um indicador. Os números representam o estado atual dos cadastros vinculados e não atribuem causalidade exclusiva à campanha. Registros sem histórico não são tratados como contato ou resposta.
