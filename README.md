@@ -258,3 +258,8 @@ A reserva verifica se o equipamento está disponível, compara o modelo informad
 ## Ordens de manutenção de notebooks
 
 O módulo Manutenção registra ordens por número de série, patrimônio, equipamento, defeito, diagnóstico, técnico, status, datas e custos de peças/mão de obra. A abertura pode ser iniciada diretamente no cadastro de um equipamento elegível. O sistema exige equipamento existente, impede ordem operacional duplicada em aberto para o mesmo notebook e bloqueia abertura quando o equipamento está reservado, alugado ou vendido. Ao salvar a ordem, o status do equipamento é atualizado para “Em manutenção”; ao concluir ou cancelar, retorna para “Disponível”, desde que a atualização condicional no banco não encontre alteração concorrente. Se a atualização do equipamento falhar após salvar a ordem, o sistema avisa para conferência manual: as duas gravações ainda não são uma transação atômica. Na demonstração, a sincronização ocorre somente no estado local. Custos são informativos e não geram lançamento financeiro automático.
+
+
+## Rentabilidade estimada por notebook
+
+No módulo Financeiro, a tabela por equipamento estima receita acumulada para notebooks vinculados a contratos ativos: mensalidade do contrato dividida pela quantidade contratada e multiplicada pelos meses desde o início. Deduz do valor estimado o custo de aquisição cadastrado e os custos de ordens de manutenção não canceladas. Equipamentos sem vínculo ativo aparecem sem receita estimada. O indicador é uma contribuição operacional aproximada, não lucro contábil: não inclui impostos, depreciação, inadimplência, frete, suporte ou custos financeiros. A qualidade depende do vínculo correto entre ativo, contrato e ordens de manutenção.
