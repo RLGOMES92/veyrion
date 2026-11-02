@@ -238,3 +238,8 @@ Novas interações registram o identificador do usuário autenticado (actor_id) 
 ## Desempenho da equipe por período e responsável
 
 A Visão geral inclui um painel de atividade da equipe com data inicial, data final e filtro de responsável. Ele agrupa interações registradas no histórico das empresas por responsável identificado no momento do registro e apresenta interações, empresas únicas, respostas explícitas, sinais positivos, reuniões e propostas solicitadas. Eventos antigos sem identificação ficam em “Responsável não identificado”. O painel mede atividade registrada, não faturamento, comissão ou causalidade. Metas e valores continuam nos painéis mensais de oportunidades e metas.
+
+
+## Central de alertas gerenciais
+
+A Visão geral reúne alertas derivados dos dados registrados: follow-ups vencidos; oportunidades sinalizadas pelo radar de pipeline; metas mensais abaixo de 70% do valor ou volume; e propostas não finalizadas há pelo menos sete dias. Alertas vinculados a registros permitem abrir o cadastro correspondente. Os critérios são operacionais e configuráveis no código, não representam previsão garantida nem substituem a revisão comercial. Nenhuma mensagem é enviada automaticamente.
