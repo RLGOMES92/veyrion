@@ -198,3 +198,8 @@ O módulo **Tarefas e follow-ups** apresenta uma fila operacional combinando dat
 ## Assistente comercial · Próximas melhores ações
 
 No dashboard, o assistente prioriza empresas com retorno vencido ou previsto para hoje, sinais positivos sem novo prazo, contatos parados há pelo menos sete dias, primeiros contatos ainda não realizados e cadastros incompletos. Cada sugestão exibe o motivo, a ação recomendada e a pontuação heurística de potencial, com atalhos para abrir a empresa, preparar uma abordagem ou criar uma tarefa. A recomendação usa somente interações e campos já registrados; não faz enriquecimento externo, não confirma intenção de compra e não envia mensagens. Empresas marcadas como Cliente, Sem interesse ou Descartada são excluídas da fila.
+
+
+### Registro do resultado da abordagem
+
+Na fila do assistente comercial, a ação **Registrar resultado** abre o histórico de interações da empresa com data e canal preenchidos para facilitar o registro. O usuário deve informar o resultado real, um resumo e, quando aplicável, a próxima ação e data de retorno; a empresa precisa ser salva para persistir o histórico. Quando há sinal positivo sem data futura, a recomendação passa a ser registrar o próximo retorno. O sistema não presume que a abordagem foi enviada ou que houve resposta.
