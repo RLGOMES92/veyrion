@@ -291,3 +291,8 @@ A confirmação é manual: registre somente valores efetivamente recebidos e con
 ### Detalhamento do histórico de pagamentos
 
 A tabela por contrato permite expandir cada contrato e consultar suas cobranças, valor original, total recebido, saldo atual e cada pagamento registrado, com data e forma de pagamento. A pontualidade considera cada evento de pagamento quando há histórico detalhado; para registros antigos sem histórico, utiliza a data de quitação disponível. Cada recebimento manual solicita a forma de pagamento informada pelo operador.
+
+
+### Integridade do histórico ao editar cobranças
+
+Ao editar uma receita que já recebeu pagamentos, o formulário preserva o histórico de parcelas, o total recebido e a data do último pagamento. O valor original não pode ser reduzido abaixo do que já foi recebido. Uma receita ainda não quitada não pode ser marcada diretamente como paga pelo formulário comum: use **Registrar pagamento**, que exige valor e data e mantém a trilha de recebimentos.
