@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="pt-BR"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>VEYRION</title>
+<style>
+:root{--bg:#070b16;--p:#0d1424;--p2:#131c32;--b:#222d48;--t:#e8ecf6;--m:#8b97b5;--a:#3b82ff;--v:#8b5cf6;--ok:#34d399;--er:#f87171;color-scheme:dark;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+*{box-sizing:border-box}html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--t);font:15px/1.5 "Plus Jakarta Sans",system-ui,-apple-system,"Segoe UI",sans-serif}
+button,input,select,textarea{font:inherit;color:inherit}
+.btn{background:var(--a);border:0;border-radius:8px;padding:9px 14px;cursor:pointer;font-weight:600}
+.btn.g{background:var(--p2);border:1px solid var(--b)}.btn.d{background:transparent;border:1px solid var(--er);color:var(--er)}
+.btn:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--v);outline-offset:2px}
+input,select,textarea{width:100%;background:var(--bg);border:1px solid var(--b);border-radius:8px;padding:9px 11px}
+label{display:block;font-size:13px;color:var(--m);margin:10px 0 4px}
+#login{max-width:380px;margin:12vh auto;padding:28px 22px}
+#login h1{font-size:30px;margin:0;letter-spacing:.14em}#login p{color:var(--m);margin:4px 0 20px}
+#app{display:none;min-height:100vh}
+nav{position:fixed;bottom:0;left:0;right:0;display:flex;background:var(--p);border-top:1px solid var(--b);padding-bottom:env(safe-area-inset-bottom,0px);z-index:5;overflow-x:auto}
+nav button{flex:1;min-width:76px;background:none;border:0;padding:12px 6px;color:var(--m);cursor:pointer;font-size:13px}
+nav button.on{color:var(--t);box-shadow:inset 0 2px var(--a)}
+main{padding:18px 16px 90px;max-width:1100px;margin:auto}
+header.top{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:16px}
+header.top b{letter-spacing:.14em}h2{margin:0 0 4px;font-size:22px}
+.sub{color:var(--m);margin:0 0 16px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:18px}
+.card{background:var(--p);border:1px solid var(--b);border-radius:10px;padding:14px}
+.card small{color:var(--m)}.card strong{display:block;font-size:22px;margin-top:2px}
+.bar{display:grid;grid-template-columns:150px 1fr 34px;gap:8px;align-items:center;font-size:13px;margin:6px 0}
+.bar i{display:block;height:8px;border-radius:4px;background:linear-gradient(90deg,var(--a),var(--v))}
+.tools{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}.tools input{flex:1;min-width:160px}
+.wrap{overflow-x:auto}table{width:100%;border-collapse:collapse;min-width:560px}
+th,td{text-align:left;padding:10px;border-bottom:1px solid var(--b);font-size:14px}th{color:var(--m);font-weight:500}
+tr.c{cursor:pointer}tr.c:hover{background:var(--p)}
+.tag{padding:2px 8px;border-radius:99px;font-size:12px;border:1px solid var(--b);color:var(--m)}
+.tag.ok{color:var(--ok);border-color:var(--ok)}.tag.v{color:#b79cff;border-color:var(--v)}
+.kan{display:flex;gap:10px;overflow-x:auto;padding-bottom:10px;align-items:flex-start}
+.col{flex:0 0 230px;background:var(--p);border:1px solid var(--b);border-radius:10px;padding:10px}
+.col h4{margin:0 0 8px;font-size:13px;display:flex;justify-content:space-between}
+.op{background:var(--p2);border:1px solid var(--b);border-radius:8px;padding:10px;margin-bottom:8px;cursor:pointer;font-size:13px}
+.op select{margin-top:8px;padding:5px;font-size:12px}
+.empty{padding:36px 10px;text-align:center;color:var(--m)}
+dialog{background:var(--p);color:var(--t);border:1px solid var(--b);border-radius:12px;width:min(520px,94vw);max-height:90vh;padding:20px}
+dialog::backdrop{background:rgba(0,0,0,.65)}
+.err{color:var(--er);font-size:13px;margin-top:8px}
+#toast{position:fixed;top:calc(12px + env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%);background:var(--p2);border:1px solid var(--a);padding:10px 16px;border-radius:8px;display:none;z-index:20}
+.note{font-size:12px;color:var(--m);margin-top:14px}
+@media(min-width:800px){nav{top:0;bottom:auto;right:auto;width:190px;flex-direction:column;height:100vh;border-top:0;border-right:1px solid var(--b);padding-top:calc(60px + env(safe-area-inset-top,0px))}nav button{text-align:left;padding:12px 18px;flex:none}nav button.on{box-shadow:inset 2px 0 var(--a)}main{margin-left:210px;padding-bottom:30px}}
+</style></head><body>
+<div id="toast" role="status"></div>
+<section id="login"><h1>VEYRION</h1><p>Tecnologia. Inteligência. Crescimento.</p>
+<label for="le">E-mail</label><input id="le" type="email" autocomplete="username">
+<label for="lr">Perfil</label><select id="lr"><option>Administrador</option><option>Gerente Comercial</option><option>Gerente de Tecnologia</option><option>Representante de Vendas</option></select>
+<p class="err" id="lerr"></p><button class="btn" id="lb" style="width:100%;margin-top:10px">Entrar</button>
+<p class="note">Versão MVP: a sessão fica só neste navegador. Autenticação real com MFA e banco de dados entram na fase com Supabase.</p></section>
+<div id="app"><nav id="nav"></nav><main><header class="top"><b>VEYRION</b><span><span class="tag" id="who"></span> <button class="btn g" id="out">Sair</button></span></header><div id="v"></div></main></div>
+<dialog id="dlg"></dialog>
+<script>
+const ST=["Novo lead","Pesquisando empresa","Contato identificado","Primeiro contato","Oportunidade qualificada","Requisitos recebidos","Preparando proposta","Proposta enviada","Negociação","Aprovação de contrato","Ganha","Perdida"];
+const EQS=["Disponível","Reservada","Alugada","Vendida","Em manutenção","Indisponível"];
+const K="veyrion_mvp_v1";let S={co:[],ct:[],op:[],eq:[],user:null},view="dash",q="";
+try{const r=localStorage.getItem(K);if(r){const p=JSON.parse(r);S=Object.assign(S,p,{
+co:Array.isArray(p.co)?p.co:[],
+ct:Array.isArray(p.ct)?p.ct:[],
+op:Array.isArray(p.op)?p.op:[],
+eq:Array.isArray(p.eq)?p.eq:[],
+user:p.user&&typeof p.user=="object"?p.user:null
+})}}catch(e){}
+const save=()=>{try{localStorage.setItem(K,JSON.stringify(S))}catch(e){}};
+const $=s=>document.querySelector(s),esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const brl=c=>(c/100).toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
+const id=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+const toast=m=>{const t=$("#toast");t.textContent=m;t.style.display="block";setTimeout(()=>t.style.display="none",2400)};
+function cnpjOk(v){v=String(v).replace(/\D/g,"");if(v.length!=14||/^(\d)\1+$/.test(v))return false;
+const d=n=>{let s=0,p=n-7;for(let i=0;i<n;i++){s+=v[i]*p--;if(p<2)p=9}const r=s%11;return r<2?0:11-r};return d(12)==v[12]&&d(13)==v[13]}
+const mailOk=e=>/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(e);
+const coName=i=>(S.co.find(c=>c.id==i)||{}).nome||"—";
+// formulário genérico
+function form(title,F,init,onSave,onDel){const d=$("#dlg"),v=init||{};
+d.innerHTML=`<h2>${title}</h2><div id="ff">`+F.map(f=>{const val=f.t=="money"&&v[f.k]!=null?v[f.k]/100:(v[f.k]??"");
+let i=f.t=="select"?`<select id="f_${f.k}">${f.o.map(o=>{const [ov,ol]=Array.isArray(o)?o:[o,o];return`<option value="${esc(ov)}"${ov==val?" selected":""}>${esc(ol)}</option>`}).join("")}</select>`
+:f.t=="area"?`<textarea id="f_${f.k}" rows="3">${esc(val)}</textarea>`
+:`<input id="f_${f.k}" type="${f.t=="money"||f.t=="num"?"number":f.t||"text"}" ${f.t=="money"?'step="0.01" min="0"':""}${f.t=="num"?'min="0"':""} value="${esc(val)}">`;
+return`<label for="f_${f.k}">${f.l}${f.r?" *":""}</label>${i}`}).join("")+`</div><p class="err" id="fe"></p>
+<div class="tools" style="margin-top:14px"><button class="btn" id="fs">Salvar</button><button class="btn g" id="fc">Cancelar</button>${onDel?'<button class="btn d" id="fd">Excluir</button>':""}</div>`;
+d.showModal();$("#fc").onclick=()=>d.close();
+if(onDel)$("#fd").onclick=()=>{if(confirm("Excluir este registro? A ação não pode ser desfeita.")){if(onDel()===false)return;d.close();render()}};
+$("#fs").onclick=()=>{const o={};for(const f of F){let x=$("#f_"+f.k).value.trim();
+if(f.r&&!x)return $("#fe").textContent=`Preencha: ${f.l}.`;
+if(f.t=="money"){const n=parseFloat(x||0);if(!Number.isFinite(n)||n<0)return $("#fe").textContent=`${f.l} não pode ser negativo.`;x=Math.round(n*100)}
+else if(f.t=="num"){const n=+x||0;if(n<0)return $("#fe").textContent=`${f.l} não pode ser negativo.`;x=n}o[f.k]=x}
+const e=onSave(o);if(e)return $("#fe").textContent=e;save();d.close();render();toast("Salvo")}}
+const upsert=(arr,v,o,pre)=>{if(v&&v.id)Object.assign(v,o);else arr.push(Object.assign({id:id(),criado:new Date().toISOString()},pre||{},o))};
+// telas
+const eqS=s=>s=="Disponível"?"ok":s=="Alugada"?"v":"";
+function dash(){const o=S.op,lost=o.filter(x=>x.est==11).length,won=o.filter(x=>x.est==10),ativas=o.filter(x=>x.est<10);
+const mes=new Date().toISOString().slice(0,7),conv=won.length+lost?Math.round(won.length/(won.length+lost)*100)+"%":"—";
+const cards=[["Leads totais",o.length],["Oportunidades qualificadas",o.filter(x=>x.est>=4&&x.est<11).length],["Empresas novas no mês",S.co.filter(c=>c.criado.startsWith(mes)).length],["Propostas enviadas",o.filter(x=>x.est>=7&&x.est<11).length],["Negociações abertas",o.filter(x=>x.est==8||x.est==9).length],["Vendas fechadas",won.length],["Receita ganha",brl(won.reduce((a,x)=>a+x.valor,0))],["Pipeline aberto",brl(ativas.reduce((a,x)=>a+x.valor,0))],["Conversão",conv],["Equip. disponíveis",S.eq.filter(e=>e.status=="Disponível").length],["Equip. alugados",S.eq.filter(e=>e.status=="Alugada").length]];
+const mx=Math.max(1,...ST.map((_,i)=>o.filter(x=>x.est==i).length));
+return`<h2>Visão geral</h2><p class="sub">Todos os números vêm dos registros salvos.</p><div class="grid">${cards.map(c=>`<div class="card"><small>${c[0]}</small><strong>${c[1]}</strong></div>`).join("")}</div>
+<div class="card"><b>Funil por etapa</b>${o.length?ST.map((s,i)=>{const n=o.filter(x=>x.est==i).length;return`<div class="bar"><span>${s}</span><span><i style="width:${n/mx*100}%"></i></span><span>${n}</span></div>`}).join(""):'<div class="empty">Sem oportunidades ainda. Cadastre uma empresa e crie a primeira oportunidade.</div>'}</div>
+<p class="note">Dados de demonstração: <button class="btn g" id="demo">Carregar exemplos</button> <button class="btn g" id="clr">Apagar todos os dados</button></p>`}
+function lista(cols,rows,onclick,empty){return`<div class="tools"><input id="q" placeholder="Buscar…" value="${esc(q)}" aria-label="Buscar"></div>`+(rows.length?`<div class="wrap card"><table><tr>${cols.map(c=>`<th>${c[0]}</th>`).join("")}</tr>${rows.map(r=>`<tr class="c" tabindex="0" data-id="${r.id}">${cols.map(c=>`<td>${c[1](r)}</td>`).join("")}</tr>`).join("")}</table></div>`:`<div class="empty card">${empty}</div>`)}
+const fl=(a,f)=>a.filter(x=>!q||f(x).toLowerCase().includes(q.toLowerCase()));
+const SECT=["Tecnologia","BPO","Call center","Logística","Saúde","Educação","Indústria","Serviços profissionais","Serviços financeiros","Outro"];
+const coF=[{k:"nome",l:"Razão social / nome",r:1},{k:"cnpj",l:"CNPJ",r:1},{k:"func",l:"Nº de funcionários",t:"num"},{k:"setor",l:"Setor",t:"select",o:SECT},{k:"site",l:"Site"},{k:"end",l:"Endereço"},{k:"cidade",l:"Cidade/UF"},{k:"tel",l:"Telefone comercial"},{k:"origem",l:"Origem",t:"select",o:["Indicação","Prospecção","Site","Evento","Importação CSV","Outro"]},{k:"obs",l:"Observações",t:"area"}];
+function empresas(){return`<h2>Empresas</h2><p class="sub">Somente informações que você confirmou.</p><div class="tools"><button class="btn" id="add">Nova empresa</button></div>`+lista([["Empresa",r=>esc(r.nome)],["CNPJ",r=>esc(r.cnpj)],["Setor",r=>esc(r.setor)],["Cidade",r=>esc(r.cidade)]],fl(S.co,r=>r.nome+r.cnpj),0,"Nenhuma empresa cadastrada. Use “Nova empresa” para começar.")}
+function empForm(r){form(r?"Editar empresa":"Nova empresa",coF,r,o=>{if(!cnpjOk(o.cnpj))return"CNPJ inválido.";const n=o.cnpj.replace(/\D/g,"");
+if(S.co.some(c=>c.id!=(r||{}).id&&c.cnpj.replace(/\D/g,"")==n))return"Já existe empresa com este CNPJ.";upsert(S.co,r,o)},r&&(()=>{
+const contatos=S.ct.filter(c=>c.emp==r.id).length,oportunidades=S.op.filter(o=>o.emp==r.id).length;
+if(contatos||oportunidades){
+if(!confirm(`Esta empresa possui ${contatos} contato(s) e ${oportunidades} oportunidade(s). Ao excluir, todos esses registros vinculados serão removidos. Continuar?`))return false;
+}
+S.co=S.co.filter(c=>c.id!=r.id);S.ct=S.ct.filter(c=>c.emp!=r.id);S.op=S.op.filter(o=>o.emp!=r.id);
+save();
+}))}
+function contatos(){return`<h2>Contatos</h2><p class="sub">Pessoas vinculadas às empresas.</p><div class="tools"><button class="btn" id="add">Novo contato</button></div>`+lista([["Nome",r=>esc(r.nome)],["Cargo",r=>esc(r.cargo)],["Empresa",r=>esc(coName(r.emp))],["E-mail",r=>esc(r.email)],["Decisor",r=>r.dec=="Sim"?'<span class="tag ok">Sim</span>':esc(r.dec)]],fl(S.ct,r=>r.nome+r.email+coName(r.emp)),0,"Nenhum contato. Cadastre uma empresa primeiro, depois adicione os contatos.")}
+function ctForm(r){if(!S.co.length)return toast("Cadastre uma empresa antes.");
+form(r?"Editar contato":"Novo contato",[{k:"nome",l:"Nome completo",r:1},{k:"emp",l:"Empresa",t:"select",o:S.co.map(c=>[c.id,c.nome])},{k:"cargo",l:"Cargo"},{k:"dep",l:"Departamento"},{k:"email",l:"E-mail corporativo",r:1,t:"email"},{k:"tel",l:"Telefone"},{k:"zap",l:"WhatsApp"},{k:"dec",l:"Poder de decisão",t:"select",o:["Sim","Influenciador","Não"]}],r,o=>{if(!mailOk(o.email))return"E-mail inválido.";upsert(S.ct,r,o)},r&&(()=>{S.ct=S.ct.filter(c=>c.id!=r.id);save()}))}
+function opps(){return`<h2>Oportunidades</h2><p class="sub">Funil de vendas em 12 etapas. Mova pelo seletor de cada cartão.</p><div class="tools"><button class="btn" id="add">Nova oportunidade</button></div>`+(S.op.length?`<div class="kan">${ST.map((s,i)=>{const l=S.op.filter(o=>o.est==i);return`<div class="col"><h4><span>${s}</span><span>${l.length}</span></h4>${l.map(o=>`<div class="op" tabindex="0" data-id="${o.id}"><b>${esc(o.titulo)}</b><br>${esc(coName(o.emp))}<br><span class="tag">${brl(o.valor)} · ${o.prob}%</span> <span class="tag v">${esc(o.tipo)}</span><br><small>${esc(o.prox||"Sem próxima atividade")}</small><select data-mv="${o.id}" aria-label="Mover etapa">${ST.map((x,j)=>`<option value="${j}"${j==o.est?" selected":""}>${x}</option>`).join("")}</select></div>`).join("")}</div>`}).join("")}</div>`:'<div class="empty card">Nenhuma oportunidade. Crie a primeira para ver o funil.</div>')}
+function opForm(r){if(!S.co.length)return toast("Cadastre uma empresa antes.");
+form(r?"Editar oportunidade":"Nova oportunidade",[{k:"titulo",l:"Título",r:1},{k:"emp",l:"Empresa",t:"select",o:S.co.map(c=>[c.id,c.nome])},{k:"tipo",l:"Tipo",t:"select",o:["Venda","Locação"]},{k:"qtd",l:"Nº de dispositivos",t:"num"},{k:"valor",l:"Valor estimado (R$)",t:"money"},{k:"prob",l:"Probabilidade (%)",t:"num"},{k:"fech",l:"Fechamento previsto",t:"date"},{k:"resp",l:"Responsável"},{k:"prox",l:"Próxima atividade"},{k:"est",l:"Etapa",t:"select",o:ST.map((s,i)=>[i,s])}],r||{est:0,prob:10,resp:S.user.email},o=>{if(!Number.isInteger(o.prob)||o.prob<0||o.prob>100)return"Probabilidade deve ser um número inteiro entre 0 e 100.";o.est=+o.est;upsert(S.op,r,o)},r&&(()=>{S.op=S.op.filter(c=>c.id!=r.id);save()}))}
+function equip(){return`<h2>Equipamentos</h2><p class="sub">Estoque de notebooks para venda e locação.</p><div class="tools"><button class="btn" id="add">Novo equipamento</button></div>`+lista([["Equipamento",r=>esc(r.marca+" "+r.modelo)],["Série",r=>esc(r.serie)],["Config.",r=>esc(r.cpu+" · "+r.ram+" · "+r.arm)],["Locação/mês",r=>brl(r.aluguel)],["Venda",r=>brl(r.venda)],["Status",r=>`<span class="tag ${eqS(r.status)}">${r.status}</span>`]],fl(S.eq,r=>r.marca+r.modelo+r.serie),0,"Nenhum equipamento. Cadastre o primeiro notebook do estoque.")}
+function eqForm(r){form(r?"Editar equipamento":"Novo equipamento",[{k:"marca",l:"Marca",r:1},{k:"modelo",l:"Modelo",r:1},{k:"serie",l:"Nº de série",r:1},{k:"cpu",l:"Processador"},{k:"ram",l:"Memória RAM"},{k:"arm",l:"Armazenamento"},{k:"tela",l:"Tela"},{k:"so",l:"Sistema operacional"},{k:"cond",l:"Condição",t:"select",o:["Novo","Seminovo","Recondicionado"]},{k:"custo",l:"Custo de compra (R$)",t:"money"},{k:"venda",l:"Preço de venda (R$)",t:"money"},{k:"aluguel",l:"Aluguel mensal (R$)",t:"money"},{k:"status",l:"Status",t:"select",o:EQS},{k:"local",l:"Localização"},{k:"gar",l:"Fim da garantia",t:"date"}],r,o=>{o.serie=o.serie.trim();if(S.eq.some(e=>e.id!=(r||{}).id&&String(e.serie||"").trim()==o.serie))return"Já existe equipamento com este número de série.";upsert(S.eq,r,o)},r&&(()=>{S.eq=S.eq.filter(c=>c.id!=r.id);save()}))}
+const V={dash:["Visão geral",dash],co:["Empresas",empresas],ct:["Contatos",contatos],op:["Oportunid.",opps],eq:["Equipamentos",equip]};
+function render(){$("#nav").innerHTML=Object.entries(V).map(([k,v])=>`<button class="${k==view?"on":""}" data-v="${k}">${v[0]}</button>`).join("");$("#v").innerHTML=V[view][1]();
+const f={co:empForm,ct:ctForm,op:opForm,eq:eqForm}[view],arr={co:S.co,ct:S.ct,op:S.op,eq:S.eq}[view];
+const a=$("#add");if(a)a.onclick=()=>f();
+const qi=$("#q");if(qi)qi.oninput=e=>{q=e.target.value;const p=e.target.selectionStart;render();const n=$("#q");n.focus();n.setSelectionRange(p,p)};
+document.querySelectorAll("[data-id]").forEach(el=>{const go=e=>{if(e.target.tagName=="SELECT")return;f(arr.find(x=>x.id==el.dataset.id))};el.onclick=go;el.onkeydown=e=>{if(e.key=="Enter")go(e)}});
+document.querySelectorAll("[data-mv]").forEach(s=>s.onchange=()=>{S.op.find(o=>o.id==s.dataset.mv).est=+s.value;save();render()});
+const dm=$("#demo");if(dm)dm.onclick=()=>{S.co=S.co.filter(c=>!String(c.nome||"").startsWith("[DEMO]"));S.ct=S.ct.filter(c=>!String(c.nome||"").startsWith("[DEMO]"));S.op=S.op.filter(o=>!String(o.titulo||"").startsWith("[DEMO]"));S.eq=S.eq.filter(e=>!String(e.serie||"").startsWith("DEMO-"));
+const c1={id:id(),criado:new Date().toISOString(),nome:"[DEMO] Empresa Exemplo Ltda",cnpj:"11.222.333/0001-81",setor:"Logística",cidade:"São Paulo/SP",origem:"Outro"};S.co.push(c1);
+S.ct.push({id:id(),nome:"[DEMO] Contato Exemplo",emp:c1.id,cargo:"Gerente de TI",email:"demo@exemplo.com.br",dec:"Sim"});
+S.op.push({id:id(),titulo:"[DEMO] Locação de 40 notebooks",emp:c1.id,tipo:"Locação",qtd:40,valor:4800000,prob:40,est:4,prox:"Enviar proposta"});
+S.eq.push({id:id(),marca:"[DEMO] Marca",modelo:"Modelo X",serie:"DEMO-0001",cpu:"i5",ram:"16 GB",arm:"512 GB",custo:350000,venda:480000,aluguel:18000,status:"Disponível"});save();render();toast("Dados de demonstração carregados")};
+const cl=$("#clr");if(cl)cl.onclick=()=>{if(confirm("Apagar todos os dados deste navegador?")){S={co:[],ct:[],op:[],eq:[],user:S.user};save();render()}}}
+$("#nav").onclick=e=>{const b=e.target.closest("[data-v]");if(b){view=b.dataset.v;q="";render()}};
+function show(){const u=S.user;$("#login").style.display=u?"none":"block";$("#app").style.display=u?"block":"none";if(u){$("#who").textContent=u.role;render()}}
+$("#lb").onclick=()=>{const e=$("#le").value.trim();if(!mailOk(e))return $("#lerr").textContent="Informe um e-mail válido.";S.user={email:e,role:$("#lr").value};save();show()};
+$("#out").onclick=()=>{S.user=null;save();show()};
+show();
+</script></body></html>
