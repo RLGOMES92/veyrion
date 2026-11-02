@@ -112,6 +112,7 @@ export default function Home(){
   const candidates=contracts.filter(contract=>!existing.has(contract.id+"|"+competence));
   let created=0,skipped=contracts.length-candidates.length,missing=0;
   const newRows:RecordItem[]=[];
+  setLoading(true);
   for(const contract of candidates){
    const p=contract.payload||{},startDate=String(p.start_date||"").slice(0,10);
    if(!/^\\d{4}-\\d{2}-\\d{2}$/.test(startDate)||startDate>todayKey){missing++;continue}
@@ -120,13 +121,14 @@ export default function Home(){
    const status=dueDate<todayKey?"Pendente":"Previsto";
    const payload={description:"Locação mensal · "+String(p.number||contract.id)+" · "+competence,company:String(p.company||""),kind:"Receita",category:"Locação",amount:Number(p.monthly_value||0),due_date:dueDate,paid_date:"",status,contract_id:contract.id,contract_number:String(p.number||""),competence,charge_key:contract.id+"|"+competence,generated_by:"VEYRION monthly billing",notes:"Cobrança prevista gerada a partir do contrato ativo. Confirme valor, vencimento e pagamento manualmente."};
    if(demo){newRows.push({id:"demo-charge-"+contract.id+"-"+competence,module:"finance",payload,created_at:new Date().toISOString()});created++;continue}
-   if(!supabase){setNotice("Conecte o banco de dados ou use a demonstração para gerar cobranças.");return}
+   if(!supabase){setNotice("Conecte o banco de dados ou use a demonstração para gerar cobranças.");setLoading(false);return}
    const {data,error}=await supabase.from("workspace_records").insert({module:"finance",payload}).select().single();
    if(error){setRows(prev=>[...newRows,...prev]);setNotice("Foram criadas "+created+" cobrança(s), mas houve falha no próximo registro: "+error.message+". Execute novamente para continuar sem duplicar as já gravadas.");setLoading(false);return}
    newRows.push(data as RecordItem);created++;
   }
   if(newRows.length)setRows(prev=>[...newRows,...prev]);
   setNotice(created+" cobrança(s) gerada(s) para "+competence+"; "+skipped+" já existiam; "+missing+" contrato(s) sem data de início válida ou com início futuro foram ignorados. Nenhuma cobrança foi marcada como paga.");
+  setLoading(false);
  }
 
  function prepareCsv(file:File){
