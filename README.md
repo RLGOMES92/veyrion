@@ -213,6 +213,11 @@ A Visão geral inclui um funil acumulado calculado a partir dos cadastros de emp
 
 **Consistência das métricas:** os indicadores gerais e por campanha usam o mesmo critério para propostas (etapa “Proposta enviada” ou “Preparando proposta”, ou resultado “Proposta solicitada”) e ganhos (etapa “Cliente” ou “Ganha”). A análise por canal conta empresas únicas com interações registradas naquele canal; isso não prova causalidade nem atribui uma venda exclusivamente ao canal.
 
+
+## Produtividade comercial diária
+
+O dashboard permite selecionar uma data e visualizar interações registradas, empresas únicas contatadas, respostas, sinais positivos, reuniões agendadas, propostas solicitadas e follow-ups previstos. Interações usam a data do evento; resultados dependem de outcomes explícitos. Follow-ups representam compromissos com vencimento na data, não tarefas concluídas. Não há meta diária presumida: o painel não conta mensagens preparadas/copias como contatos e não infere atividades sem registro.
+
 ## Inteligência de carteira · Prioridade de locação
 
 O dashboard apresenta até 12 empresas priorizadas para prospecção de locação de notebooks. A classificação usa apenas dados cadastrados: pontuação heurística de qualificação (porte, quantidade estimada de notebooks, setor, interesse declarado e contato), ajuste por follow-up atrasado ou previsto para hoje, validação da empresa e confiabilidade da fonte. A lista exclui empresas nas etapas Cliente, Sem interesse e Descartada.
