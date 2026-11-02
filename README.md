@@ -272,3 +272,10 @@ O painel Financeiro consolida receitas registradas por empresa e contrato, separ
 O índice de pontualidade considera somente cobranças com `due_date` e `paid_date` preenchidos: pagamentos realizados até o vencimento são pontuais; pagamentos posteriores são atrasados. Registros sem alguma dessas datas não entram no denominador. A previsão de recebimentos considera lançamentos em aberto com vencimento informado e mantém valores vencidos separados dos futuros.
 
 Esses indicadores refletem apenas os lançamentos existentes no VEYRION. Não há consulta bancária, conciliação automática, análise de crédito ou envio automático de cobrança. Revise os valores, datas, nomes de empresas e vínculos antes de tomar decisões.
+
+
+## Confirmação manual de recebimento
+
+Na lista de receitas em atraso, a ação **Confirmar recebimento** permite registrar manualmente que o valor foi efetivamente recebido. A confirmação solicita validação do operador, altera o status para `Pago` e grava a data local do dia em `paid_date`. No modo demonstração, a mudança permanece somente no estado local.
+
+A ação não consulta extratos bancários nem faz conciliação automática. Confirme somente após verificar o recebimento real. Se outro operador já tiver atualizado o lançamento, a operação informa que os dados precisam ser atualizados antes de nova confirmação.
