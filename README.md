@@ -183,3 +183,8 @@ O módulo **Campanhas B2B** permite segmentar empresas já cadastradas por macro
 ### Indicadores do Centro de Campanhas
 
 O painel de desempenho das campanhas calcula contatos com base em interações ou data de último contato registrada; respostas com base em resultados explícitos do histórico; reuniões e propostas com base em resultados do histórico ou etapas comerciais correspondentes; e ganhos com base nas etapas Cliente/Ganha. Uma empresa pode contribuir para mais de um indicador. Os números representam o estado atual dos cadastros vinculados e não atribuem causalidade exclusiva à campanha. Registros sem histórico não são tratados como contato ou resposta.
+
+
+### Indicadores das campanhas
+
+O painel de campanhas calcula, por campanha, o total de empresas vinculadas, empresas com histórico de contato, empresas com resultados de interesse/retorno/reunião/proposta registrados, reuniões agendadas, propostas e ganhos. Os números são derivados dos registros atuais de cada empresa e não representam respostas inferidas ou entregas de mensagens. Empresas vinculadas são associadas por IDs de registros; se uma empresa for excluída ou não estiver carregada no workspace, ela não entra na contagem. Para manter os indicadores confiáveis, registre cada interação e atualize a etapa comercial da empresa.
