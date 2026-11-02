@@ -27,7 +27,7 @@ function parseCsv(text:string){
  if(matrix.length<2)throw new Error("O CSV precisa ter cabeçalho e pelo menos uma linha.");
  return {headers:matrix[0].map(h=>h.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]/g,"")),records:matrix.slice(1)};
 }
-\nconst money=(v:any)=>Number(v||0).toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
+const money=(v:any)=>Number(v||0).toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
 export default function Home(){
  const [user,setUser]=useState<any>(null),[email,setEmail]=useState(""),[module,setModule]=useState<ModuleKey>("dashboard"),[rows,setRows]=useState<RecordItem[]>([]),[loading,setLoading]=useState(false),[query,setQuery]=useState(""),[editing,setEditing]=useState<RecordItem|null>(null),[form,setForm]=useState<Record<string,string>>({}),[notice,setNotice]=useState(""),[demo,setDemo]=useState(false),[modalOpen,setModalOpen]=useState(false),[csvPreview,setCsvPreview]=useState<CsvPreviewRow[]>([]),[csvName,setCsvName]=useState(""),[importing,setImporting]=useState(false);\n const csvInput=useRef<HTMLInputElement|null>(null);
  const configured=Boolean(supabase);
