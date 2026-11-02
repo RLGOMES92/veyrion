@@ -193,3 +193,8 @@ O painel de campanhas calcula, por campanha, o total de empresas vinculadas, emp
 ## Central de follow-ups
 
 O módulo **Tarefas e follow-ups** apresenta uma fila operacional combinando datas `next_followup` das empresas e `due_at` das tarefas abertas. A fila permite filtrar todos, atrasados, hoje e próximos sete dias, abrir o registro para atualização e preparar uma abordagem a partir da empresa. A criação de tarefa salva um prazo e status; concluir ou cancelar requer atualizar o status no cadastro. Preparar abordagem não envia mensagens. Os indicadores refletem apenas registros presentes no workspace e não comprovam que um contato foi realizado.
+
+
+## Assistente comercial · Próximas melhores ações
+
+No dashboard, o assistente prioriza empresas com retorno vencido ou previsto para hoje, sinais positivos sem novo prazo, contatos parados há pelo menos sete dias, primeiros contatos ainda não realizados e cadastros incompletos. Cada sugestão exibe o motivo, a ação recomendada e a pontuação heurística de potencial, com atalhos para abrir a empresa, preparar uma abordagem ou criar uma tarefa. A recomendação usa somente interações e campos já registrados; não faz enriquecimento externo, não confirma intenção de compra e não envia mensagens. Empresas marcadas como Cliente, Sem interesse ou Descartada são excluídas da fila.
