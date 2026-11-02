@@ -286,3 +286,8 @@ A ação não consulta extratos bancários nem faz conciliação automática. Co
 A ação **Registrar pagamento** na lista de receitas em atraso aceita um valor recebido menor ou igual ao saldo em aberto e solicita a data efetiva do recebimento. Cada parcela é adicionada a `payment_history`; o total acumulado fica em `paid_amount` e o saldo em `remaining_amount`. O status passa a `Parcial` enquanto houver saldo e a `Pago` quando a cobrança estiver quitada. O painel calcula recebido, em aberto e vencido pelo saldo remanescente, sem contar o valor original integral como ainda devido.
 
 A confirmação é manual: registre somente valores efetivamente recebidos e confira a data. O sistema não consulta banco, não concilia extratos automaticamente e não substitui uma rotina contábil. Em ambiente com múltiplos operadores, atualize os dados antes de registrar parcelas sucessivas; a gravação do histórico no payload não é uma transação bancária nem uma conciliação atômica.
+
+
+### Detalhamento do histórico de pagamentos
+
+A tabela por contrato permite expandir cada contrato e consultar suas cobranças, valor original, total recebido, saldo atual e cada pagamento registrado, com data e forma de pagamento. A pontualidade considera cada evento de pagamento quando há histórico detalhado; para registros antigos sem histórico, utiliza a data de quitação disponível. Cada recebimento manual solicita a forma de pagamento informada pelo operador.
