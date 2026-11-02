@@ -223,3 +223,8 @@ O dashboard permite selecionar uma data e visualizar interações registradas, e
 O dashboard apresenta até 12 empresas priorizadas para prospecção de locação de notebooks. A classificação usa apenas dados cadastrados: pontuação heurística de qualificação (porte, quantidade estimada de notebooks, setor, interesse declarado e contato), ajuste por follow-up atrasado ou previsto para hoje, validação da empresa e confiabilidade da fonte. A lista exclui empresas nas etapas Cliente, Sem interesse e Descartada.
 
 A pontuação é um apoio operacional, não uma previsão garantida, não comprova intenção de compra e não representa demanda de mercado. A quantidade de notebooks é uma estimativa registrada no cadastro. Campos vazios permanecem como informação ausente, não como zero de demanda. As ações disponíveis abrem o cadastro ou preparam uma abordagem editável; o módulo não envia mensagens automaticamente.
+
+
+## Ranking de desempenho por meta
+
+Na visão geral, o ranking mensal ordena responsáveis com metas cadastradas pelo percentual de atingimento financeiro; em caso de empate, considera o atingimento do volume de oportunidades criadas. Os valores realizados vêm de oportunidades atribuídas pelo campo Responsável e com data de ganho/criação compatível com a competência. O ranking não atribui automaticamente interações, reuniões ou propostas do histórico de empresas a vendedores quando o evento não identifica seu responsável. Percentuais podem superar 100%; metas não cadastradas não são estimadas.
