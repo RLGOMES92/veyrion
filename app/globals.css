@@ -41,3 +41,5 @@
   .proposal-print-footer{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid #dce3ee;padding-top:12px;margin-top:30px;color:#66748a;font-size:7.5pt}
   .proposal-print-footer strong{color:#18263d;letter-spacing:1.5px}
 }
+
+.form-grid input:read-only{background:#14233a;color:#b9c9e3;border-color:#31496c;cursor:default}
