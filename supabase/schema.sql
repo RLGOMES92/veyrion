@@ -40,6 +40,5 @@ for each row execute procedure public.set_updated_at();
 -- IMPORTANT:
 -- 1) Enable email authentication in Supabase Auth.
 -- 2) Configure Site URL and Redirect URLs for your deployed Vercel domain.
--- 3) Invite only approved team members. Each authenticated user sees only their own rows.
--- 4) Team sharing/role-based access requires the organization_members + role policies
---    migration in the next security phase. Do not disable RLS to make sharing work.
+-- 3) Execute supabase/migrations/002_organizations_roles.sql after this file.
+-- 4) The migration adds organizations, memberships and role-based RLS. Do not disable RLS.
