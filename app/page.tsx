@@ -71,6 +71,8 @@ export default function Home(){
      if(module==="companies"&&payload.notebook_demand)payload.notebook_demand=Number(String(payload.notebook_demand).replace(/[^0-9]/g,""))||0;
      const required=module==="companies"?["name","cnpj"]:["name","email"];
      let issue=required.some(k=>!String(payload[k]||"").trim())?"Campo obrigatório ausente": "";
+     if(!issue&&module==="companies"&&String(payload.cnpj).replace(/\D/g,"").length!==14)issue="CNPJ deve conter 14 dígitos";
+     if(!issue&&module==="contacts"&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(payload.email)))issue="E-mail inválido";
      const uniqueKey=String(payload[module==="companies"?"cnpj":"email"]||"").toLowerCase().replace(/[^a-z0-9]/g,"");
      if(!issue&&existing.has(uniqueKey))issue="Já existe no cadastro";
      else if(!issue&&seen.has(uniqueKey))issue="Duplicado no próprio arquivo";
