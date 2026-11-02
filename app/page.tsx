@@ -71,11 +71,13 @@ export default function Home(){
  function openForm(r?:RecordItem){setEditing(r||null);setForm(r?Object.fromEntries(Object.entries(r.payload).filter(([k])=>k!=="interactions").map(([k,v])=>[k,String(v??"")])):{});setInteractionLog(Array.isArray(r?.payload.interactions)?r.payload.interactions:[]);setInteractionType("Ligação");setInteractionNote("");setInteractionDate(localDate());setInteractionOutcome("Em conversa");setInteractionNextAction("");setInteractionNextDate("");setModalOpen(true);}
  function createProposalFromOpportunity(record:RecordItem){
   const p=record.payload||{};
+  const companyRecord=rows.find(x=>x.module==="companies"&&String(x.payload.name||"").trim().toLowerCase()===String(p.company||"").trim().toLowerCase());
+  const companyData=companyRecord?.payload||{};
   const expires=new Date();expires.setDate(expires.getDate()+7);
   const validUntil=[expires.getFullYear(),String(expires.getMonth()+1).padStart(2,"0"),String(expires.getDate()).padStart(2,"0")].join("-");
   const proposalNumber="PROP-"+localDate().replace(/-/g,"")+"-"+String(rows.filter(x=>x.module==="proposals").length+1).padStart(3,"0");
   setModule("proposals");setQuery("");setEditing(null);
-  setForm({number:proposalNumber,company:String(p.company||""),opportunity:String(p.title||""),type:String(p.type||"Locação"),device_model:"Notebook corporativo",specs:"Configuração a definir conforme disponibilidade e necessidade do cliente.",quantity:p.quantity?String(p.quantity):"",monthly_per_unit:"",monthly_value:"",term_months:"12",total_value:"",conditions:"Faturamento mensal mediante emissão de nota fiscal. Valores sujeitos à confirmação de disponibilidade e análise cadastral.",delivery_support:"Entrega agendada no endereço do cliente. Suporte técnico durante a vigência, conforme escopo acordado.",valid_until:validUntil,status:"Rascunho"});
+  setForm({number:proposalNumber,company:String(companyData.name||p.company||""),customer_name:String(companyData.contact_person||""),customer_email:String(companyData.contact_email||""),customer_phone:String(companyData.phone||""),customer_document:String(companyData.cnpj||""),opportunity:String(p.title||""),type:String(p.type||"Locação"),device_model:"Notebook corporativo",specs:"Configuração a definir conforme disponibilidade e necessidade do cliente.",quantity:p.quantity?String(p.quantity):"",monthly_per_unit:"",monthly_value:"",term_months:"12",total_value:"",conditions:"Faturamento mensal mediante emissão de nota fiscal. Valores sujeitos à confirmação de disponibilidade e análise cadastral.",delivery_support:"Entrega agendada no endereço do cliente. Suporte técnico durante a vigência, conforme escopo acordado.",valid_until:validUntil,status:"Rascunho"});
   setModalOpen(true);
   setNotice("Rascunho criado a partir da oportunidade. Confira a empresa e preencha os valores e condições antes de enviar.");
  }
