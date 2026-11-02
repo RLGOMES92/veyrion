@@ -243,3 +243,8 @@ A Visão geral inclui um painel de atividade da equipe com data inicial, data fi
 ## Central de alertas gerenciais
 
 A Visão geral reúne alertas derivados dos dados registrados: follow-ups vencidos; oportunidades sinalizadas pelo radar de pipeline; metas mensais abaixo de 70% do valor ou volume; e propostas não finalizadas há pelo menos sete dias. Alertas vinculados a registros permitem abrir o cadastro correspondente. Os critérios são operacionais e configuráveis no código, não representam previsão garantida nem substituem a revisão comercial. Nenhuma mensagem é enviada automaticamente.
+
+
+## Inteligência da operação de locação
+
+A Visão geral apresenta notebooks disponíveis, unidades informadas em contratos ativos, quantidade solicitada em oportunidades abertas e cobertura potencial do estoque. Também agrupa o inventário por marca/modelo e lista contratos com término nos próximos 30 dias. A cobertura é uma comparação indicativa entre disponibilidade e demanda registrada, não uma reserva, alocação ou garantia de atendimento. Contratos não baixam o estoque automaticamente; a equipe deve revisar status, quantidades e modelos antes de confirmar uma locação.
