@@ -159,4 +159,4 @@ O painel **não realiza busca na internet, raspagem, enriquecimento automático 
 4. Complete porte, contato/decisor e demanda somente quando houver fonte confiável.
 5. Use a nota de potencial como apoio à priorização, abra o cadastro e crie uma tarefa para a próxima ação.
 
-A integração futura com fontes externas deverá ser implementada por conectores autorizados, com origem, data de atualização, limites de uso e revisão humana. Nenhuma coleta externa é ativada por esta entrega.
+A integração futura com fontes externas deverá ser implementada por conectores autorizados, com origem, data de atualização, limites de uso e revisão humana. Nenhuma coleta externa é ativada por esta entrega. A importação CSV também reconhece cabeçalhos alternativos para número de funcionários, fonte/referência da pesquisa, data da pesquisa e cargo do decisor (por exemplo: `funcionarios`, `numerodefuncionarios`, `fontereferencia`, `datadapesquisa`, `cargododecisor`).
