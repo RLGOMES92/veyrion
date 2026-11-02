@@ -296,3 +296,10 @@ A tabela por contrato permite expandir cada contrato e consultar suas cobranças
 ### Integridade do histórico ao editar cobranças
 
 Ao editar uma receita que já recebeu pagamentos, o formulário preserva o histórico de parcelas, o total recebido e a data do último pagamento. O valor original não pode ser reduzido abaixo do que já foi recebido. Uma receita ainda não quitada não pode ser marcada diretamente como paga pelo formulário comum: use **Registrar pagamento**, que exige valor e data e mantém a trilha de recebimentos.
+
+
+## Conciliação por forma de pagamento e responsável
+
+O painel financeiro também resume os eventos de pagamento registrados por forma informada (PIX, transferência, boleto etc.), com quantidade e soma dos valores. Cada novo evento passa a guardar identificador, valor, data, forma de pagamento, instante do registro e responsável autenticado quando disponível.
+
+O resumo considera somente eventos presentes em `payment_history`; lançamentos antigos sem esse histórico continuam aparecendo nos totais gerais, mas não são atribuídos a uma forma de pagamento. A forma é informada manualmente e não representa confirmação bancária ou conciliação automática.
