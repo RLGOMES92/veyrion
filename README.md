@@ -117,3 +117,9 @@ A edição de oportunidades registra cada mudança de etapa em `payload.stage_hi
 ## Previsão comercial e alertas de pipeline
 
 O painel **Previsão comercial** considera oportunidades abertas (exclui Ganha e Perdida), soma o pipeline nominal e calcula a previsão ponderada por responsável com `valor estimado × probabilidade / 100`. A probabilidade é limitada ao intervalo de 0 a 100. O quadro também destaca oportunidades com previsão de fechamento vencida, sem próxima ação, sem movimentação há pelo menos 14 dias ou com probabilidade de 70% ou mais e fechamento previsto nos próximos 7 dias. O indicador de fechamento próximo usa janela de 14 dias. Esses indicadores são sinais de priorização, não previsões garantidas; mantenha valor, probabilidade, responsável, etapa, próxima ação e data de fechamento atualizados. Para registros antigos sem `stage_updated_at`, a idade do último movimento é aproximada pela data de criação.
+
+## Inteligência de prospecção B2B
+
+O painel **Empresas prioritárias** calcula uma nota heurística de potencial de locação a partir dos dados preenchidos no cadastro: porte (até 25 pontos), demanda estimada de notebooks (até 30), setor (até 15), interesse declarado em locação (até 20) e existência de canal/pessoa de contato (até 10). A nota é limitada a 100 e não usa dados externos nem presume demanda quando os campos estão vazios.
+
+A classe de prospecção é A (70+), B (40–69) ou C (abaixo de 40). A qualidade/completude do cadastro aparece separadamente da nota, com indicação dos dados que ainda faltam. A fila prioriza empresas com follow-up vencido ou previsto para hoje e, em seguida, potencial e prioridade comercial. Empresas nas etapas **Cliente** e **Sem interesse** não aparecem na fila de novos alvos. Essa classificação apoia a organização da equipe; não substitui qualificação humana, pesquisa da empresa ou confirmação do interesse.
