@@ -37,6 +37,18 @@ Acesse http://localhost:3000.
 ## Integrações previstas (não ativadas)
 O arquivo `.env.example` lista variáveis para OpenAI, WhatsApp Cloud API, Zoho e SMTP. A presença dessas variáveis não significa que a integração esteja ativa. Implementar cada conector exige credenciais reais, URLs de webhook, templates aprovados e testes. Nenhum segredo deve ser commitado no GitHub.
 
+## Propostas comerciais de locação
+
+O módulo de propostas permite criar um rascunho a partir de uma oportunidade e aproveitar os dados de contato já cadastrados na empresa. O editor contempla empresa contratante, responsável, e-mail, telefone, CNPJ/CPF, modelo e especificações dos notebooks, quantidade, valor mensal por equipamento, prazo, condições comerciais, entrega/suporte e validade.
+
+Ao salvar uma proposta, o sistema calcula:
+- **Mensalidade total:** quantidade × valor mensal por equipamento.
+- **Valor estimado do contrato:** mensalidade total × prazo em meses.
+
+Cada proposta possui acompanhamento de status (Rascunho, Enviada, Em negociação, Aceita, Recusada ou Expirada). A ação de impressão gera um documento comercial VEYRION em formato A4; no diálogo de impressão do navegador, selecione **Salvar como PDF** para gerar o arquivo.
+
+Os status e datas de movimentação são registrados no payload da proposta. A ação de alterar para "Enviada" registra a data de envio, mas não dispara e-mail ou WhatsApp: o envio externo depende de uma integração configurada e autorizada.
+
 ## Escopo comercial e operacional
 - Prospecção B2B em São Paulo e Grande São Paulo, para empresas de todos os portes.
 - Setores iniciais: tecnologia, BPO/call center, consultorias, logística, saúde, educação, indústria e serviços financeiros.
