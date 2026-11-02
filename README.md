@@ -303,3 +303,8 @@ Ao editar uma receita que já recebeu pagamentos, o formulário preserva o hist�
 O painel financeiro também resume os eventos de pagamento registrados por forma informada (PIX, transferência, boleto etc.), com quantidade e soma dos valores. Cada novo evento passa a guardar identificador, valor, data, forma de pagamento, instante do registro e responsável autenticado quando disponível.
 
 O resumo considera somente eventos presentes em `payment_history`; lançamentos antigos sem esse histórico continuam aparecendo nos totais gerais, mas não são atribuídos a uma forma de pagamento. A forma é informada manualmente e não representa confirmação bancária ou conciliação automática.
+
+
+### Rastreabilidade dos recebimentos
+
+Cada novo evento de pagamento também registra a forma informada pelo operador e o responsável identificado pela sessão (nome do perfil ou e-mail). O histórico exibe esses dados junto ao valor e à data. Se a sessão não fornecer uma identificação, o registro fica marcado como responsável não identificado. Dados históricos anteriores à melhoria não recebem atribuição retroativa.
