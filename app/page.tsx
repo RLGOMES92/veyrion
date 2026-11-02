@@ -44,7 +44,7 @@ export default function Home(){
  useEffect(()=>{if(!supabase)return;supabase.auth.getSession().then(({data})=>setUser(data.session?.user||null));const {data:{subscription}}=supabase.auth.onAuthStateChange((_e,s)=>setUser(s?.user||null));return()=>subscription.unsubscribe()},[]);
  async function load(){if(!supabase||!user)return;setLoading(true);const {data,error}=await supabase.from("workspace_records").select("*").order("created_at",{ascending:false});if(error)setNotice(error.message);else{setRows((data||[]) as RecordItem[]);setDemo(false)}setLoading(false)}
  useEffect(()=>{if(user)load()},[user]);
- const visible=useMemo(()=>rows.filter(r=>r.module===module&&JSON.stringify(r.payload).toLowerCase().includes(query.toLowerCase())),[rows,module,query]);
+ const visible=useMemo(()=>rows.filter(r=>r.module===module&&(JSON.stringify(r.payload).toLowerCase().includes(query.toLowerCase())||(module==="companies"&&query==="Novo lead"&&!r.payload.prospect_stage))),[rows,module,query]);
  const stats=useMemo(()=>({companies:rows.filter(r=>r.module==="companies").length,contacts:rows.filter(r=>r.module==="contacts").length,open:rows.filter(r=>r.module==="opportunities"&&!["Ganha","Perdida"].includes(r.payload.stage)).length,assets:rows.filter(r=>r.module==="assets"&&r.payload.status==="Disponível").length,won:rows.filter(r=>r.module==="opportunities"&&r.payload.stage==="Ganha").reduce((s,r)=>s+Number(r.payload.value||0),0)}),[rows]);
  const todayKey=(()=>{const d=new Date();return [d.getFullYear(),String(d.getMonth()+1).padStart(2,"0"),String(d.getDate()).padStart(2,"0")].join("-")})();
  const followups=useMemo(()=>rows.flatMap(record=>{
