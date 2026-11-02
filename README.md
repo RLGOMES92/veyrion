@@ -129,3 +129,9 @@ A classe de prospecção é A (70+), B (40–69) ou C (abaixo de 40). A qualidad
 Na fila **Empresas prioritárias** e nos cartões do quadro de prospecção, a ação **Criar tarefa** abre um follow-up pré-preenchido com empresa, contato, próxima ação e data de retorno. A prioridade da tarefa deriva da prioridade comercial cadastrada (Alta → Urgente; Média → Alta; demais → Normal). O contexto disponível — canal de contato, demanda estimada, interesse declarado e observações — é incluído nas notas, e o identificador interno da empresa e a pontuação estimada acompanham o registro da tarefa.
 
 A tarefa só é gravada depois que o usuário revisa e clica em **Salvar registro**. Depois disso, ela aparece no módulo **Tarefas** e na agenda/central de follow-ups, onde pode ser acompanhada e atualizada. A criação não envia mensagens nem realiza ligações automaticamente.
+
+## Cadência inteligente de prospecção
+
+A fila de empresas prioritárias também apresenta a quantidade de interações registradas, data do último contato, situação da cadência e próxima ação sugerida. As recomendações usam apenas o histórico salvo no cadastro: sinais positivos (interessado, proposta solicitada ou reunião agendada) recebem prioridade; follow-ups vencidos ou para hoje vêm em seguida; contatos sem resposta há pelo menos três dias sugerem avaliar um canal alternativo; contatos parados há sete dias sugerem retomada contextual. Empresas sem interesse declarado devem ser respeitadas e não recebem sugestão de insistência.
+
+A ordenação combina prioridade da cadência, pontuação de potencial e prioridade comercial. O sistema não envia e-mails, WhatsApp ou ligações automaticamente: a equipe registra cada tentativa no histórico da empresa e executa a ação manualmente. A contagem considera registros de interação existentes, não mensagens efetivamente entregues ou visualizadas.
