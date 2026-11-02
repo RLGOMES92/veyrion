@@ -26,12 +26,13 @@ Acesse http://localhost:3000.
 2. No SQL Editor, execute todo o arquivo `supabase/schema.sql`.
 3. Depois, execute `supabase/migrations/002_organizations_roles.sql` para habilitar organizações, membros e permissões por função.
 4. Por último, execute `supabase/migrations/003_unique_monthly_rental_charges.sql` para impedir cobranças mensais duplicadas por contrato e competência. Se a migration apontar duplicidades existentes, revise os lançamentos antes de tentar novamente.
-5. Em Authentication > Providers, habilite Email.
-6. Configure Site URL e Redirect URLs para localhost e o domínio Vercel.
-7. Copie Project URL e anon/publishable key para `.env.local` e para as Environment Variables da Vercel:
+5. Execute `supabase/migrations/004_workspace_audit_logs.sql` para habilitar o histórico de auditoria de criação, edição e exclusão. O histórico registra organização, usuário, módulo, ação, data e nomes dos campos alterados, sem copiar os valores dos cadastros.
+6. Em Authentication > Providers, habilite Email.
+7. Configure Site URL e Redirect URLs para localhost e o domínio Vercel.
+8. Copie Project URL e anon/publishable key para `.env.local` e para as Environment Variables da Vercel:
    - `NEXT_PUBLIC_SUPABASE_URL`
    - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-8. Cadastre/invite somente membros autorizados.
+9. Cadastre/invite somente membros autorizados.
 
 **Banco de dados:** a migration 003 cria um índice único por organização e `charge_key` no módulo financeiro. A aplicação trata conflito de inserção simultânea como cobrança já existente. Execute-a somente depois das migrations 001 (schema inicial) e 002 (organizações/permissões).\n\n**Segurança:** execute a migration 002 depois do schema inicial. Ela cria uma organização por usuário existente, cria automaticamente a organização do próximo usuário cadastrado e aplica políticas RLS por organização e função. Papéis: Owner/Admin, Gerente, Comercial, Operações, Financeiro e Visualizador. Financeiro fica restrito a Financeiro/Admin; equipamentos e contratos a Operações/Admin; dados comerciais a Comercial/Gerente/Admin. O frontend ainda precisa de uma tela administrativa para convidar membros, trocar organização e gerenciar papéis; até isso existir, faça o provisionamento de membros com cuidado pelo painel Supabase. Não desligue RLS.
 
