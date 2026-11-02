@@ -233,3 +233,8 @@ Na visão geral, o ranking mensal ordena responsáveis com metas cadastradas pel
 ## Responsável das interações e atividade diária por vendedor
 
 Novas interações registram o identificador do usuário autenticado (actor_id) e seu nome/e-mail (actor_name) tanto no histórico do cadastro quanto no registro de resultado da abordagem. A produtividade diária agrupa interações pela data selecionada e pelo responsável registrado, exibindo interações, empresas únicas, respostas, sinais positivos, reuniões e propostas solicitadas. Registros históricos sem esses campos permanecem como “Responsável não identificado”; não há atribuição retroativa ou inferência pelo responsável atual da empresa. Em modo demonstração, a identidade só existe se houver usuário autenticado.
+
+
+## Desempenho da equipe por período e responsável
+
+A Visão geral inclui um painel de atividade da equipe com data inicial, data final e filtro de responsável. Ele agrupa interações registradas no histórico das empresas por responsável identificado no momento do registro e apresenta interações, empresas únicas, respostas explícitas, sinais positivos, reuniões e propostas solicitadas. Eventos antigos sem identificação ficam em “Responsável não identificado”. O painel mede atividade registrada, não faturamento, comissão ou causalidade. Metas e valores continuam nos painéis mensais de oportunidades e metas.
