@@ -71,7 +71,7 @@ const metroRegions:[string,string[]][]=[
  ["Sudoeste",["taboao da serra","taboão da serra","embu das artes","embu-guacu","embu-guaçu","itapecerica da serra","juquitiba","sao lourenco da serra","são lourenço da serra"]]
 ];
 const normalizeCity=(value:any)=>String(value||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/\s+/g," ").trim();
-const researchFreshness=(date:any)=>{const key=String(date||"").slice(0,10);if(!/^\\d{4}-\\d{2}-\\d{2}$/.test(key))return "Sem data";const age=Math.max(0,Math.floor((new Date(localDate()+"T00:00:00").getTime()-new Date(key+"T00:00:00").getTime())/86400000));return age<=30?"Atualizada (até 30 dias)":age<=90?"Revisar em breve (31–90 dias)":"Desatualizada (mais de 90 dias)";};
+const researchFreshness=(date:any)=>{const key=String(date||"").slice(0,10);if(!/^\d{4}-\d{2}-\d{2}$/.test(key))return "Sem data";const age=Math.max(0,Math.floor((new Date(localDate()+"T00:00:00").getTime()-new Date(key+"T00:00:00").getTime())/86400000));return age<=30?"Atualizada (até 30 dias)":age<=90?"Revisar em breve (31–90 dias)":"Desatualizada (mais de 90 dias)";};
 const metroRegionOf=(value:any)=>{const city=normalizeCity(value);if(!city)return "Não identificada";for(const [region,cities] of metroRegions){if(cities.some(name=>city.includes(normalizeCity(name))))return region;}return "Fora da cobertura mapeada";};
 const money=(v:any)=>Number(v||0).toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
 export default function Home(){
