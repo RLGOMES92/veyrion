@@ -63,6 +63,17 @@ O contrato é criado inicialmente em **Preparação**, com datas previstas calcu
 
 A conversão **não reserva equipamentos automaticamente**, não assina documentos, não envia contrato ao cliente e não cria cobranças. Essas ações exigem validação operacional e integrações específicas.
 
+
+## Cobranças mensais de locação
+
+No módulo **Financeiro**, a ação **Gerar cobranças do mês** cria uma receita prevista para cada contrato com status **Ativo**, modalidade de locação e data de início válida, para a competência atual (`YYYY-MM`). A chave do registro combina o ID do contrato e a competência, permitindo reconhecer cobranças já geradas e evitar duplicidade em execuções repetidas.
+
+O vencimento é calculado usando o dia do mês da data de início do contrato; quando o mês tiver menos dias, usa-se o último dia daquele mês. Contratos com início futuro ou sem data de início válida são ignorados e contabilizados no retorno da operação. A geração é manual e não cria cobranças para contratos em preparação, encerrados, cancelados ou de venda.
+
+As cobranças são gravadas como **Previsto** quando ainda não venceram ou **Pendente** quando o vencimento já passou. A ação nunca marca uma cobrança como paga. O recebimento mensal considera lançamentos de receita com status **Pago** e data de pagamento na competência atual. Revise valor, vencimento e condições antes de cobrar o cliente; o sistema não envia boletos, não processa pagamentos e não substitui a conciliação bancária.
+
+A proteção contra duplicidade é aplicada pela chave no payload e pela conferência dos registros carregados. Em ambientes com múltiplos operadores gerando cobranças simultaneamente, recomenda-se adicionar uma restrição única no banco para `module` + `charge_key`, como reforço transacional.
+
 ## Propostas comerciais de locação
 
 O módulo de propostas permite criar um rascunho a partir de uma oportunidade e aproveitar os dados de contato já cadastrados na empresa. O editor contempla empresa contratante, responsável, e-mail, telefone, CNPJ/CPF, modelo e especificações dos notebooks, quantidade, valor mensal por equipamento, prazo, condições comerciais, entrega/suporte e validade.
