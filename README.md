@@ -107,3 +107,8 @@ Os status e datas de movimentação são registrados no payload da proposta. A a
 
 ## Observação
 O HTML anterior foi preservado em `legacy/`. Dados de demonstração devem ser identificados como DEMO; não representam clientes ou oportunidades reais.
+
+
+## Histórico do funil e conversão mensal
+
+A edição de oportunidades registra cada mudança de etapa em `payload.stage_history`, com etapa anterior, nova etapa, data/hora e usuário autenticado. Ao entrar em **Ganha**, a oportunidade recebe `won_at`; ao sair de **Ganha**, essa data é limpa. Propostas também mantêm `status_history` quando seu status é alterado pela ação do módulo. O painel de metas calcula o ganho do mês a partir de `won_at` e o volume de oportunidades a partir de `created_at`. O histórico é iniciado a partir desta versão: mudanças antigas não são reconstruídas retroativamente e não devem ser interpretadas como dados históricos completos.
