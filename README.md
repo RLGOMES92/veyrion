@@ -37,6 +37,12 @@ Acesse http://localhost:3000.
 ## Integrações previstas (não ativadas)
 O arquivo `.env.example` lista variáveis para OpenAI, WhatsApp Cloud API, Zoho e SMTP. A presença dessas variáveis não significa que a integração esteja ativa. Implementar cada conector exige credenciais reais, URLs de webhook, templates aprovados e testes. Nenhum segredo deve ser commitado no GitHub.
 
+## Painel operacional de locação
+
+A Visão geral apresenta indicadores calculados a partir dos registros existentes: total de equipamentos por status, contratos ativos, receita mensal contratada (soma das mensalidades dos contratos com status Ativo), lançamentos financeiros vencidos e contratos com término previsto em até 30 dias ou já vencidos.
+
+Os alertas de contrato consideram o campo de término previsto e excluem contratos encerrados ou cancelados. Os indicadores são operacionais e dependem da qualidade dos dados cadastrados; receita mensal contratada não equivale a recebimento confirmado. O contador financeiro considera lançamentos não pagos/cancelados com vencimento anterior à data atual.
+
 ## Gestão individual de equipamentos
 
 O módulo de equipamentos mantém um registro por notebook, com patrimônio/etiqueta, marca, modelo, número de série, configuração, condição, custos, valor de locação, localização, garantia e observações de manutenção. O número de série é validado para evitar duplicidade no cadastro.
