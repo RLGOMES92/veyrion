@@ -37,6 +37,14 @@ Acesse http://localhost:3000.
 ## Integrações previstas (não ativadas)
 O arquivo `.env.example` lista variáveis para OpenAI, WhatsApp Cloud API, Zoho e SMTP. A presença dessas variáveis não significa que a integração esteja ativa. Implementar cada conector exige credenciais reais, URLs de webhook, templates aprovados e testes. Nenhum segredo deve ser commitado no GitHub.
 
+## Conversão de propostas aceitas em contratos
+
+Uma proposta com status **Aceita** pode ser convertida em um registro do módulo **Contratos e locações** pela ação "Gerar contrato". O sistema aproveita os dados comerciais, cliente, equipamento, quantidade, prazo e valores da proposta, gera um número de contrato e registra a referência interna da proposta para evitar conversões duplicadas.
+
+O contrato é criado inicialmente em **Preparação**, com datas previstas calculadas a partir da data atual e do prazo informado. Antes de ativar a locação, a equipe deve confirmar a assinatura, disponibilidade dos equipamentos, números de série, endereço e agenda de entrega.
+
+A conversão **não reserva equipamentos automaticamente**, não assina documentos, não envia contrato ao cliente e não cria cobranças. Essas ações exigem validação operacional e integrações específicas.
+
 ## Propostas comerciais de locação
 
 O módulo de propostas permite criar um rascunho a partir de uma oportunidade e aproveitar os dados de contato já cadastrados na empresa. O editor contempla empresa contratante, responsável, e-mail, telefone, CNPJ/CPF, modelo e especificações dos notebooks, quantidade, valor mensal por equipamento, prazo, condições comerciais, entrega/suporte e validade.
