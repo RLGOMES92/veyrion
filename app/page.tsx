@@ -62,7 +62,7 @@ export default function Home(){
   const reader=new FileReader();reader.onload=()=>{
    try{
     const parsed=parseCsv(String(reader.result||""));
-    const aliases:Record<string,string>={razaosocial:"name",empresa:"name",nome:"name",nomecompleto:"name",cnpj:"cnpj",funcionarios:"employees",employees:"employees",setor:"sector",segmento:"sector",site:"website",website:"website",cidade:"city",cidadeuf:"city",telefone:"phone",phone:"phone",origem:"source",observacoes:"notes",email:"email",cargo:"role",departamento:"department",whatsapp:"whatsapp",poderdecisao:"decision_maker",notebooksestimados:"notebook_demand",notebooks:"notebook_demand",interesseemlocacao:"rental_interest",prioridadecomercial:"priority",prioridade:"priority",proximofollowup:"next_followup",followup:"next_followup"};
+    const aliases:Record<string,string>={razaosocial:"name",empresa:module==="companies"?"name":"company",nome:"name",nomecompleto:"name",cnpj:"cnpj",funcionarios:"employees",employees:"employees",setor:"sector",segmento:"sector",site:"website",website:"website",cidade:"city",cidadeuf:"city",telefone:"phone",phone:"phone",origem:"source",observacoes:"notes",email:"email",cargo:"role",departamento:"department",whatsapp:"whatsapp",poderdecisao:"decision_maker",notebooksestimados:"notebook_demand",notebooks:"notebook_demand",interesseemlocacao:"rental_interest",prioridadecomercial:"priority",prioridade:"priority",proximofollowup:"next_followup",followup:"next_followup"};
     const existing=new Set(rows.filter(x=>x.module===module).map(x=>String(x.payload[module==="companies"?"cnpj":"email"]||"").toLowerCase().replace(/[^a-z0-9]/g,"")).filter(Boolean));
     const seen=new Set<string>();
     const preview=parsed.records.map(values=>{
