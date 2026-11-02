@@ -295,7 +295,7 @@ A tabela por contrato permite expandir cada contrato e consultar suas cobranças
 
 ### Integridade do histórico ao editar cobranças
 
-Ao editar uma receita que já recebeu pagamentos, o formulário preserva o histórico de parcelas, o total recebido e a data do último pagamento. O valor original não pode ser reduzido abaixo do que já foi recebido. Uma receita ainda não quitada não pode ser marcada diretamente como paga pelo formulário comum: use **Registrar pagamento**, que exige valor e data e mantém a trilha de recebimentos.
+Ao editar uma receita que já recebeu pagamentos, o formulário preserva o histórico de parcelas, o total recebido e a data do último pagamento. O valor original não pode ser reduzido abaixo do que já foi recebido. A gravação da edição também compara `updated_at` para impedir que um formulário aberto com dados antigos sobrescreva recebimentos mais recentes. Uma receita ainda não quitada não pode ser marcada diretamente como paga pelo formulário comum: use **Registrar pagamento**, que exige valor e data e mantém a trilha de recebimentos.
 
 
 ## Conciliação por forma de pagamento e responsável
