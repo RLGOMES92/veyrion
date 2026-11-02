@@ -173,3 +173,8 @@ O cadastro de empresas agora permite registrar o tipo de fonte (site oficial, ca
 No painel regional, os filtros de validação e confiabilidade ajudam a separar empresas verificadas de registros ainda pendentes. A tabela também classifica a atualidade da pesquisa: até 30 dias, 31–90 dias ou mais de 90 dias; registros sem data aparecem como sem data. A idade é calculada localmente e deve ser usada como lembrete de revisão, não como garantia de que os dados continuam corretos.
 
 O painel sinaliza possíveis duplicidades por nome normalizado + cidade, apenas como alerta para revisão manual. A proteção por CNPJ continua sendo a regra de bloqueio de duplicidade no cadastro. Não há mesclagem ou exclusão automática. A importação CSV reconhece cabeçalhos para tipo de fonte, confiabilidade e status de validação. Para registros antigos sem esses campos, o sistema assume visualmente **Pendente** e **Não avaliada**, sem alterar os dados salvos.
+
+
+## Centro de Campanhas B2B
+
+O módulo **Campanhas B2B** permite segmentar empresas já cadastradas por macro-região operacional, setor e porte informado (pequena até 99 funcionários, média de 100 a 499 e grande a partir de 500), selecionar registros e salvar campanhas com objetivo, canal, status, data, responsável, mensagem-base e observações. A campanha guarda os IDs das empresas selecionadas e a quantidade no momento da criação; a lista de empresas é uma seleção da carteira existente, não uma busca externa. A equipe deve revisar os dados e personalizar cada abordagem. A campanha não dispara mensagens, não confirma entrega/leitura e não mede respostas automaticamente. Use o histórico de interações e as etapas das empresas para registrar os resultados reais.
