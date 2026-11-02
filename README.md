@@ -248,3 +248,8 @@ A Visão geral reúne alertas derivados dos dados registrados: follow-ups vencid
 ## Inteligência da operação de locação
 
 A Visão geral apresenta notebooks disponíveis, unidades informadas em contratos ativos, quantidade solicitada em oportunidades abertas e cobertura potencial do estoque. Também agrupa o inventário por marca/modelo e lista contratos com término nos próximos 30 dias. A cobertura é uma comparação indicativa entre disponibilidade e demanda registrada, não uma reserva, alocação ou garantia de atendimento. Contratos não baixam o estoque automaticamente; a equipe deve revisar status, quantidades e modelos antes de confirmar uma locação.
+
+
+## Controle de alocação e ciclo de vida dos notebooks
+
+A reserva verifica se o equipamento está disponível, compara o modelo informado com o modelo do contrato e impede alocação acima da quantidade contratada já reservada/alugada. A atualização no Supabase usa condição de status para detectar alterações concorrentes; se outro operador já alterou o registro, a ação não sobrescreve silenciosamente o estado. Equipamentos vinculados a contrato não podem ter o status alterado pelo seletor genérico: use os fluxos de entrega e devolução. A entrega exige reserva vinculada; a devolução exige locação vinculada e limpa a associação atual, preservando referência ao último contrato. Na demonstração, as alterações permanecem apenas no estado local. A conferência física e a atualização da lista continuam necessárias.
