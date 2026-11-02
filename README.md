@@ -228,3 +228,8 @@ A pontuação é um apoio operacional, não uma previsão garantida, não compro
 ## Ranking de desempenho por meta
 
 Na visão geral, o ranking mensal ordena responsáveis com metas cadastradas pelo percentual de atingimento financeiro; em caso de empate, considera o atingimento do volume de oportunidades criadas. Os valores realizados vêm de oportunidades atribuídas pelo campo Responsável e com data de ganho/criação compatível com a competência. O ranking não atribui automaticamente interações, reuniões ou propostas do histórico de empresas a vendedores quando o evento não identifica seu responsável. Percentuais podem superar 100%; metas não cadastradas não são estimadas.
+
+
+## Responsável das interações e atividade diária por vendedor
+
+Novas interações registram o identificador do usuário autenticado (actor_id) e seu nome/e-mail (actor_name) tanto no histórico do cadastro quanto no registro de resultado da abordagem. A produtividade diária agrupa interações pela data selecionada e pelo responsável registrado, exibindo interações, empresas únicas, respostas, sinais positivos, reuniões e propostas solicitadas. Registros históricos sem esses campos permanecem como “Responsável não identificado”; não há atribuição retroativa ou inferência pelo responsável atual da empresa. Em modo demonstração, a identidade só existe se houver usuário autenticado.
