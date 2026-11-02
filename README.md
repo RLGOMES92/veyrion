@@ -188,3 +188,8 @@ O painel de desempenho das campanhas calcula contatos com base em interações o
 ### Indicadores das campanhas
 
 O painel de campanhas calcula, por campanha, o total de empresas vinculadas, empresas com histórico de contato, empresas com resultados de interesse/retorno/reunião/proposta registrados, reuniões agendadas, propostas e ganhos. Os números são derivados dos registros atuais de cada empresa e não representam respostas inferidas ou entregas de mensagens. Empresas vinculadas são associadas por IDs de registros; se uma empresa for excluída ou não estiver carregada no workspace, ela não entra na contagem. Para manter os indicadores confiáveis, registre cada interação e atualize a etapa comercial da empresa.
+
+
+## Central de follow-ups
+
+O módulo **Tarefas e follow-ups** apresenta uma fila operacional combinando datas `next_followup` das empresas e `due_at` das tarefas abertas. A fila permite filtrar todos, atrasados, hoje e próximos sete dias, abrir o registro para atualização e preparar uma abordagem a partir da empresa. A criação de tarefa salva um prazo e status; concluir ou cancelar requer atualizar o status no cadastro. Preparar abordagem não envia mensagens. Os indicadores refletem apenas registros presentes no workspace e não comprovam que um contato foi realizado.
