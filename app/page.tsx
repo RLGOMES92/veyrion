@@ -123,7 +123,7 @@ export default function Home(){
    if(demo){newRows.push({id:"demo-charge-"+contract.id+"-"+competence,module:"finance",payload,created_at:new Date().toISOString()});created++;continue}
    if(!supabase){setNotice("Conecte o banco de dados ou use a demonstração para gerar cobranças.");setLoading(false);return}
    const {data,error}=await supabase.from("workspace_records").insert({module:"finance",payload}).select().single();
-   if(error){setRows(prev=>[...newRows,...prev]);setNotice("Foram criadas "+created+" cobrança(s), mas houve falha no próximo registro: "+error.message+". Execute novamente para continuar sem duplicar as já gravadas.");setLoading(false);return}
+   if(error){if(error.code==="23505"){skipped++;continue}setRows(prev=>[...newRows,...prev]);setNotice("Foram criadas "+created+" cobrança(s), mas houve falha no próximo registro: "+error.message+". Execute novamente para continuar sem duplicar as já gravadas.");setLoading(false);return}
    newRows.push(data as RecordItem);created++;
   }
   if(newRows.length)setRows(prev=>[...newRows,...prev]);
