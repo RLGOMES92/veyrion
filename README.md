@@ -279,3 +279,10 @@ Esses indicadores refletem apenas os lançamentos existentes no VEYRION. Não h�
 Na lista de receitas em atraso, a ação **Confirmar recebimento** permite registrar manualmente que o valor foi efetivamente recebido. A confirmação solicita validação do operador, altera o status para `Pago` e grava a data local do dia em `paid_date`. No modo demonstração, a mudança permanece somente no estado local.
 
 A ação não consulta extratos bancários nem faz conciliação automática. Confirme somente após verificar o recebimento real. Se outro operador já tiver atualizado o lançamento, a operação informa que os dados precisam ser atualizados antes de nova confirmação.
+
+
+## Pagamentos parciais e saldo por cobrança
+
+A ação **Registrar pagamento** na lista de receitas em atraso aceita um valor recebido menor ou igual ao saldo em aberto e solicita a data efetiva do recebimento. Cada parcela é adicionada a `payment_history`; o total acumulado fica em `paid_amount` e o saldo em `remaining_amount`. O status passa a `Parcial` enquanto houver saldo e a `Pago` quando a cobrança estiver quitada. O painel calcula recebido, em aberto e vencido pelo saldo remanescente, sem contar o valor original integral como ainda devido.
+
+A confirmação é manual: registre somente valores efetivamente recebidos e confira a data. O sistema não consulta banco, não concilia extratos automaticamente e não substitui uma rotina contábil. Em ambiente com múltiplos operadores, atualize os dados antes de registrar parcelas sucessivas; a gravação do histórico no payload não é uma transação bancária nem uma conciliação atômica.
