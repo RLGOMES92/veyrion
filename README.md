@@ -203,3 +203,8 @@ No dashboard, o assistente prioriza empresas com retorno vencido ou previsto par
 ### Registro do resultado da abordagem
 
 Na fila do assistente comercial, a ação **Registrar resultado** abre o histórico de interações da empresa com data e canal preenchidos para facilitar o registro. O usuário deve informar o resultado real, um resumo e, quando aplicável, a próxima ação e data de retorno; a empresa precisa ser salva para persistir o histórico. Quando há sinal positivo sem data futura, a recomendação passa a ser registrar o próximo retorno. O sistema não presume que a abordagem foi enviada ou que houve resposta.
+
+
+## Painel de conversão comercial
+
+A Visão geral inclui um funil acumulado calculado a partir dos cadastros de empresas e dos resultados efetivamente registrados: empresas contatadas, respostas explícitas, reuniões, propostas e clientes. Também apresenta recortes por canal e campanha. Contato é contado quando existe interação ou data de último contato; resposta considera resultados explícitos diferentes de “Sem resposta” e “Em conversa”. Reuniões e propostas dependem dos resultados registrados no histórico ou da etapa comercial correspondente; cliente depende da etapa Cliente/Ganha. Atribuição por canal/campanha indica associação dos registros, não causalidade. Mensagens copiadas ou contatos feitos fora do CRM não são presumidos como enviados.
