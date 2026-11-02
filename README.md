@@ -159,4 +159,8 @@ O painel **não realiza busca na internet, raspagem, enriquecimento automático 
 4. Complete porte, contato/decisor e demanda somente quando houver fonte confiável.
 5. Use a nota de potencial como apoio à priorização, abra o cadastro e crie uma tarefa para a próxima ação.
 
-A integração futura com fontes externas deverá ser implementada por conectores autorizados, com origem, data de atualização, limites de uso e revisão humana. Nenhuma coleta externa é ativada por esta entrega. A importação CSV também reconhece cabeçalhos alternativos para número de funcionários, fonte/referência da pesquisa, data da pesquisa e cargo do decisor (por exemplo: `funcionarios`, `numerodefuncionarios`, `fontereferencia`, `datadapesquisa`, `cargododecisor`).
+A integração futura com fontes externas deverá ser implementada por conectores autorizados, com origem, data de atualização, limites de uso e revisão humana. Nenhuma coleta externa é ativada por esta entrega.
+
+### Segmentação territorial da Grande São Paulo
+
+O painel regional também oferece macro-regiões operacionais para organizar a carteira: Capital, ABC Paulista, Oeste, Norte e Leste, Noroeste e Sudoeste. O agrupamento é feito localmente a partir do texto informado em Cidade / UF; municípios não reconhecidos aparecem como **Fora da cobertura mapeada**, e registros sem cidade como **Não identificada**. Use o filtro de cidade para refinar a seleção. Os indicadores mostram quantidade de empresas, empresas com pontuação heurística igual ou superior a 70 e soma da demanda de notebooks informada nos cadastros. A soma não representa demanda confirmada de mercado. Revise o município e os dados de cada empresa antes da abordagem. A importação CSV também reconhece cabeçalhos alternativos para número de funcionários, fonte/referência da pesquisa, data da pesquisa e cargo do decisor (por exemplo: `funcionarios`, `numerodefuncionarios`, `fontereferencia`, `datadapesquisa`, `cargododecisor`).
