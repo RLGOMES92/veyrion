@@ -42,7 +42,7 @@ function prospectIntelligence(p:Record<string,any>){
  if(contactable){score+=10;factors.push("Canal ou pessoa de contato informado (+10)")}
  const known=[p.employees,p.notebook_demand,p.sector,p.rental_interest,p.city,p.contact_person,(p.contact_email||p.phone)].filter(v=>v!==undefined&&v!==null&&String(v).trim()!=="").length;
  const completeness=Math.round(known/7*100);
- const missing=["employees","notebook_demand","sector","rental_interest","city","contact_person"].filter(k=>!p[k]).map(k=>({employees:"número de funcionários",notebook_demand:"demanda de notebooks",sector:"setor",rental_interest:"interesse em locação",city:"cidade",contact_person:"pessoa de contato"}[k]));
+ const missing=["employees","notebook_demand","sector","rental_interest","city"].filter(k=>!p[k]).map(k=>({employees:"número de funcionários",notebook_demand:"demanda de notebooks",sector:"setor",rental_interest:"interesse em locação",city:"cidade"}[k]));if(!p.contact_person&&!p.contact_email&&!p.phone)missing.push("canal ou pessoa de contato");
  const followup=String(p.next_followup||"").slice(0,10);const today=localDate();
  const followupState=!followup?"Sem retorno agendado":followup<today?"Follow-up atrasado":followup===today?"Contato para hoje":"Follow-up agendado";
  const stage=String(p.prospect_stage||"Novo lead");
