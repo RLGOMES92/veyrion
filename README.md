@@ -263,3 +263,12 @@ O módulo Manutenção registra ordens por número de série, patrimônio, equip
 ## Rentabilidade estimada por notebook
 
 No módulo Financeiro, a tabela por equipamento estima receita acumulada para notebooks vinculados a contratos ativos: mensalidade do contrato dividida pela quantidade contratada e multiplicada pelos meses desde o início. Deduz do valor estimado o custo de aquisição cadastrado e os custos de ordens de manutenção não canceladas. Equipamentos sem vínculo ativo aparecem sem receita estimada. O indicador é uma contribuição operacional aproximada, não lucro contábil: não inclui impostos, depreciação, inadimplência, frete, suporte ou custos financeiros. A qualidade depende do vínculo correto entre ativo, contrato e ordens de manutenção.
+
+
+## Cobranças, recebimentos e pontualidade
+
+O painel Financeiro consolida receitas registradas por empresa e contrato, separando valores recebidos, em aberto, vencidos e previstos a vencer. O histórico por contrato usa o vínculo `contract_id` quando disponível; registros sem vínculo são agrupados pelo nome da empresa.
+
+O índice de pontualidade considera somente cobranças com `due_date` e `paid_date` preenchidos: pagamentos realizados até o vencimento são pontuais; pagamentos posteriores são atrasados. Registros sem alguma dessas datas não entram no denominador. A previsão de recebimentos considera lançamentos em aberto com vencimento informado e mantém valores vencidos separados dos futuros.
+
+Esses indicadores refletem apenas os lançamentos existentes no VEYRION. Não há consulta bancária, conciliação automática, análise de crédito ou envio automático de cobrança. Revise os valores, datas, nomes de empresas e vínculos antes de tomar decisões.
