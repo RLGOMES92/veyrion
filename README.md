@@ -112,3 +112,8 @@ O HTML anterior foi preservado em `legacy/`. Dados de demonstração devem ser i
 ## Histórico do funil e conversão mensal
 
 A edição de oportunidades registra cada mudança de etapa em `payload.stage_history`, com etapa anterior, nova etapa, data/hora e usuário autenticado. Ao entrar em **Ganha**, a oportunidade recebe `won_at`; ao sair de **Ganha**, essa data é limpa. Propostas também mantêm `status_history` quando seu status é alterado pela ação do módulo. O painel de metas calcula o ganho do mês a partir de `won_at` e o volume de oportunidades a partir de `created_at`. O histórico é iniciado a partir desta versão: mudanças antigas não são reconstruídas retroativamente e não devem ser interpretadas como dados históricos completos.
+
+
+## Previsão comercial e alertas de pipeline
+
+O painel **Previsão comercial** considera oportunidades abertas (exclui Ganha e Perdida), soma o pipeline nominal e calcula a previsão ponderada por responsável com `valor estimado × probabilidade / 100`. A probabilidade é limitada ao intervalo de 0 a 100. O quadro também destaca oportunidades com previsão de fechamento vencida, sem próxima ação, sem movimentação há pelo menos 14 dias ou com probabilidade de 70% ou mais e fechamento previsto nos próximos 7 dias. O indicador de fechamento próximo usa janela de 14 dias. Esses indicadores são sinais de priorização, não previsões garantidas; mantenha valor, probabilidade, responsável, etapa, próxima ação e data de fechamento atualizados. Para registros antigos sem `stage_updated_at`, a idade do último movimento é aproximada pela data de criação.
