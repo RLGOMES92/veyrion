@@ -210,6 +210,9 @@ Na fila do assistente comercial, a ação **Registrar resultado** abre o histór
 A Visão geral inclui um funil acumulado calculado a partir dos cadastros de empresas e dos resultados efetivamente registrados: empresas contatadas, respostas explícitas, reuniões, propostas e clientes. Também apresenta recortes por canal e campanha. Contato é contado quando existe interação ou data de último contato; resposta considera resultados explícitos diferentes de “Sem resposta” e “Em conversa”. Reuniões e propostas dependem dos resultados registrados no histórico ou da etapa comercial correspondente; cliente depende da etapa Cliente/Ganha. Atribuição por canal/campanha indica associação dos registros, não causalidade. Mensagens copiadas ou contatos feitos fora do CRM não são presumidos como enviados.
 
 
+
+**Consistência das métricas:** os indicadores gerais e por campanha usam o mesmo critério para propostas (etapa “Proposta enviada” ou “Preparando proposta”, ou resultado “Proposta solicitada”) e ganhos (etapa “Cliente” ou “Ganha”). A análise por canal conta empresas únicas com interações registradas naquele canal; isso não prova causalidade nem atribui uma venda exclusivamente ao canal.
+
 ## Inteligência de carteira · Prioridade de locação
 
 O dashboard apresenta até 12 empresas priorizadas para prospecção de locação de notebooks. A classificação usa apenas dados cadastrados: pontuação heurística de qualificação (porte, quantidade estimada de notebooks, setor, interesse declarado e contato), ajuste por follow-up atrasado ou previsto para hoje, validação da empresa e confiabilidade da fonte. A lista exclui empresas nas etapas Cliente, Sem interesse e Descartada.
