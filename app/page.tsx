@@ -458,7 +458,7 @@ export default function Home(){
   const lines=[headers.map(cell).join(";"),...teamPerformance.rows.map(item=>[
    teamPeriodStart,teamPeriodEnd,item.seller,item.interactions,item.companies,item.replies,item.positive,item.meetings,item.proposals
   ].map(cell).join(";"))];
-  const csv="\\ufeff"+lines.join("\\r\\n");
+  const csv="\ufeff"+lines.join("\r\n");
   const url=URL.createObjectURL(new Blob([csv],{type:"text/csv;charset=utf-8"}));
   const a=document.createElement("a");a.href=url;a.download="veyrion-produtividade-equipe-"+teamPeriodStart+"-a-"+teamPeriodEnd+".csv";a.click();URL.revokeObjectURL(url);
   setNotice(teamPerformance.rows.length+" responsável(is) exportado(s) no relatório de produtividade.");
