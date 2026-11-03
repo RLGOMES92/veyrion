@@ -341,3 +341,8 @@ Nas tarefas vinculadas a uma receita, **Registrar contato** grava uma tentativa 
 ### Verificação do build
 
 O comando de produção executa `tsc --noEmit` antes de `next build`, para apresentar erros de tipagem TypeScript de forma direta antes da compilação otimizada.
+
+
+### Alertas de promessas de pagamento
+
+A Central de follow-ups apresenta contadores separados para promessas vencidas e promessas com data para hoje. Uma promessa entra nesses indicadores somente enquanto a tarefa estiver aberta, o status da promessa for `Aguardando pagamento` e a receita vinculada ainda tiver saldo em aberto. A data prometida também aparece no detalhe do follow-up. O indicador não confirma inadimplência bancária; é um alerta operacional para o responsável conferir a situação do recebimento.
