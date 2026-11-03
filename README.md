@@ -360,3 +360,43 @@ O painel Financeiro consolida tentativas de contato, quantidade de receitas acom
 O painel Financeiro classifica receitas com saldo em aberto por uma pontuação operacional de 0 a 100. O cálculo considera dias de atraso (até 30 pontos), saldo remanescente (até 25), promessas de pagamento vencidas registradas em tarefas (até 25), tentativas com resultado explícito “Sem resposta” (até 15) e duas ou mais cobranças em aberto para a mesma empresa (10). As faixas são Baixo (0–34), Moderado (35–64) e Alto (65–100). A lista prioriza pontuação, saldo e tempo de atraso e permite abrir a cobrança ou preparar um follow-up.
 
 A pontuação é calculada por cobrança, não por pessoa ou empresa como avaliação global; a mesma empresa pode aparecer em mais de uma linha. Cobranças sem vencimento não recebem pontos de atraso, e só contam tentativas cujo resultado foi registrado exatamente como “Sem resposta”. Promessas são consideradas vencidas quando permanecem aguardando pagamento e a data prometida já passou. O indicador é uma heurística explicável para organizar o trabalho da equipe: não é score de crédito, não prevê inadimplência, não substitui análise humana e não toma decisões automáticas. Confira o saldo, o histórico e possíveis acordos antes de contatar o cliente.
+
+## Fechamento da etapa 5 — Gestão e rastreabilidade dos ativos
+
+A etapa de gestão individual dos equipamentos está concluída no código do produto. Cada notebook é tratado como um ativo individual identificado por número de série, com cadastro técnico, condição, custos, localização, garantia, status e dados de manutenção preventiva.
+
+Recursos entregues:
+- Entrada individual de unidades recebidas a partir de planos de aquisição, com validação de quantidade e número de série.
+- Proteção contra números de série duplicados.
+- Reserva de equipamentos disponíveis para contratos, com validação de modelo, quantidade contratada e ordens de manutenção abertas.
+- Conversão de proposta aceita em contrato e reserva dos equipamentos correspondentes quando há unidades cadastradas compatíveis.
+- Rastreabilidade por número de série e histórico de movimentações com data, responsável, origem, destino e referência do contrato.
+- Visão financeira por ativo, com aquisição, manutenção, depreciação estimada, receita contratada, contribuição, payback e comparação de venda.
+- Bloqueios para impedir reserva de equipamentos em manutenção e alteração manual indevida de ativos vinculados a contratos.
+
+O fluxo de assinatura e ativação mantém confirmação humana. O sistema não substitui assinatura eletrônica, conferência física, comprovante de entrega ou inspeção técnica. A etapa está encerrada como entrega de funcionalidades no código; validação de build, publicação e testes com dados reais permanecem pendentes e não são considerados aprovados.
+
+## Etapa 6 — Centro operacional: entregas, devoluções e manutenção
+
+A próxima etapa consolida a operação física dos notebooks desde a preparação da entrega até a devolução e liberação para novo ciclo.
+
+Escopo de implementação:
+1. **Agenda de entregas:** visualizar contratos prontos, equipamentos reservados, endereço, contato, data prevista, responsável e situação da entrega.
+2. **Checklist de entrega:** conferir número de série, patrimônio, acessórios, estado físico, configuração, fotos/comprovantes e aceite do responsável. A confirmação deve ser explícita por equipamento.
+3. **Termo de entrega:** gerar documento imprimível com empresa, contrato, equipamento individual, acessórios, condição, data e responsável. Não declarar assinatura eletrônica sem integração apropriada.
+4. **Devolução por unidade:** registrar data, responsável, condição recebida, acessórios devolvidos, avarias, observações e evidências; permitir devolução parcial sem encerrar indevidamente todo o contrato.
+5. **Inspeção pós-devolução:** manter o ativo bloqueado para nova reserva até a conferência; permitir encaminhar diretamente para manutenção ou liberar após aprovação.
+6. **Ordens de manutenção:** vincular cada ordem ao ativo pelo ID e número de série, controlar diagnóstico, peças, mão de obra, prestador, prazo, custo, evidências e responsável.
+7. **Histórico e indicadores:** linha do tempo por ativo e contrato, tempo parado, custo por equipamento, ordens abertas, entregas pendentes e devoluções aguardando inspeção.
+8. **Integridade operacional:** impedir dupla alocação, entrega de ativo não reservado, devolução de equipamento que não pertence ao contrato e liberação de ativo com manutenção aberta.
+
+Critérios de aceite:
+- Cada movimento identifica o equipamento pelo seu registro individual, nunca apenas pelo modelo.
+- Uma entrega não pode ser confirmada sem contrato e ativo compatíveis.
+- Devolução parcial preserva o contrato e as demais unidades ainda em posse do cliente.
+- Ativo devolvido fica em conferência até uma decisão explícita de liberar ou enviar para manutenção.
+- Ordens abertas bloqueiam reserva e disponibilidade.
+- Histórico registra responsável e horário e não apaga movimentos anteriores.
+- Operações em múltiplos registros devem informar claramente sucesso parcial e falha; quando possível, usar transação no banco para evitar estados inconsistentes.
+
+**Dependências e limites:** as funcionalidades atuais usam registros do workspace e histórico no payload. Migrations Supabase ainda precisam ser executadas e validadas no projeto conectado. Build e deployment também permanecem pendentes, conforme decisão de priorizar a evolução funcional antes dessa correção.
