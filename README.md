@@ -321,3 +321,8 @@ Cada novo evento de pagamento também registra a forma informada pelo operador e
 ## Exportação do histórico de recebimentos
 
 No painel Financeiro, **Exportar histórico de recebimentos (CSV)** gera uma planilha com cada evento registrado, incluindo empresa, contrato, cobrança, vencimento, valor original, valor recebido, data, forma de pagamento e responsável. Pagamentos antigos quitados sem `payment_history` são exportados como um evento legado, com forma e responsável não identificados; não há atribuição retroativa. O arquivo usa UTF-8 com BOM e proteção básica contra fórmulas iniciadas por caracteres especiais em campos textuais.
+
+
+### Prevenção de tarefas de cobrança duplicadas
+
+Ao solicitar uma tarefa de cobrança, o VEYRION procura uma tarefa ainda aberta vinculada ao identificador exato da receita (finance_record_id). Se já existir uma tarefa pendente ou em andamento, o sistema abre essa tarefa para revisão em vez de criar outra. Tarefas concluídas ou canceladas não bloqueiam um novo follow-up. A verificação usa os registros carregados na sessão; para equipes com gravações simultâneas, uma restrição única no banco ou uma operação transacional será necessária para garantia absoluta contra duplicidade concorrente.
