@@ -298,6 +298,11 @@ A tabela por contrato permite expandir cada contrato e consultar suas cobranças
 Ao editar uma receita que já recebeu pagamentos, o formulário preserva o histórico de parcelas, o total recebido e a data do último pagamento. O valor original não pode ser reduzido abaixo do que já foi recebido. A gravação da edição também compara `updated_at` para impedir que um formulário aberto com dados antigos sobrescreva recebimentos mais recentes. Uma receita ainda não quitada não pode ser marcada diretamente como paga pelo formulário comum: use **Registrar pagamento**, que exige valor e data e mantém a trilha de recebimentos.
 
 
+## Faixas de atraso de contas a receber
+
+O painel financeiro agrupa o saldo ainda não recebido em quatro faixas: 1–7, 8–30, 31–60 e mais de 60 dias após o vencimento. O cálculo usa o saldo remanescente de cada receita, portanto pagamentos parciais não são contados novamente como dívida. Lançamentos em aberto sem data de vencimento são informados separadamente e não entram nas faixas. Essa visão apoia a priorização manual da cobrança; não envia mensagens nem altera o status financeiro.
+
+
 ## Conciliação por forma de pagamento e responsável
 
 O painel financeiro também resume os eventos de pagamento registrados por forma informada (PIX, transferência, boleto etc.), com quantidade e soma dos valores. Cada novo evento passa a guardar identificador, valor, data, forma de pagamento, instante do registro e responsável autenticado quando disponível.
