@@ -336,3 +336,8 @@ Tarefas originadas do contas a receber mantêm o identificador da receita de ori
 ### Histórico da régua de cobrança e promessas de pagamento
 
 Nas tarefas vinculadas a uma receita, **Registrar contato** grava uma tentativa de cobrança com resultado, resumo, data, responsável e próxima ação. Quando o cliente promete pagar, o operador informa data e valor; a promessa fica associada à tarefa e a data entra na fila de follow-ups. O histórico é preservado em `collection_history` no payload da tarefa, sem migration. Se o cliente apenas informar que pagou, o sistema orienta conferir o extrato e registrar o recebimento no Financeiro: a conversa não altera o saldo nem marca a cobrança como paga. A gravação autenticada compara `updated_at` para evitar sobrescrever o histórico se outro operador editar a tarefa ao mesmo tempo.
+
+
+### Verificação do build
+
+O comando de produção executa `tsc --noEmit` antes de `next build`, para apresentar erros de tipagem TypeScript de forma direta antes da compilação otimizada.
