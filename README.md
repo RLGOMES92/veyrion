@@ -27,7 +27,7 @@ Acesse http://localhost:3000.
 3. Depois, execute `supabase/migrations/002_organizations_roles.sql` para habilitar organizações, membros e permissões por função.
 4. Por último, execute `supabase/migrations/003_unique_monthly_rental_charges.sql` para impedir cobranças mensais duplicadas por contrato e competência. Se a migration apontar duplicidades existentes, revise os lançamentos antes de tentar novamente.
 5. Execute `supabase/migrations/004_workspace_audit_logs.sql` para habilitar o histórico de auditoria de criação, edição e exclusão. O histórico registra organização, usuário, módulo, ação, data e nomes dos campos alterados, sem copiar os valores dos cadastros.
-6. Execute `supabase/migrations/005_sales_goals.sql` para habilitar metas comerciais mensais por responsável. A migration aplica RLS: leitura para membros da organização e criação/edição/exclusão somente para Owner, Admin e Gerente.
+6. Execute `supabase/migrations/005_sales_goals.sql` para habilitar metas comerciais mensais por responsável. A migration aplica RLS: leitura para membros da organização e criação/edição/exclusão somente para Owner, Admin e Gerente.\n7. Execute `supabase/migrations/006_organization_invitations.sql` para habilitar convites seguros por e-mail. Proprietários e administradores podem criar convites; a pessoa recebe um link mágico do Supabase e só entra na organização depois de autenticar com o mesmo e-mail. Os convites expiram em 7 dias. Configure SMTP no Supabase para entrega confiável.
 7. Em Authentication > Providers, habilite Email.
 8. Configure Site URL e Redirect URLs para localhost e o domínio Vercel.
 9. Copie Project URL e anon/publishable key para `.env.local` e para as Environment Variables da Vercel:
