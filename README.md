@@ -305,7 +305,7 @@ O painel financeiro agrupa o saldo ainda não recebido em quatro faixas: 1–7, 
 
 ### Ação comercial de cobrança a partir do contas a receber
 
-Na tabela de receitas em atraso, **Criar tarefa de cobrança** abre uma tarefa pré-preenchida no módulo de follow-ups. Ela leva empresa, cobrança, contrato quando disponível, vencimento, valor original, total recebido, saldo remanescente e dias em atraso. A prioridade é sugerida pelo tempo de atraso: normal até 7 dias, alta de 8 a 30 dias e urgente acima de 30 dias. A tarefa não é salva automaticamente nem envia mensagens; o operador deve revisar, salvar e confirmar os dados antes de contatar o cliente.
+Na tabela de receitas em atraso, **Criar tarefa de cobrança** abre uma tarefa pré-preenchida no módulo de follow-ups. Além da empresa, cobrança, contrato, vencimento, valor original, total recebido, saldo remanescente e dias em atraso, procura telefone e e-mail nos dados da própria cobrança, contrato vinculado e cadastro da empresa, nessa ordem. A prioridade é sugerida pelo tempo de atraso: normal até 7 dias, alta de 8 a 30 dias e urgente acima de 30 dias. Se já existir tarefa aberta para a mesma receita, ela é reaberta para revisão com saldo, prioridade e contato atualizados, preservando observações anteriores. A tarefa não é salva automaticamente nem envia mensagens; o operador deve revisar, salvar e confirmar os dados antes de contatar o cliente.
 
 ## Conciliação por forma de pagamento e responsável
 
