@@ -300,7 +300,7 @@ Ao editar uma receita que já recebeu pagamentos, o formulário preserva o hist�
 
 ## Faixas de atraso de contas a receber
 
-O painel financeiro agrupa o saldo ainda não recebido em quatro faixas: 1–7, 8–30, 31–60 e mais de 60 dias após o vencimento. O cálculo usa o saldo remanescente de cada receita, portanto pagamentos parciais não são contados novamente como dívida. Lançamentos em aberto sem data de vencimento são informados separadamente e não entram nas faixas. Essa visão apoia a priorização manual da cobrança; não envia mensagens nem altera o status financeiro.
+O painel financeiro agrupa o saldo ainda não recebido em quatro faixas: 1–7, 8–30, 31–60 e mais de 60 dias após o vencimento. O cálculo usa o saldo remanescente de cada receita, portanto pagamentos parciais não são contados novamente como dívida. Lançamentos em aberto sem data de vencimento são informados separadamente e não entram nas faixas. A tabela de receitas vencidas lista todas as cobranças em atraso, não apenas uma amostra, ordenadas pelo vencimento mais antigo, e exibe também os dias de atraso e o saldo remanescente. Essa visão apoia a priorização manual da cobrança; não envia mensagens nem altera o status financeiro.
 
 
 ### Ação comercial de cobrança a partir do contas a receber
