@@ -73,6 +73,51 @@ create policy "Admins can revoke organization invitations" on public.organizatio
   for delete to authenticated
   using (public.has_org_role(organization_id, array['owner','admin']) and accepted_at is null);
 
+-- New invited accounts join the target organization instead of receiving an unrelated
+-- personal organization from the default signup trigger.
+create or replace function public.handle_new_veyrion_user()
+returns trigger
+language plpgsql security definer
+set search_path = public
+as $$
+declare
+  new_org_id uuid;
+  org_name text;
+  invite public.organization_invitations%rowtype;
+begin
+  select * into invite
+  from public.organization_invitations
+  where lower(email) = lower(new.email)
+    and accepted_at is null
+    and expires_at > now()
+  order by created_at desc
+  limit 1
+  for update;
+
+  if found then
+    insert into public.organization_members (organization_id, user_id, role, invited_by)
+    values (invite.organization_id, new.id, invite.role, invite.invited_by)
+    on conflict (organization_id, user_id) do nothing;
+
+    update public.organization_invitations
+    set accepted_at = now()
+    where id = invite.id;
+
+    return new;
+  end if;
+
+  org_name := coalesce(nullif(new.raw_user_meta_data->>'company_name',''), split_part(new.email,'@',1), 'Minha empresa');
+  insert into public.organizations(name, created_by)
+  values (org_name, new.id)
+  returning id into new_org_id;
+
+  insert into public.organization_members(organization_id, user_id, role)
+  values (new_org_id, new.id, 'owner');
+
+  return new;
+end;
+$$;
+
 create or replace function public.accept_veyrion_invitation()
 returns jsonb
 language plpgsql
@@ -81,20 +126,14 @@ set search_path = public
 as $$
 declare
   invite public.organization_invitations%rowtype;
-  account_email text;
 begin
   if auth.uid() is null then
     raise exception 'É necessário entrar na conta antes de aceitar o convite.';
   end if;
 
-  account_email := lower(coalesce(auth.jwt()->>'email',''));
-  if account_email = '' then
-    raise exception 'Não foi possível confirmar o e-mail da conta.';
-  end if;
-
   select * into invite
   from public.organization_invitations
-  where lower(email) = account_email
+  where lower(email) = lower(coalesce(auth.jwt()->>'email',''))
     and accepted_at is null
     and expires_at > now()
   order by created_at desc
@@ -110,10 +149,7 @@ begin
     where user_id = auth.uid()
       and organization_id <> invite.organization_id
   ) then
-    return jsonb_build_object(
-      'accepted', false,
-      'message', 'Esta conta já pertence a outro workspace. Entre com uma conta sem workspace para aceitar este convite.'
-    );
+    return jsonb_build_object('accepted', false, 'message', 'Esta conta já pertence a outra organização. Use um e-mail ainda não cadastrado ou solicite suporte ao administrador.');
   end if;
 
   insert into public.organization_members (organization_id, user_id, role, invited_by)
