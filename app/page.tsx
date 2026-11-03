@@ -290,7 +290,69 @@ export default function Home(){
  }
  async function reserveAssetForContract(asset:RecordItem,contractId:string){const contract=rows.find(x=>x.module==="contracts"&&x.id===contractId);if(!contract)return;if(asset.payload.status!=="Disponível"){setNotice("Somente equipamentos disponíveis podem ser reservados.");return}const requestedModel=String(contract.payload.device_model||"").trim().toLocaleLowerCase();const assetModel=[asset.payload.brand,asset.payload.model].filter(Boolean).join(" ").trim().toLocaleLowerCase();if(requestedModel&&assetModel&&!assetModel.includes(requestedModel)&&!requestedModel.includes(assetModel)){setNotice("O modelo deste equipamento não corresponde ao modelo informado no contrato.");return}const assigned=rows.filter(x=>x.module==="assets"&&x.id!==asset.id&&x.payload.contract_id===contract.id&&["Reservado","Alugado"].includes(String(x.payload.status))).length;const contractQuantity=Math.max(0,Number(contract.payload.quantity||0));if(contractQuantity&&assigned>=contractQuantity){setNotice("A quantidade do contrato já está totalmente alocada.");return}const payload={...asset.payload,status:"Reservado",contract_id:contract.id,contract_number:String(contract.payload.number||""),assigned_to:String(contract.payload.company||""),reserved_at:new Date().toISOString(),assigned_at:null};if(demo){setRows(prev=>prev.map(x=>x.id===asset.id?{...x,payload}:x));setNotice("Reserva registrada somente na demonstração.");return}if(!supabase)return;setLoading(true);const {data,error}=await supabase.from("workspace_records").update({payload}).eq("id",asset.id).filter("payload->>status","eq","Disponível").select().maybeSingle();if(error)setNotice(error.message);else if(!data)setNotice("Este equipamento acabou de ser alterado por outra operação. Atualize a lista antes de tentar novamente.");else{setRows(prev=>prev.map(x=>x.id===asset.id?data as RecordItem:x));setNotice("Equipamento reservado para "+contract.payload.number+".")}setLoading(false)}
  async function markAssetDelivered(asset:RecordItem){if(asset.payload.status!=="Reservado"||!asset.payload.contract_id){setNotice("Reserve o equipamento em um contrato antes de registrar a entrega.");return}const payload={...asset.payload,status:"Alugado",assigned_at:new Date().toISOString(),delivered_at:new Date().toISOString()};if(demo){setRows(prev=>prev.map(x=>x.id===asset.id?{...x,payload}:x));setNotice("Entrega marcada apenas na demonstração.");return}if(!supabase)return;setLoading(true);const {data,error}=await supabase.from("workspace_records").update({payload}).eq("id",asset.id).filter("payload->>status","eq","Reservado").filter("payload->>contract_id","eq",String(asset.payload.contract_id)).select().maybeSingle();if(error)setNotice(error.message);else if(!data)setNotice("A reserva mudou antes da entrega. Atualize o equipamento e confira o contrato.");else{setRows(prev=>prev.map(x=>x.id===asset.id?data as RecordItem:x));setNotice("Entrega registrada. Equipamento agora está alugado.")}setLoading(false)}
- async function registerAssetReturn(asset:RecordItem){if(asset.payload.status!=="Alugado"||!asset.payload.contract_id){setNotice("Este equipamento não possui locação ativa registrada.");return}const payload={...asset.payload,status:"Disponível",returned_at:new Date().toISOString(),last_contract_id:asset.payload.contract_id,last_contract_number:asset.payload.contract_number,contract_id:null,contract_number:null,assigned_to:null,assigned_at:null,reserved_at:null};if(demo){setRows(prev=>prev.map(x=>x.id===asset.id?{...x,payload}:x));setNotice("Devolução registrada na demonstração. Faça a conferência física.");return}if(!supabase)return;setLoading(true);const {data,error}=await supabase.from("workspace_records").update({payload}).eq("id",asset.id).filter("payload->>status","eq","Alugado").filter("payload->>contract_id","eq",String(asset.payload.contract_id)).select().maybeSingle();if(error)setNotice(error.message);else if(!data)setNotice("A locação mudou antes da devolução. Atualize o equipamento e tente novamente.");else{setRows(prev=>prev.map(x=>x.id===asset.id?data as RecordItem:x));setNotice("Devolução registrada. Confira a condição física antes de nova locação.")}setLoading(false)}
+ async function registerAssetReturn(asset:RecordItem){
+  if(asset.payload.status!=="Alugado"||!asset.payload.contract_id){setNotice("Este equipamento não possui locação ativa registrada.");return}
+  const contract=rows.find(x=>x.module==="contracts"&&x.id===String(asset.payload.contract_id));
+  if(!contract){setNotice("Contrato vinculado não encontrado. Não alterei o estoque.");return}
+  if(String(contract.payload.type||"Locação")==="Venda"){setNotice("Contratos de venda não possuem fluxo de devolução.");return}
+  if(!window.confirm("Confirma que o notebook "+String(asset.payload.serial||"")+" foi recebido fisicamente? O equipamento ficará bloqueado até concluir a inspeção."))return;
+  const condition=window.prompt("Condição física do equipamento:\n1 = Sem avarias\n2 = Com avarias","1");
+  if(condition!=="1"&&condition!=="2"){setNotice("Inspeção cancelada. O equipamento continua alugado.");return}
+  const accessories=window.prompt("Acessórios recebidos (ex.: carregador, cabo, bolsa):")?.trim();
+  if(accessories===undefined){setNotice("Inspeção cancelada. O equipamento continua alugado.");return}
+  const functional=window.prompt("Teste funcional:\nDescreva inicialização, tela, teclado, portas e conectividade:")?.trim();
+  if(functional===undefined){setNotice("Inspeção cancelada. O equipamento continua alugado.");return}
+  const damaged=condition==="2";
+  let diagnosis="",partsCost=0,laborCost=0;
+  if(damaged){
+   diagnosis=window.prompt("Descreva as avarias identificadas:")?.trim()||"Avaria identificada na inspeção de devolução.";
+   const partsInput=window.prompt("Custo estimado de peças (R$):","0");
+   if(partsInput===null){setNotice("Inspeção cancelada. O equipamento continua alugado.");return}
+   const laborInput=window.prompt("Custo estimado de mão de obra (R$):","0");
+   if(laborInput===null){setNotice("Inspeção cancelada. O equipamento continua alugado.");return}
+   partsCost=Number(partsInput.replace(",", "."));laborCost=Number(laborInput.replace(",", "."));
+   if(!Number.isFinite(partsCost)||partsCost<0||!Number.isFinite(laborCost)||laborCost<0){setNotice("Custos inválidos. Informe valores iguais ou maiores que zero.");return}
+   if(!window.confirm("Registrar a avaria e abrir ordem de manutenção de R$ "+money(partsCost+laborCost)+"? O notebook ficará Em manutenção."))return;
+  }else if(!window.confirm("Inspeção sem avarias. Confirmar liberação do notebook para Disponível?"))return;
+  const now=new Date().toISOString(),inspectionId="RET-"+Date.now().toString(36).toUpperCase();
+  const inspection={id:inspectionId,asset_id:asset.id,contract_id:contract.id,contract_number:String(contract.payload.number||""),inspected_at:now,inspected_by:String(user?.email||"Usuário"),condition:damaged?"Com avarias":"Sem avarias",accessories:accessories||"Não informado",functional_test:functional||"Não informado",diagnosis,parts_cost:partsCost,labor_cost:laborCost,total_cost:partsCost+laborCost};
+  const maintenancePayload=damaged?{number:"MAN-"+localDate().replace(/-/g,"")+"-"+String(rows.filter(x=>x.module==="maintenance").length+1).padStart(3,"0"),asset_serial:String(asset.payload.serial||""),asset_tag:String(asset.payload.asset_tag||""),asset_model:[asset.payload.brand,asset.payload.model].filter(Boolean).join(" "),issue:"Avaria identificada na devolução do contrato "+String(contract.payload.number||""),diagnosis,technician:"",status:"Aberta",opened_at:localDate(),completed_at:"",parts_cost:partsCost,labor_cost:laborCost,total_cost:partsCost+laborCost,notes:"Ordem gerada na inspeção de devolução "+inspectionId+". Teste funcional: "+(functional||"Não informado")+". Acessórios: "+(accessories||"Não informado")+".",asset_id:asset.id,contract_id:contract.id,contract_number:String(contract.payload.number||""),return_inspection_id:inspectionId}:null;
+  const nextAsset={...asset.payload,status:damaged?"Em manutenção":"Disponível",returned_at:now,last_contract_id:contract.id,last_contract_number:contract.payload.number||"",return_inspection:inspection,return_inspection_id:inspectionId,contract_id:null,contract_number:null,assigned_to:null,assigned_at:null,reserved_at:null,status_updated_at:now};
+  const returnedIds=new Set([...(Array.isArray(contract.payload.returned_asset_ids)?contract.payload.returned_asset_ids:[]),asset.id]);
+  const contractAssetIds=Array.from(new Set([...(Array.isArray(contract.payload.inventory_asset_ids)?contract.payload.inventory_asset_ids:[]),...rows.filter(x=>x.module==="assets"&&(String(x.payload.contract_id||"")===contract.id||String(x.payload.last_contract_id||"")===contract.id)).map(x=>x.id)]));
+  const expectedIds=contractAssetIds.length?contractAssetIds:[asset.id];
+  const allReturned=expectedIds.every(id=>returnedIds.has(id));
+  const previousReturnHistory=Array.isArray(contract.payload.return_inspections)?contract.payload.return_inspections:[];
+  const nextContract={...contract.payload,return_status:allReturned?"Recebida":"Em conferência",returned_asset_ids:Array.from(returnedIds),return_inspections:[...previousReturnHistory,inspection],...(allReturned?{status:"Encerrado",closed_at:now,return_completed_at:now}:{})};
+  if(demo){
+   const maintenanceRecord=maintenancePayload?{id:"demo-maint-"+Date.now(),module:"maintenance" as ModuleKey,payload:maintenancePayload,created_at:now}:null;
+   setRows(prev=>[...(maintenanceRecord?[maintenanceRecord]:[]),...prev.map(x=>x.id===asset.id?{...x,payload:nextAsset}:x).map(x=>x.id===contract.id?{...x,payload:nextContract}:x)]);
+   setNotice(damaged?"Devolução inspecionada na demonstração. Notebook bloqueado em manutenção; ordem "+maintenancePayload!.number+" criada apenas localmente.":(allReturned?"Devolução inspecionada. Contrato encerrado na demonstração.":"Devolução inspecionada. Notebook liberado; aguardando os demais equipamentos do contrato."));
+   return;
+  }
+  if(!supabase)return;
+  setLoading(true);
+  let maintenanceRecord:RecordItem|null=null;
+  if(maintenancePayload){
+   const inserted=await supabase.from("workspace_records").insert({module:"maintenance",payload:maintenancePayload}).select().single();
+   if(inserted.error){setNotice("Não foi possível abrir a manutenção. A devolução não foi registrada: "+inserted.error.message);setLoading(false);return}
+   maintenanceRecord=inserted.data as RecordItem;
+  }
+  const assetUpdate=await supabase.from("workspace_records").update({payload:nextAsset}).eq("id",asset.id).filter("payload->>status","eq","Alugado").filter("payload->>contract_id","eq",contract.id).select().maybeSingle();
+  if(assetUpdate.error||!assetUpdate.data){
+   if(maintenanceRecord)await supabase.from("workspace_records").delete().eq("id",maintenanceRecord.id);
+   setNotice("O equipamento mudou durante a inspeção. Nenhuma devolução foi concluída; atualize os dados e tente novamente."+(assetUpdate.error?" "+assetUpdate.error.message:""));setLoading(false);return;
+  }
+  const contractUpdate=await supabase.from("workspace_records").update({payload:nextContract}).eq("id",contract.id).filter("payload->>status","eq",String(contract.payload.status||"Ativo")).select().maybeSingle();
+  if(contractUpdate.error||!contractUpdate.data){
+   await supabase.from("workspace_records").update({payload:asset.payload}).eq("id",asset.id);
+   if(maintenanceRecord)await supabase.from("workspace_records").delete().eq("id",maintenanceRecord.id);
+   setNotice("Não foi possível atualizar o contrato. A movimentação do notebook foi revertida; atualize a tela antes de tentar novamente."+(contractUpdate.error?" "+contractUpdate.error.message:""));setLoading(false);return;
+  }
+  setRows(prev=>[...(maintenanceRecord?[maintenanceRecord]:[]),...prev.map(x=>x.id===asset.id?assetUpdate.data as RecordItem:x.id===contract.id?contractUpdate.data as RecordItem:x)]);
+  setNotice(damaged?"Devolução inspecionada. Notebook enviado para manutenção e ordem "+maintenancePayload!.number+" aberta. Não está disponível para nova locação.":(allReturned?"Todos os equipamentos foram recebidos e inspecionados. Contrato encerrado; notebook liberado no estoque.":"Inspeção concluída. Notebook liberado; o contrato permanece em conferência até os demais equipamentos serem devolvidos."));
+  setLoading(false);
+ }
  async function remove(r:RecordItem){if(!confirm("Excluir este registro?"))return;if(demo){setRows(prev=>prev.filter(x=>x.id!==r.id));setNotice("Registro removido da demonstração.");return}if(!supabase)return;const {error}=await supabase.from("workspace_records").delete().eq("id",r.id);if(error)setNotice(error.message);else setRows(prev=>prev.filter(x=>x.id!==r.id))}
  async function generateMonthlyCharges(){
   if(loading)return;
