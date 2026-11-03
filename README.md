@@ -30,12 +30,12 @@ Acesse http://localhost:3000.
 6. Execute `supabase/migrations/005_sales_goals.sql` para habilitar metas comerciais mensais por responsável. A migration aplica RLS: leitura para membros da organização e criação/edição/exclusão somente para Owner, Admin e Gerente.
 7. Execute `supabase/migrations/006_organization_invitations.sql` para habilitar convites seguros por e-mail. Proprietários e administradores podem criar convites; novos usuários recebem um link mágico do Supabase e entram na organização do convite após autenticar com o mesmo e-mail. Os convites expiram em 7 dias. Configure SMTP no Supabase para entrega confiável.
 8. Execute `supabase/migrations/007_team_audit_history.sql` para registrar criação, alteração e remoção de membros e convites na tela Auditoria. O histórico armazena somente os nomes dos campos alterados, não os valores de e-mail ou identificadores pessoais.
-8. Em Authentication > Providers, habilite Email.
-9. Configure Site URL e Redirect URLs para localhost e o domínio Vercel.
-10. Copie Project URL e anon/publishable key para `.env.local` e para as Environment Variables da Vercel:
+9. Em Authentication > Providers, habilite Email.
+10. Configure Site URL e Redirect URLs para localhost e o domínio Vercel.
+11. Copie Project URL e anon/publishable key para `.env.local` e para as Environment Variables da Vercel:
    - `NEXT_PUBLIC_SUPABASE_URL`
    - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-11. Cadastre/invite somente membros autorizados.
+12. Cadastre/invite somente membros autorizados.
 
 **Banco de dados:** a migration 003 cria um índice único por organização e `charge_key` no módulo financeiro. A aplicação trata conflito de inserção simultânea como cobrança já existente. Execute-a somente depois das migrations 001 (schema inicial) e 002 (organizações/permissões).\n\n**Segurança:** execute a migration 002 depois do schema inicial. Ela cria uma organização para cada usuário existente e aplica políticas RLS por organização e função. A migration 006 vincula novos usuários convidados diretamente à organização do convite, sem criar uma organização pessoal paralela. Papéis: Owner/Admin, Gerente, Comercial, Operações, Financeiro e Visualizador. Financeiro fica restrito a Financeiro/Admin; equipamentos e contratos a Operações/Admin; dados comerciais a Comercial/Gerente/Admin. A tela de equipe permite convidar novos usuários por e-mail, alterar papéis e remover membros. A versão atual suporta uma organização por conta; convites para e-mails já vinculados a outra organização exigem tratamento administrativo. Não desligue RLS.
 
