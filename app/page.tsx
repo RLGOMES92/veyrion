@@ -164,20 +164,21 @@ export default function Home(){
   }
  function createCollectionTask(record:RecordItem){
    if(record.module!=="finance"||record.payload.kind!=="Receita"){setNotice("A tarefa de cobrança só pode ser criada a partir de uma receita.");return}
-   const payload=record.payload||{};const company=String(payload.company||"Empresa não informada");const due=String(payload.due_date||"").slice(0,10);const daysLate=due&&/^\d{4}-\d{2}-\d{2}$/.test(due)?Math.max(0,Math.floor((new Date(todayKey+"T00:00:00").getTime()-new Date(due+"T00:00:00").getTime())/86400000)):0;
+   const payload=record.payload||{};const company=String(payload.company||"Empresa não informada");const due=String(payload.due_date||"").slice(0,10);const validDue=/^\\d{4}-\\d{2}-\\d{2}$/.test(due);const daysLate=validDue?Math.max(0,Math.floor((new Date(todayKey+"T00:00:00").getTime()-new Date(due+"T00:00:00").getTime())/86400000)):0;
    const balance=financeBalance(payload);if(balance<=0){setNotice("Esta cobrança não possui saldo em aberto.");return}
+   const contract=rows.find(item=>item.module==="contracts"&&(String(payload.contract_id||"")===item.id||(payload.contract_number&&String(item.payload.number||"")===String(payload.contract_number))));const companyRecord=rows.find(item=>item.module==="companies"&&String(item.payload.name||"").trim().toLowerCase()===company.trim().toLowerCase());const contractData=contract?.payload||{};const companyData=companyRecord?.payload||{};
+   const contact=String(payload.customer_name||contractData.customer_name||companyData.contact_person||"");const email=String(payload.customer_email||contractData.customer_email||companyData.contact_email||"");const phone=String(payload.customer_phone||contractData.customer_phone||companyData.phone||"");
+   const priority=daysLate>30?"Urgente":daysLate>7?"Alta":"Normal";const history=Array.isArray(payload.payment_history)?payload.payment_history:[];const contractNumber=String(payload.contract_number||contractData.number||"");const collectionNotes=["Tarefa originada do contas a receber da VEYRION.","Cobrança: "+String(payload.description||"Receita"),"Valor original: "+money(payload.amount),"Total recebido: "+money(financePaidAmount(payload)),"Saldo em aberto: "+money(balance),"Vencimento: "+(validDue?due:"Não informado"),"Dias em atraso: "+(validDue?String(daysLate):"Sem vencimento"),contractNumber?"Contrato: "+contractNumber:"",payload.contract_id?"ID do contrato: "+payload.contract_id:"",email?"E-mail do contato: "+email:"",phone?"Telefone do contato: "+phone:"",history.length?"Pagamentos registrados: "+history.length:"","Confirme o saldo e a situação com o financeiro antes de contatar o cliente."].filter(Boolean).join("\\n");
    const existing=rows.find(item=>item.module==="tasks"&&String(item.payload.finance_record_id||"")===record.id&&!["Concluída","Cancelada"].includes(String(item.payload.status||"")));
+   setModule("tasks");setQuery("");
    if(existing){
-     setModule("tasks");setQuery("");setEditing(existing);
-     setForm(Object.fromEntries(Object.entries(existing.payload).map(([key,value])=>[key,String(value??"")])) as Record<string,string>);
-     setModalOpen(true);setNotice("Já existe uma tarefa de cobrança aberta para esta receita. Você pode revisar e atualizar a tarefa existente.");
-     return;
+     const notes=String(existing.payload.notes||"");const refreshedNotes=notes.includes("Tarefa originada do contas a receber da VEYRION.")?collectionNotes+(notes.split("Confirme o saldo e a situação com o financeiro antes de contatar o cliente.")[1]||""):collectionNotes+(notes?"\\n\\nObservações anteriores:\\n"+notes:"");
+     const refreshed={...existing.payload,company,contact:contact||String(existing.payload.contact||""),due_at:todayKey,priority,finance_record_id:record.id,contract_id:String(payload.contract_id||contract?.id||""),collection_balance:String(balance),collection_updated_at:new Date().toISOString(),notes:refreshedNotes};
+     setEditing(existing);setForm(Object.fromEntries(Object.entries(refreshed).map(([key,value])=>[key,String(value??"")])) as Record<string,string>);
+     setModalOpen(true);setNotice("Tarefa de cobrança existente atualizada com o saldo e os dados de contato mais recentes. Revise antes de salvar.");return;
    }
-   const priority=daysLate>30?"Urgente":daysLate>7?"Alta":"Normal";
-   const contract=String(payload.contract_number||"");const history=Array.isArray(payload.payment_history)?payload.payment_history:[];
-   setModule("tasks");setQuery("");setEditing(null);
-   setForm({title:"Cobrar pagamento"+(contract?" · Contrato "+contract:"")+" · "+company,company,contact:String(payload.customer_name||""),due_at:todayKey,priority,status:"Pendente",assignee:"",notes:["Tarefa originada do contas a receber da VEYRION.","Cobrança: "+String(payload.description||"Receita"),"Valor original: "+money(payload.amount),"Total recebido: "+money(financePaidAmount(payload)),"Saldo em aberto: "+money(balance),"Vencimento: "+(due||"Não informado"),"Dias em atraso: "+(due?String(daysLate):"Sem vencimento"),contract?"Contrato: "+contract:"",payload.contract_id?"ID do contrato: "+payload.contract_id:"",history.length?"Pagamentos registrados: "+history.length:"","Confirme o saldo e a situação com o financeiro antes de contatar o cliente."].filter(Boolean).join("\n"),finance_record_id:record.id,contract_id:String(payload.contract_id||""),collection_balance:String(balance)});
-   setModalOpen(true);setNotice("Tarefa de cobrança pré-preenchida para "+company+". Revise os dados e salve para entrar na fila de follow-ups.");
+   setEditing(null);setForm({title:"Cobrar pagamento"+(contractNumber?" · Contrato "+contractNumber:"")+" · "+company,company,contact,due_at:todayKey,priority,status:"Pendente",assignee:"",notes:collectionNotes,finance_record_id:record.id,contract_id:String(payload.contract_id||contract?.id||""),collection_balance:String(balance),collection_updated_at:new Date().toISOString(),contact_email:email,contact_phone:phone});
+   setModalOpen(true);setNotice("Tarefa de cobrança pré-preenchida com dados do contrato e do contato quando disponíveis. Revise e salve para entrar na fila de follow-ups.");
  }
  function createProposalFromOpportunity(record:RecordItem){
   const p=record.payload||{};
