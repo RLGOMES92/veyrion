@@ -376,27 +376,39 @@ Recursos entregues:
 
 O fluxo de assinatura e ativação mantém confirmação humana. O sistema não substitui assinatura eletrônica, conferência física, comprovante de entrega ou inspeção técnica. A etapa está encerrada como entrega de funcionalidades no código; validação de build, publicação e testes com dados reais permanecem pendentes e não são considerados aprovados.
 
-## Etapa 6 — Centro operacional: entregas, devoluções e manutenção
+## Etapa 6 — Centro operacional: concluída no código
 
-A próxima etapa consolida a operação física dos notebooks desde a preparação da entrega até a devolução e liberação para novo ciclo.
+A Etapa 6 consolida a rotina física de entregas, locações, devoluções e manutenção. Os fluxos são individualizados por ativo e número de série.
 
-Escopo de implementação:
-1. **Agenda de entregas:** visualizar contratos prontos, equipamentos reservados, endereço, contato, data prevista, responsável e situação da entrega.
-2. **Checklist de entrega:** conferir número de série, patrimônio, acessórios, estado físico, configuração, fotos/comprovantes e aceite do responsável. A confirmação deve ser explícita por equipamento.
-3. **Termo de entrega:** gerar documento imprimível com empresa, contrato, equipamento individual, acessórios, condição, data e responsável. Não declarar assinatura eletrônica sem integração apropriada.
-4. **Devolução por unidade:** registrar data, responsável, condição recebida, acessórios devolvidos, avarias, observações e evidências; permitir devolução parcial sem encerrar indevidamente todo o contrato.
-5. **Inspeção pós-devolução:** manter o ativo bloqueado para nova reserva até a conferência; permitir encaminhar diretamente para manutenção ou liberar após aprovação.
-6. **Ordens de manutenção:** vincular cada ordem ao ativo pelo ID e número de série, controlar diagnóstico, peças, mão de obra, prestador, prazo, custo, evidências e responsável.
-7. **Histórico e indicadores:** linha do tempo por ativo e contrato, tempo parado, custo por equipamento, ordens abertas, entregas pendentes e devoluções aguardando inspeção.
-8. **Integridade operacional:** impedir dupla alocação, entrega de ativo não reservado, devolução de equipamento que não pertence ao contrato e liberação de ativo com manutenção aberta.
+### Entregas
+- Contrato agora aceita data prevista, janela/horário, endereço, contato recebedor, responsável interno e instruções logísticas.
+- Central operacional em Manutenção lista entregas pendentes ordenadas pela data prevista, com empresa, contrato, endereço, contato, responsável, modelo, patrimônio e série.
+- A entrega exige contrato ativo e equipamento reservado ao contrato.
+- Checklist obrigatório por unidade: recebedor, acessórios, condição física, configuração conferida e observações; permite registrar links de evidências.
+- A confirmação grava data, responsável, recebedor e checklist no ativo e na trilha de movimentações.
+- Termo de entrega imprimível reúne dados do contrato, equipamento, checklist e campos de assinatura física. Não é assinatura eletrônica certificada.
 
-Critérios de aceite:
-- Cada movimento identifica o equipamento pelo seu registro individual, nunca apenas pelo modelo.
-- Uma entrega não pode ser confirmada sem contrato e ativo compatíveis.
-- Devolução parcial preserva o contrato e as demais unidades ainda em posse do cliente.
-- Ativo devolvido fica em conferência até uma decisão explícita de liberar ou enviar para manutenção.
-- Ordens abertas bloqueiam reserva e disponibilidade.
-- Histórico registra responsável e horário e não apaga movimentos anteriores.
-- Operações em múltiplos registros devem informar claramente sucesso parcial e falha; quando possível, usar transação no banco para evitar estados inconsistentes.
+### Locações e devoluções
+- Central lista equipamentos em clientes, prazo previsto de término, contratos e ação de receber/inspecionar por unidade.
+- Devolução exige confirmação de recebimento físico, condição, acessórios, teste funcional e links de evidências.
+- Devolução parcial mantém o contrato ativo enquanto houver unidades pendentes; cada ativo devolvido segue para disponibilidade somente após inspeção sem avarias, ou para manutenção quando houver avaria.
+- Quando há avarias, o sistema cria ordem de manutenção vinculada ao ativo, com diagnóstico e custos informados, mantendo o equipamento bloqueado.
+- O contrato só é encerrado automaticamente após a quantidade contratada de ativos estar individualizada e todas as unidades previstas terem sido recebidas.
+- A ação no contrato não faz mais uma devolução em lote sem inspeção: direciona o operador ao inventário para concluir a inspeção individual de cada notebook.
+- Relatório imprimível de devolução reúne condição, acessórios, teste funcional, avarias, custos, responsável e evidências.
 
-**Dependências e limites:** as funcionalidades atuais usam registros do workspace e histórico no payload. Migrations Supabase ainda precisam ser executadas e validadas no projeto conectado. Build e deployment também permanecem pendentes, conforme decisão de priorizar a evolução funcional antes dessa correção.
+### Manutenção preventiva e corretiva
+- Ordens são vinculadas por ID interno e número de série; controlam tipo, prioridade, diagnóstico, solução, técnico, prestador, peças, custos, prazo e observações.
+- Não permite abrir ordens duplicadas para o mesmo ativo, nem manutenção operacional em notebook reservado, alugado ou vendido.
+- Concluir uma ordem exige diagnóstico e serviço executado; cancelar exige motivo nas observações.
+- Custos de peças e mão de obra são validados e totalizados; a data de conclusão e os dias parados são registrados.
+- Ao concluir, o ativo retorna a Disponível e atualiza última manutenção, prestador e próxima preventiva. Se houver intervalo preventivo configurado, a próxima data é calculada automaticamente.
+- A central mostra ordens abertas, ativos parados, reparos concluídos, custo registrado e preventivas vencidas ou previstas para os próximos 30 dias, com ação para abrir ordem preventiva.
+
+### Limites operacionais conhecidos
+- Evidências são registradas por links informados pelo operador; upload de fotos/arquivos ainda não foi implementado.
+- O termo e o relatório são documentos imprimíveis para assinatura física; não há assinatura eletrônica ou validação jurídica integrada.
+- A atualização de ativo, ordem e contrato em operações com múltiplos registros usa compensação best-effort, não uma transação atômica do banco. Em falha parcial, a interface informa que é necessário conferir o estado antes de repetir.
+- Os dados permanecem no modelo atual de registros do workspace e payload. A execução/validação de migrations Supabase, testes com dados reais, build e deployment continuam pendentes e não são declarados concluídos.
+
+**Critério de encerramento funcional:** entrega, devolução unitária/parcial, impressão de termos, fila operacional, manutenção corretiva/preventiva, validações e trilha de movimentações estão implementadas no código. A validação de build e produção será retomada separadamente, conforme combinado.
