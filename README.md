@@ -346,3 +346,8 @@ O comando de produção executa `tsc --noEmit` antes de `next build`, para apres
 ### Alertas de promessas de pagamento
 
 A Central de follow-ups apresenta contadores separados para promessas vencidas e promessas com data para hoje. Uma promessa entra nesses indicadores somente enquanto a tarefa estiver aberta, o status da promessa for `Aguardando pagamento` e a receita vinculada ainda tiver saldo em aberto. A data prometida também aparece no detalhe do follow-up. O indicador não confirma inadimplência bancária; é um alerta operacional para o responsável conferir a situação do recebimento.
+
+
+### Indicadores de recuperação e produtividade da cobrança
+
+O painel Financeiro consolida tentativas de contato, quantidade de receitas acompanhadas, saldo ainda aberto nessas receitas, promessas pendentes e vencidas, valor prometido e pagamentos registrados após o primeiro contato. Também apresenta o volume de tentativas por responsável. O indicador **Recebido após primeiro contato** é uma associação temporal dos pagamentos registrados nas receitas acompanhadas, não uma atribuição causal nem uma taxa de recuperação. Receitas vinculadas a mais de uma tarefa são deduplicadas no saldo e no total de pagamentos; as tentativas continuam sendo contadas por registro de contato. Os indicadores dependem do histórico preenchido e não consultam bancos.
