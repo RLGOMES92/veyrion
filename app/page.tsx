@@ -453,12 +453,15 @@ export default function Home(){
   const newRows:RecordItem[]=[];
   setLoading(true);
   for(const contract of candidates){
-   const p=contract.payload||{},startDate=String(p.start_date||"").slice(0,10);
-   if(!/^\d{4}-\d{2}-\d{2}$/.test(startDate)||startDate>todayKey){missing++;continue}
-   const [year,month]=competence.split("-").map(Number),startDay=Number(startDate.slice(8,10));
-   const lastDay=new Date(year,month,0).getDate(),dueDate=year+"-"+String(month).padStart(2,"0")+"-"+String(Math.min(startDay,lastDay)).padStart(2,"0");
+   const p=contract.payload||{},startDate=String(p.start_date||"").slice(0,10),endDate=String(p.end_date||"").slice(0,10);
+   if(!/^\d{4}-\d{2}-\d{2}$/.test(startDate)||startDate>todayKey||(endDate&&endDate<competence+"-01")){missing++;continue}
+   const [year,month]=competence.split("-").map(Number),lastDay=new Date(year,month,0).getDate(),billingDay=Math.min(lastDay,Math.max(1,Number(p.billing_day)||Number(startDate.slice(8,10))||1));
+   const dueDate=year+"-"+String(month).padStart(2,"0")+"-"+String(billingDay).padStart(2,"0");
+   const coveredStart=startDate>competence+"-01"?Number(startDate.slice(8,10)):1,coveredEnd=endDate&&endDate<competence+"-"+String(lastDay).padStart(2,"0")?Number(endDate.slice(8,10)):lastDay;
+   if(coveredEnd<coveredStart){missing++;continue}
+   const prorationDays=coveredEnd-coveredStart+1,prorated=prorationDays<lastDay,fullAmount=Math.max(0,Number(p.monthly_value)||0),amount=Math.round((fullAmount*prorationDays/lastDay)*100)/100;
    const status=dueDate<todayKey?"Pendente":"Previsto";
-   const payload={description:"Locação mensal · "+String(p.number||contract.id)+" · "+competence,company:String(p.company||""),kind:"Receita",category:"Locação",amount:Number(p.monthly_value||0),due_date:dueDate,paid_date:"",status,contract_id:contract.id,contract_number:String(p.number||""),competence,charge_key:contract.id+"|"+competence,generated_by:"VEYRION monthly billing",notes:"Cobrança prevista gerada a partir do contrato ativo. Confirme valor, vencimento e pagamento manualmente."};
+   const payload={description:"Locação mensal · "+String(p.number||contract.id)+" · "+competence,company:String(p.company||""),kind:"Receita",category:"Locação",amount,due_date:dueDate,paid_date:"",status,contract_id:contract.id,contract_number:String(p.number||""),competence,charge_key:contract.id+"|"+competence,full_month_amount:fullAmount,proration_days:prorationDays,month_days:lastDay,prorated,generated_by:"VEYRION monthly billing",notes:(prorated?"Cobrança proporcional de "+prorationDays+"/"+lastDay+" dias. ":"")+"Cobrança prevista gerada a partir do contrato ativo. Confirme valor, vencimento e pagamento manualmente."};
    if(demo){newRows.push({id:"demo-charge-"+contract.id+"-"+competence,module:"finance",payload,created_at:new Date().toISOString()});created++;continue}
    if(!supabase){setNotice("Conecte o banco de dados ou use a demonstração para gerar cobranças.");setLoading(false);return}
    const {data,error}=await supabase.from("workspace_records").insert({module:"finance",payload}).select().single();
