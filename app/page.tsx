@@ -94,7 +94,7 @@ export default function Home(){
  async function sendTeamInvitation(){
   if(!supabase||!user||!canManageTeam)return;
   const targetEmail=inviteEmail.trim().toLowerCase();
-  if(!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(targetEmail)){setTeamError("Informe um e-mail válido para o convite.");return}
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(targetEmail)){setTeamError("Informe um e-mail válido para o convite.");return}
   if(targetEmail===String(user.email||"").toLowerCase()){setTeamError("Você já faz parte desta organização.");return}
   setInviteBusy(true);setTeamError("");
   const {data:orgId,error:orgError}=await supabase.rpc("current_user_organization_id");
