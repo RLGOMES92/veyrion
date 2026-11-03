@@ -326,3 +326,8 @@ No painel Financeiro, **Exportar histórico de recebimentos (CSV)** gera uma pla
 ### Prevenção de tarefas de cobrança duplicadas
 
 Ao solicitar uma tarefa de cobrança, o VEYRION procura uma tarefa ainda aberta vinculada ao identificador exato da receita (finance_record_id). Se já existir uma tarefa pendente ou em andamento, o sistema abre essa tarefa para revisão em vez de criar outra. Tarefas concluídas ou canceladas não bloqueiam um novo follow-up. A verificação usa os registros carregados na sessão; para equipes com gravações simultâneas, uma restrição única no banco ou uma operação transacional será necessária para garantia absoluta contra duplicidade concorrente.
+
+
+### Navegação entre cobrança e tarefa
+
+Tarefas originadas do contas a receber mantêm o identificador da receita de origem. Na lista de tarefas, o sistema mostra o saldo atual da cobrança vinculada e oferece acesso direto ao lançamento financeiro. Se a receita não estiver mais carregada na sessão, a tarefa continua disponível e informa que o vínculo não foi localizado.
