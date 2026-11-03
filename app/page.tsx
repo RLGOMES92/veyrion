@@ -164,7 +164,7 @@ export default function Home(){
   }
  function createCollectionTask(record:RecordItem){
    if(record.module!=="finance"||record.payload.kind!=="Receita"){setNotice("A tarefa de cobrança só pode ser criada a partir de uma receita.");return}
-   const payload=record.payload||{};const company=String(payload.company||"Empresa não informada");const due=String(payload.due_date||"").slice(0,10);const validDue=/^\\d{4}-\\d{2}-\\d{2}$/.test(due);const daysLate=validDue?Math.max(0,Math.floor((new Date(todayKey+"T00:00:00").getTime()-new Date(due+"T00:00:00").getTime())/86400000)):0;
+   const payload=record.payload||{};const company=String(payload.company||"Empresa não informada");const due=String(payload.due_date||"").slice(0,10);const validDue=/^\d{4}-\d{2}-\d{2}$/.test(due);const daysLate=validDue?Math.max(0,Math.floor((new Date(todayKey+"T00:00:00").getTime()-new Date(due+"T00:00:00").getTime())/86400000)):0;
    const balance=financeBalance(payload);if(balance<=0){setNotice("Esta cobrança não possui saldo em aberto.");return}
    const contract=rows.find(item=>item.module==="contracts"&&(String(payload.contract_id||"")===item.id||(payload.contract_number&&String(item.payload.number||"")===String(payload.contract_number))));const companyRecord=rows.find(item=>item.module==="companies"&&String(item.payload.name||"").trim().toLowerCase()===company.trim().toLowerCase());const contractData=contract?.payload||{};const companyData=companyRecord?.payload||{};
    const contact=String(payload.customer_name||contractData.customer_name||companyData.contact_person||"");const email=String(payload.customer_email||contractData.customer_email||companyData.contact_email||"");const phone=String(payload.customer_phone||contractData.customer_phone||companyData.phone||"");
