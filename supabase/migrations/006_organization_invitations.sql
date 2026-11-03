@@ -20,6 +20,33 @@ create unique index if not exists organization_invitations_one_pending_idx
   on public.organization_invitations (organization_id, lower(email))
   where accepted_at is null;
 
+-- New invitees must not receive a separate personal workspace before accepting.
+create or replace function public.handle_new_veyrion_user()
+returns trigger
+language plpgsql security definer
+set search_path = public
+as $
+declare new_org_id uuid; org_name text;
+begin
+  if exists (
+    select 1 from public.organization_invitations i
+    where lower(i.email) = lower(new.email)
+      and i.accepted_at is null
+      and i.expires_at > now()
+  ) then
+    return new;
+  end if;
+
+  org_name := coalesce(nullif(new.raw_user_meta_data->>'company_name',''), split_part(new.email,'@',1), 'Minha empresa');
+  insert into public.organizations(name, created_by)
+  values (org_name, new.id)
+  returning id into new_org_id;
+  insert into public.organization_members(organization_id, user_id, role)
+  values (new_org_id, new.id, 'owner');
+  return new;
+end;
+$;
+
 alter table public.organization_invitations enable row level security;
 
 drop policy if exists "Admins can view organization invitations" on public.organization_invitations;
@@ -76,6 +103,17 @@ begin
 
   if not found then
     return jsonb_build_object('accepted', false, 'message', 'Nenhum convite pendente encontrado para este e-mail.');
+  end if;
+
+  if exists (
+    select 1 from public.organization_members
+    where user_id = auth.uid()
+      and organization_id <> invite.organization_id
+  ) then
+    return jsonb_build_object(
+      'accepted', false,
+      'message', 'Esta conta já pertence a outro workspace. Entre com uma conta sem workspace para aceitar este convite.'
+    );
   end if;
 
   insert into public.organization_members (organization_id, user_id, role, invited_by)
