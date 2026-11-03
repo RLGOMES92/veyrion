@@ -351,3 +351,10 @@ A Central de follow-ups apresenta contadores separados para promessas vencidas e
 ### Indicadores de recuperação e produtividade da cobrança
 
 O painel Financeiro consolida tentativas de contato, quantidade de receitas acompanhadas, saldo ainda aberto nessas receitas, promessas pendentes e vencidas, valor prometido e pagamentos registrados após o primeiro contato. Também apresenta o volume de tentativas por responsável. O indicador **Recebido após primeiro contato** é uma associação temporal dos pagamentos registrados nas receitas acompanhadas, não uma atribuição causal nem uma taxa de recuperação. Receitas vinculadas a mais de uma tarefa são deduplicadas no saldo e no total de pagamentos; as tentativas continuam sendo contadas por registro de contato. Os indicadores dependem do histórico preenchido e não consultam bancos.
+
+
+### Radar de risco de inadimplência
+
+O painel Financeiro classifica receitas com saldo em aberto por uma pontuação operacional de 0 a 100. O cálculo considera dias de atraso (até 30 pontos), saldo remanescente (até 25), promessas de pagamento vencidas registradas em tarefas (até 25), tentativas com resultado explícito “Sem resposta” (até 15) e duas ou mais cobranças em aberto para a mesma empresa (10). As faixas são Baixo (0–34), Moderado (35–64) e Alto (65–100). A lista prioriza pontuação, saldo e tempo de atraso e permite abrir a cobrança ou preparar um follow-up.
+
+A pontuação é calculada por cobrança, não por pessoa ou empresa como avaliação global; a mesma empresa pode aparecer em mais de uma linha. Cobranças sem vencimento não recebem pontos de atraso, e só contam tentativas cujo resultado foi registrado exatamente como “Sem resposta”. Promessas são consideradas vencidas quando permanecem aguardando pagamento e a data prometida já passou. O indicador é uma heurística explicável para organizar o trabalho da equipe: não é score de crédito, não prevê inadimplência, não substitui análise humana e não toma decisões automáticas. Confira o saldo, o histórico e possíveis acordos antes de contatar o cliente.
