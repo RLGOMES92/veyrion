@@ -303,6 +303,10 @@ Ao editar uma receita que já recebeu pagamentos, o formulário preserva o hist�
 O painel financeiro agrupa o saldo ainda não recebido em quatro faixas: 1–7, 8–30, 31–60 e mais de 60 dias após o vencimento. O cálculo usa o saldo remanescente de cada receita, portanto pagamentos parciais não são contados novamente como dívida. Lançamentos em aberto sem data de vencimento são informados separadamente e não entram nas faixas. Essa visão apoia a priorização manual da cobrança; não envia mensagens nem altera o status financeiro.
 
 
+### Ação comercial de cobrança a partir do contas a receber
+
+Na tabela de receitas em atraso, **Criar tarefa de cobrança** abre uma tarefa pré-preenchida no módulo de follow-ups. Ela leva empresa, cobrança, contrato quando disponível, vencimento, valor original, total recebido, saldo remanescente e dias em atraso. A prioridade é sugerida pelo tempo de atraso: normal até 7 dias, alta de 8 a 30 dias e urgente acima de 30 dias. A tarefa não é salva automaticamente nem envia mensagens; o operador deve revisar, salvar e confirmar os dados antes de contatar o cliente.
+
 ## Conciliação por forma de pagamento e responsável
 
 O painel financeiro também resume os eventos de pagamento registrados por forma informada (PIX, transferência, boleto etc.), com quantidade e soma dos valores. Cada novo evento passa a guardar identificador, valor, data, forma de pagamento, instante do registro e responsável autenticado quando disponível.
