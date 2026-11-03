@@ -313,3 +313,7 @@ O resumo apresenta totais por forma de pagamento e por responsável, agrupando o
 ### Rastreabilidade dos recebimentos
 
 Cada novo evento de pagamento também registra a forma informada pelo operador e o responsável identificado pela sessão (nome do perfil ou e-mail). O histórico exibe esses dados junto ao valor e à data. Se a sessão não fornecer uma identificação, o registro fica marcado como responsável não identificado. Dados históricos anteriores à melhoria não recebem atribuição retroativa.
+
+## Exportação do histórico de recebimentos
+
+No painel Financeiro, **Exportar histórico de recebimentos (CSV)** gera uma planilha com cada evento registrado, incluindo empresa, contrato, cobrança, vencimento, valor original, valor recebido, data, forma de pagamento e responsável. Pagamentos antigos quitados sem `payment_history` são exportados como um evento legado, com forma e responsável não identificados; não há atribuição retroativa. O arquivo usa UTF-8 com BOM e proteção básica contra fórmulas iniciadas por caracteres especiais em campos textuais.
