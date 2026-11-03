@@ -16,6 +16,10 @@ create index if not exists organization_invitations_email_idx
   on public.organization_invitations (lower(email), expires_at)
   where accepted_at is null;
 
+create unique index if not exists organization_invitations_one_pending_idx
+  on public.organization_invitations (organization_id, lower(email))
+  where accepted_at is null;
+
 alter table public.organization_invitations enable row level security;
 
 drop policy if exists "Admins can view organization invitations" on public.organization_invitations;
