@@ -99,7 +99,7 @@ export default function Home(){
   setInviteBusy(true);setTeamError("");
   const {data:orgId,error:orgError}=await supabase.rpc("current_user_organization_id");
   if(orgError||!orgId){setTeamError(orgError?.message||"Não foi possível identificar a organização.");setInviteBusy(false);return}
-  const {error:insertError}=await supabase.from("organization_invitations").insert({organization_id:orgId,email:targetEmail,role:inviteRole,invited_by:user.id});
+  await supabase.from("organization_invitations").delete().eq("organization_id",orgId).eq("email",targetEmail).is("accepted_at",null);\n  const {error:insertError}=await supabase.from("organization_invitations").insert({organization_id:orgId,email:targetEmail,role:inviteRole,invited_by:user.id});
   if(insertError){setTeamError("Não foi possível criar o convite. Confirme a migration 006 e se você é proprietário ou administrador. "+insertError.message);setInviteBusy(false);return}
   const {error:mailError}=await supabase.auth.signInWithOtp({email:targetEmail,options:{emailRedirectTo:location.origin,shouldCreateUser:true}});
   if(mailError){
