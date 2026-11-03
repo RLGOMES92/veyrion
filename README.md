@@ -384,7 +384,7 @@ A Etapa 6 consolida a rotina física de entregas, locações, devoluções e man
 - Contrato agora aceita data prevista, janela/horário, endereço, contato recebedor, responsável interno e instruções logísticas.
 - Central operacional em Manutenção lista entregas pendentes ordenadas pela data prevista, com empresa, contrato, endereço, contato, responsável, modelo, patrimônio e série.
 - A entrega exige contrato ativo e equipamento reservado ao contrato.
-- Checklist obrigatório por unidade: recebedor, acessórios, condição física, configuração conferida e observações; permite registrar links de evidências.
+- Checklist obrigatório por unidade: recebedor, acessórios, condição física, configuração conferida e observações; permite registrar links de fotos/comprovantes (não há upload de arquivos nesta etapa).
 - A confirmação grava data, responsável, recebedor e checklist no ativo e na trilha de movimentações.
 - Termo de entrega imprimível reúne dados do contrato, equipamento, checklist e campos de assinatura física. Não é assinatura eletrônica certificada.
 
@@ -395,15 +395,17 @@ A Etapa 6 consolida a rotina física de entregas, locações, devoluções e man
 - Quando há avarias, o sistema cria ordem de manutenção vinculada ao ativo, com diagnóstico e custos informados, mantendo o equipamento bloqueado.
 - O contrato só é encerrado automaticamente após a quantidade contratada de ativos estar individualizada e todas as unidades previstas terem sido recebidas.
 - A ação no contrato não faz mais uma devolução em lote sem inspeção: direciona o operador ao inventário para concluir a inspeção individual de cada notebook.
-- Relatório imprimível de devolução reúne condição, acessórios, teste funcional, avarias, custos, responsável e evidências.
+- Relatório imprimível de devolução reúne condição, acessórios, teste funcional, avarias, custos, responsável e links de evidências.
 
 ### Manutenção preventiva e corretiva
-- Ordens são vinculadas por ID interno e número de série; controlam tipo, prioridade, diagnóstico, solução, técnico, prestador, peças, custos, prazo e observações.
+- Ordens são vinculadas por ID interno e número de série; controlam tipo, prioridade, diagnóstico, solução, técnico, prestador, peças, custos, prazo, observações e links de evidências.
+- Cada mudança de status da ordem registra data/hora e responsável; o histórico fica disponível ao reabrir a ordem.
 - Não permite abrir ordens duplicadas para o mesmo ativo, nem manutenção operacional em notebook reservado, alugado ou vendido.
 - Concluir uma ordem exige diagnóstico e serviço executado; cancelar exige motivo nas observações.
 - Custos de peças e mão de obra são validados e totalizados; a data de conclusão e os dias parados são registrados.
 - Ao concluir, o ativo retorna a Disponível e atualiza última manutenção, prestador e próxima preventiva. Se houver intervalo preventivo configurado, a próxima data é calculada automaticamente.
 - A central mostra ordens abertas, ativos parados, reparos concluídos, custo registrado e preventivas vencidas ou previstas para os próximos 30 dias, com ação para abrir ordem preventiva.
+- A conclusão atualiza o histórico do ativo e, quando configurado, calcula a próxima preventiva usando o intervalo de manutenção cadastrado.
 
 ### Limites operacionais conhecidos
 - Evidências são registradas por links informados pelo operador; upload de fotos/arquivos ainda não foi implementado.
