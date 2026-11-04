@@ -423,7 +423,7 @@ A Etapa 6 consolida a rotina física de entregas, locações, devoluções e man
 ### Persistência
 As migrations `013` a `018` criam e protegem:
 - `b2b_clients`, `b2b_credit_assessments`
-- `b2b_suppliers`
+- `b2b_suppliers`, `b2b_supplier_products` (catálogo e estoque físico informado pelo parceiro)
 - `b2b_proposals`, `b2b_proposal_items`
 - `b2b_contracts`
 - `b2b_charges`, `b2b_integration_events`
