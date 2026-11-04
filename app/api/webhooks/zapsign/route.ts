@@ -18,7 +18,8 @@ export async function POST(request:NextRequest) {
  if(signed) {
   const {data:contract}=await db.from("b2b_contracts").select("id,proposal_id,supplier_id,organization_id").eq("signature_document_id",docId).single();
   if(contract) {
-   await db.from("b2b_contracts").update({status:"ACTIVE",signed_at:new Date().toISOString()}).eq("id",contract.id);
+   const {error:activationError}=await db.from("b2b_contracts").update({status:"ACTIVE",signed_at:new Date().toISOString()}).eq("id",contract.id);
+   if(activationError){await db.from("b2b_integration_events").update({processing_error:activationError.message}).eq("provider","ZAPSIGN").eq("event_id",eventId);return NextResponse.json({error:"Contrato assinado, mas ativação/estoque precisa de intervenção: "+activationError.message},{status:409});}
    await db.from("b2b_proposals").update({status:"WON"}).eq("id",contract.proposal_id);
    const {data:supplier}=await db.from("b2b_suppliers").select("contact_email,legal_name").eq("id",contract.supplier_id).single();
    if(supplier?.contact_email&&process.env.RESEND_API_KEY) {
