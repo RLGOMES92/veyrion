@@ -216,8 +216,16 @@ export default function Home(){
    }
    const city=[enriched.city,enriched.state].filter(Boolean).join(" / ");
    const phone=Array.isArray(enriched.phones)?enriched.phones[0]||"":String(enriched.phones||"");
+   const publicData=enriched.public_data||{};
+   const employeeEstimate=publicData.estimativas?.funcionarios||{};
+   const sectorEstimate=publicData.estimativa_setorial||{};
+   const estimatedEmployees=enriched.employees_range
+    ||(employeeEstimate.minimo!=null?(`A partir de ${employeeEstimate.minimo} (estimativa por porte; não confirmada)`):"")
+    ||(sectorEstimate.faixa_p25!=null&&sectorEstimate.faixa_p75!=null?(`${sectorEstimate.faixa_p25}–${sectorEstimate.faixa_p75} por estabelecimento (referência setorial)`):"");
+   const estimatedRevenue=enriched.revenue_range
+    ||(publicData.estimativas?.faturamento_anual?.minimo!=null?(`A partir de R$ ${Number(publicData.estimativas.faturamento_anual.minimo).toLocaleString("pt-BR")} / ano (referência legal do porte)`):"");
    setCompanyLookupSelected(enriched);
-   setForm(prev=>({...prev,name:enriched.name||prev.name||"",cnpj:enriched.cnpj||prev.cnpj||"",employees_range:enriched.employees_range||prev.employees_range||"",company_status:enriched.status||prev.company_status||"",company_size:enriched.size||prev.company_size||"",opening_date:enriched.opening_date||prev.opening_date||"",capital_social:enriched.capital?String(enriched.capital):prev.capital_social||"",cnae:enriched.cnae||prev.cnae||"",branches_count:enriched.branches_count?String(enriched.branches_count):prev.branches_count||"",revenue_range:enriched.revenue_range||prev.revenue_range||"",sector:enriched.cnae||prev.sector||"",website:enriched.website||prev.website||"",city:city||prev.city||"",phone:phone||prev.phone||"",source:"Pesquisa empresarial",source_detail:enriched.source||"Consulta de dados públicos",source_type:"Cadastro público",source_confidence:"Alta",verification_status:String(enriched.status||"").toUpperCase()==="ATIVA"?"Verificada":"Pendente",research_date:localDate()}));
+   setForm(prev=>({...prev,name:enriched.name||prev.name||"",cnpj:enriched.cnpj||prev.cnpj||"",employees_range:estimatedEmployees||prev.employees_range||"",company_status:enriched.status||prev.company_status||"",company_size:enriched.size||prev.company_size||"",opening_date:enriched.opening_date||prev.opening_date||"",capital_social:enriched.capital?String(enriched.capital):prev.capital_social||"",cnae:enriched.cnae||prev.cnae||"",branches_count:enriched.branches_count?String(enriched.branches_count):prev.branches_count||"",revenue_range:estimatedRevenue||prev.revenue_range||"",sector:enriched.cnae||prev.sector||"",website:enriched.website||prev.website||"",city:city||prev.city||"",phone:phone||prev.phone||"",source:"Pesquisa empresarial",source_detail:enriched.source||"Consulta de dados públicos",source_type:"Cadastro público",source_confidence:"Alta",verification_status:String(enriched.status||"").toUpperCase()==="ATIVA"?"Verificada":"Pendente",research_date:localDate()}));
    setCompanyLookupResults([enriched]);
    setNotice("Dados encontrados e aplicados ao cadastro. Revise as informações e salve; a consulta não certifica crédito ou idoneidade.");
   }catch(error){setCompanyLookupError(error instanceof Error?error.message:"Falha ao completar dados da empresa.")}finally{setCompanyLookupLoading(false)}
