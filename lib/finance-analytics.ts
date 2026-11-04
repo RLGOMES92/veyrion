@@ -6,10 +6,12 @@ const addMonths=(month:string,delta:number)=>{const [y,m]=month.split('-').map(N
 const moneyRound=(n:number)=>Math.round((n+Number.EPSILON)*100)/100;
 function payments(payload:Record<string,any>){
  const history=Array.isArray(payload.payment_history)?payload.payment_history:[];
- if(history.length)return history.map((p:any)=>({amount:amount(p.amount),date:dateKey(p.date||p.paid_date||p.payment_date)})).filter(p=>p.amount>0);
- const paid=amount(payload.paid_amount)||(payload.status==='Pago'?amount(payload.amount):0);
- const date=dateKey(payload.paid_date);
- return paid>0?[{amount:Math.min(amount(payload.amount),paid),date}]:[];
+ const events=history.map((p:any)=>({amount:amount(p.amount),date:dateKey(p.date||p.paid_date||p.payment_date)})).filter(p=>p.amount>0);
+ const historyTotal=events.reduce((sum,p)=>sum+p.amount,0);
+ const paidTotal=Math.max(amount(payload.paid_amount),historyTotal,payload.status==='Pago'?amount(payload.amount):0);
+ const missing=Math.max(0,Math.min(amount(payload.amount),paidTotal)-historyTotal);
+ if(missing>0)events.push({amount:missing,date:dateKey(payload.paid_date)});
+ return events;
 }
 export function calculateFinanceAnalytics(records:FinanceRecord[],today:string,periods=6){
  const validToday=dateKey(today)||new Date().toISOString().slice(0,10),current=monthKey(validToday),count=Math.max(1,Math.min(24,Math.floor(periods)||6));
@@ -21,7 +23,7 @@ export function calculateFinanceAnalytics(records:FinanceRecord[],today:string,p
  const agingCounts={current:0,days1to30:0,days31to60:0,days61to90:0,over90:0};
  let revenuePaid=0,expensesPaid=0,receivables=0,payables=0,overdueReceivables=0,overduePayables=0,unclassifiedPayments=0,unclassifiedDue=0;
  for(const e of entries){const isRevenue=e.kind==='Receita';if(isRevenue){receivables+=e.balance;revenuePaid+=e.paid}else{payables+=e.balance;expensesPaid+=e.paid;}
-  const cat=categoryMap.get(e.category)||{category:e.category,revenue:0,expenses:0,records:0};cat.records++;if(isRevenue)cat.revenue+=e.total;else cat.expenses+=e.total;categoryMap.set(e.category,cat);
+  const cat=categoryMap.get(e.category)||{category:e.category,revenue:0,expenses:0,records:0};cat.records++;if(isRevenue)cat.revenue+=e.paid;else cat.expenses+=e.paid;categoryMap.set(e.category,cat);
   for(const event of e.events){if(!event.date){unclassifiedPayments+=event.amount;continue;}const bucket=byMonth.get(monthKey(event.date));if(bucket){if(isRevenue)bucket.revenue+=event.amount;else bucket.expenses+=event.amount;}}
   if(e.balance>0){if(!e.due){unclassifiedDue+=e.balance;continue;}const lateDays=Math.max(0,Math.floor((new Date(validToday+'T00:00:00').getTime()-new Date(e.due+'T00:00:00').getTime())/86400000));const key=lateDays===0?'current':lateDays<=30?'days1to30':lateDays<=60?'days31to60':lateDays<=90?'days61to90':'over90';aging[key]+=e.balance;agingCounts[key]++;if(lateDays>0){if(isRevenue)overdueReceivables+=e.balance;else overduePayables+=e.balance;}}
   if(e.balance>0&&e.due){const bucket=byMonth.get(monthKey(e.due));if(bucket){if(isRevenue)bucket.receivables+=e.balance;else bucket.payables+=e.balance;}}
