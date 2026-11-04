@@ -414,3 +414,35 @@ A Etapa 6 consolida a rotina física de entregas, locações, devoluções e man
 - Os dados permanecem no modelo atual de registros do workspace e payload. A execução/validação de migrations Supabase, testes com dados reais, build e deployment continuam pendentes e não são declarados concluídos.
 
 **Critério de encerramento funcional:** entrega, devolução unitária/parcial, impressão de termos, fila operacional, manutenção corretiva/preventiva, validações e trilha de movimentações estão implementadas no código. A validação de build e produção será retomada separadamente, conforme combinado.
+
+
+## Brokerage B2B (locação e intermediação de TI)
+
+Área disponível em `/brokerage`. Este fluxo cobre enriquecimento público de CNPJ, triagem cadastral, cadastro de parceiros, propostas com margem recorrente, contratos tripartites, assinatura e cobrança recorrente.
+
+### Persistência
+As migrations `013` a `018` criam e protegem:
+- `b2b_clients`, `b2b_credit_assessments`
+- `b2b_suppliers`
+- `b2b_proposals`, `b2b_proposal_items`
+- `b2b_contracts`
+- `b2b_charges`, `b2b_integration_events`
+
+Todas as tabelas B2B têm RLS por organização. A triagem de 0–100 é cadastral/comercial e não substitui bureau de crédito. CNPJ diferente de ATIVA bloqueia proposta; empresas com menos de seis meses exigem revisão; limite padrão de locação = 15% do faturamento mensal informado.
+
+### Endpoints
+- `GET /api/company-enrichment?q=<cnpj>&details=true`
+- `POST /api/b2b/clients`
+- `GET|POST /api/b2b/proposals`
+- `PATCH /api/b2b/proposals/:id/status`
+- `POST /api/b2b/contracts`
+- `GET /api/b2b/contracts/:id/document`
+- `POST /api/b2b/billing`
+- `POST /api/webhooks/zapsign`
+- `POST /api/webhooks/asaas`
+
+### Variáveis de ambiente B2B
+Copie os nomes de `.env.example` para Vercel. Chaves privadas nunca devem usar prefixo `NEXT_PUBLIC_`:
+`SUPABASE_SERVICE_ROLE_KEY`, `ASAAS_API_KEY`, `ASAAS_API_URL`, `ASAAS_WEBHOOK_TOKEN`, `ZAPSIGN_API_TOKEN`, `ZAPSIGN_API_URL`, `ZAPSIGN_WEBHOOK_SECRET`, `RESEND_API_KEY`, `RESEND_FROM_EMAIL`, `VEYRION_LEGAL_NAME`, `VEYRION_CNPJ`, `VEYRION_LEGAL_ADDRESS`.
+
+Configure no cadastro do parceiro o `asaas_wallet_id`. O split usa `fixedValue` para o parceiro; o restante líquido não distribuído permanece na conta VEYRION. A assinatura recorrente não é ativada sem chave Asaas, wallet do parceiro e contrato ativo. O contrato não deve ser enviado para assinatura sem a qualificação jurídica da VEYRION e revisão legal.
