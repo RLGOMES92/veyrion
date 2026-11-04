@@ -14,7 +14,7 @@ export async function POST(request:NextRequest) {
  if(payment.id) {
   const paid=["PAYMENT_CONFIRMED","PAYMENT_RECEIVED","PAYMENT_CREDIT_CARD_CAPTURE_REFUSED"];
   const status=event==="PAYMENT_RECEIVED"?"RECEIVED":event==="PAYMENT_CONFIRMED"?"CONFIRMED":event==="PAYMENT_OVERDUE"?"OVERDUE":event.startsWith("PAYMENT_REFUNDED")?"REFUNDED":null;
-  if(status)await db.from("b2b_charges").update({status,paid_at:status==="RECEIVED"?new Date().toISOString():null,provider_payload:body}).eq("provider","ASAAS").eq("provider_charge_id",payment.id);
+  if(status)await db.from("b2b_charges").update({status,paid_at:status==="RECEIVED"?new Date().toISOString():null,provider_payload:body}).eq("provider","ASAAS").eq("provider_charge_id",payment.id);\n  if(event==="PAYMENT_SPLIT_DONE")await db.from("b2b_charges").update({split_status:"DONE",provider_payload:body}).eq("provider","ASAAS").eq("provider_charge_id",payment.id);\n  if(["PAYMENT_SPLIT_DIVERGENCE_BLOCK","PAYMENT_SPLIT_DIVERGENCE_BLOCK_FINISHED"].includes(event))await db.from("b2b_charges").update({split_status:"FAILED",provider_payload:body}).eq("provider","ASAAS").eq("provider_charge_id",payment.id);
  }
  await db.from("b2b_integration_events").update({processed_at:new Date().toISOString()}).eq("provider","ASAAS").eq("event_id",eventId);
  return NextResponse.json({ok:true});
