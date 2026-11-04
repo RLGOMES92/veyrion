@@ -3,8 +3,9 @@ import { requireUser,jsonError,getServiceClient } from "@/lib/b2b-server";
 
 export async function POST(request:NextRequest) {
  const auth=await requireUser(request); if(!auth)return jsonError("Sessão inválida.",401);
- const {data:memberships}=await auth.client.from("organization_members").select("organization_id,role,created_at").eq("user_id",auth.user.id).order("created_at",{ascending:true}).limit(100);
- const membership=(memberships||[]).sort((a,b)=>(a.role==="owner"?0:a.role==="admin"?1:2)-(b.role==="owner"?0:b.role==="admin"?1:2))[0];
+ const {data:organizationId,error:organizationError}=await auth.client.rpc("current_user_organization_id");
+ if(organizationError||!organizationId)return jsonError("Não foi possível identificar a organização ativa.",403);
+ const {data:membership}=await auth.client.from("organization_members").select("organization_id,role").eq("user_id",auth.user.id).eq("organization_id",organizationId).maybeSingle();
  if(!membership||!["owner","admin","finance"].includes(membership.role))return jsonError("Somente proprietário, administrador ou financeiro pode ativar cobrança.",403);
  const body=await request.json().catch(()=>null); if(!body?.contract_id)return jsonError("Informe o contrato.");
  const apiKey=process.env.ASAAS_API_KEY;
