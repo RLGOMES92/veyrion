@@ -110,7 +110,7 @@ export async function GET(request: NextRequest) {
   if (q.length < 3) return NextResponse.json({ error: "Informe ao menos 3 caracteres ou um CNPJ completo." }, { status: 400 });
 
   const apiKey = process.env.CNPJIA_KEY;
-  const digits = q.replace(/\\D/g, "");
+  const digits = q.replace(/\D/g, "");
   const looksLikeCnpj = digits.length === 14;
 
   try {
