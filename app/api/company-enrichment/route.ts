@@ -22,7 +22,7 @@ function normalizeCompany(raw: AnyRecord, source: string) {
     cnpj: first(raw.cnpj, raw.ni, ""),
     name: first(raw.razao_social, raw.nome_empresarial, raw.name, ""),
     trade_name: first(raw.nome_fantasia, raw.nomefantasia, ""),
-    status: first(typeof status === "object" ? status.descricao : status, raw.descricao_situacao_cadastral, ""),
+    status: first(typeof status === "object" ? status.descricao : null, raw.descricao_situacao_cadastral, typeof status === "number" ? ({1:"NULA",2:"ATIVA",3:"SUSPENSA",4:"INAPTA",8:"BAIXADA"} as Record<number,string>)[status] : status, ""),
     opening_date: first(raw.data_inicio_atividade, raw.data_abertura, ""),
     size: first(typeof size === "object" ? size.descricao : size, raw.porte, ""),
     capital: first(raw.capital_social, raw.capitalSocial, null),
@@ -49,7 +49,7 @@ function normalizeCompany(raw: AnyRecord, source: string) {
     special_status: first(raw.situacao_especial, ""),
     has_website: Boolean(first(raw.has_website, raw.site, raw.website)),
     has_email: Boolean(first(raw.has_email, raw.email)),
-    has_phone: Boolean(first(raw.has_phone, phones.length ? true : false)),
+    has_phone: Boolean(first(raw.has_phone, phones.length ? true : false)),\n    registration_assessment: first(typeof status === "object" ? status.descricao : null, raw.descricao_situacao_cadastral, "") === "ATIVA" ? "Cadastro ativo na base consultada" : "Situação cadastral exige conferência",\n    reputation_assessment: "Não consultada. Exige análise adicional em fontes públicas, reclamações e bases de crédito autorizadas.",
   };
 }
 
