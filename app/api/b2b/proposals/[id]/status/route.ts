@@ -35,7 +35,8 @@ export async function PATCH(request:NextRequest,{params}:{params:Promise<{id:str
  if(!transitions[current]?.includes(status))return jsonError("Transição não permitida: "+current+" → "+status,409);
 
  const update:any={status};
- if(status==="SENT"&&Number(proposal.monthly_revenue)<=Number(proposal.monthly_supplier_cost))return jsonError("A proposta precisa ter margem positiva antes do envio.",409);\n if(status==="SENT"&&client.credit_decision!=="APPROVED") {
+ if(status==="SENT"&&Number(proposal.monthly_revenue)<=Number(proposal.monthly_supplier_cost))return jsonError("A proposta precisa ter margem positiva antes do envio.",409);
+ if(status==="SENT"&&client.credit_decision!=="APPROVED") {
   const reason=String(body.manual_override_reason||"").trim();
   if(reason.length<10)return jsonError("A proposta exige aprovação cadastral ou justificativa formal de exceção de crédito.",409);
   const {data:membership}=await auth.client.from("organization_members")
