@@ -16,7 +16,7 @@ concurrency:
 
 jobs:
   build:
-    name: TypeScript and Next.js build
+    name: Security, tests and Next.js build
     runs-on: ubuntu-22.04
     timeout-minutes: 20
     steps:
@@ -26,7 +26,12 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: Install dependencies
-        run: npm install
+          cache: npm
+      - name: Install locked dependencies
+        run: npm ci
+      - name: Audit dependencies
+        run: npm audit --audit-level=moderate
+      - name: Run unit tests
+        run: npm test
       - name: Validate TypeScript and build Next.js
         run: npm run build
