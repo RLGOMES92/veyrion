@@ -9,8 +9,15 @@ export async function POST(request:NextRequest) {
  if(c.status!=="ACTIVE")return jsonError("Somente contratos ativos podem gerar assinatura recorrente.");
  const apiKey=process.env.ASAAS_API_KEY;
  if(!apiKey)return NextResponse.json({status:"NOT_CONFIGURED",message:"Configure ASAAS_API_KEY. Nenhuma cobrança foi criada."},{status:409});
- const customerId=c.client.asaas_customer_id;
- if(!customerId)return jsonError("Cliente ainda não possui customerId no Asaas.",409);
+ let customerId=c.client.asaas_customer_id;
+ if(!customerId) {
+  const customerResponse=await fetch(`${process.env.ASAAS_API_URL||"https://api.asaas.com/v3"}/customers`,{method:"POST",headers:{access_token:apiKey,"Content-Type":"application/json","User-Agent":"VEYRION-OS/1.0"},body:JSON.stringify({name:c.client.legal_name,cpfCnpj:c.client.cnpj,email:c.client.contact_email||undefined,phone:c.client.contact_phone||undefined,externalReference:c.client.id})});
+  const customerPayload=await customerResponse.json().catch(()=>({}));
+  if(!customerResponse.ok)return NextResponse.json({error:"Falha ao cadastrar cliente no Asaas.",details:customerPayload},{status:502});
+  customerId=customerPayload.id;
+  const {error:customerSaveError}=await auth.client.from("b2b_clients").update({asaas_customer_id:customerId}).eq("id",c.client_id);
+  if(customerSaveError)return jsonError("Cliente criado no Asaas, mas falhou ao salvar o vínculo: "+customerSaveError.message,500);
+ }
  const walletId=c.supplier.asaas_wallet_id;
  if(!walletId)return jsonError("Fornecedor sem walletId Asaas. O split não pode ser ativado.",409);
  const billingType=body.billing_type==="CREDIT_CARD"?"CREDIT_CARD":"BOLETO";
