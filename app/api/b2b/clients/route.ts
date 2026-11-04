@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
   registration_status:status||"PENDENTE", opening_date:body.opening_date||null,
   primary_cnae:body.primary_cnae||null, primary_cnae_code:body.primary_cnae_code||null,
   address:body.address||{}, qsa:Array.isArray(body.qsa)?body.qsa:[],
-  source_name:body.source_name||null, source_checked_at:new Date().toISOString(),
+  source_name:body.source_name||null, source_checked_at:new Date().toISOString(),\n  contact_email:body.contact_email||null, contact_phone:body.contact_phone||null,
   employee_count:body.employee_count===null||body.employee_count===""?null:Number(body.employee_count),
   employee_range:body.employee_range||null, monthly_revenue_estimate:revenue,
   credit_decision:decision, credit_score:body.credit_score??null,
