@@ -1,0 +1,8 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { buildAssistantBrief, buildFollowupDraft } from '../lib/ai-assistant.ts';
+const rec=(id,module,payload)=>({id,module,payload,created_at:'2026-11-01T12:00:00Z'});
+test('prioriza follow-ups vencidos, propostas enviadas e oportunidades paradas',()=>{const brief=buildAssistantBrief([rec('c1','companies',{name:'Acme',next_followup:'2026-11-01'}),rec('c2','companies',{name:'Beta',prospect_stage:'Proposta enviada'}),rec('o1','opportunities',{title:'Locação 20 notebooks',stage:'Negociação',stage_updated_at:'2026-10-01',value:12000,next_action:'Ligar'})],'2026-11-04');assert.equal(brief.high,3);assert.ok(brief.items.some(x=>x.title==='Acme'&&x.reason==='Follow-up da empresa está vencido'));assert.ok(brief.items.some(x=>x.reason==='Oportunidade sem movimentação há 14 dias ou mais'));});
+test('não recomenda oportunidades encerradas nem tarefas concluídas',()=>{const brief=buildAssistantBrief([rec('o1','opportunities',{stage:'Ganha'}),rec('t1','tasks',{status:'Concluída',due_at:'2026-10-01'})],'2026-11-04');assert.equal(brief.items.length,0);assert.equal(brief.openTasks,0);});
+test('limita a lista de recomendações a 30 e mantém contadores do workspace',()=>{const records=Array.from({length:40},(_,i)=>rec('c'+i,'companies',{name:'Empresa '+i,next_followup:'2026-11-01'}));const brief=buildAssistantBrief(records,'2026-11-04');assert.equal(brief.items.length,30);assert.equal(brief.companies,40);});
+test('gera rascunho comercial sem afirmar envio',()=>{const draft=buildFollowupDraft({name:'Acme',contact_person:'Marina',notebook_demand:12});assert.match(draft,/Marina/);assert.match(draft,/12 equipamento/);assert.match(draft,/Podemos conversar/);});

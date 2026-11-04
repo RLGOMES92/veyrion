@@ -1,0 +1,23 @@
+type AssistantRecord = { id:string; module:string; payload?:Record<string,any>|null; created_at?:string; updated_at?:string };
+const dayKey=(value:unknown)=>String(value??"").slice(0,10);
+const validDate=(value:unknown)=>/^\d{4}-\d{2}-\d{2}$/.test(dayKey(value))&&!Number.isNaN(new Date(dayKey(value)+"T00:00:00").getTime());
+const nonNegative=(value:unknown)=>{const n=Number(value??0);return Number.isFinite(n)?Math.max(0,n):0};
+export function buildAssistantBrief(records:AssistantRecord[],todayKey:string){
+ const companies=records.filter(r=>r.module==="companies"),tasks=records.filter(r=>r.module==="tasks"&&!['Concluída','Cancelada'].includes(String(r.payload?.status??''))),opportunities=records.filter(r=>r.module==="opportunities"&&!['Ganha','Perdida'].includes(String(r.payload?.stage??'')));
+ const items:{id:string;module:string;title:string;priority:'Alta'|'Média'|'Baixa';reason:string;action:string;value:number}[]=[];
+ for(const r of companies){const p=r.payload??{},name=String(p.name||'Empresa sem nome'),due=dayKey(p.next_followup),score=nonNegative(p.prospect_score??p.priority_score);let priority:'Alta'|'Média'|'Baixa'='Baixa',reason='',action='Completar dados de contato e validar a necessidade';
+  if(validDate(due)&&due<todayKey){priority='Alta';reason='Follow-up da empresa está vencido';action=String(p.next_action||'Retomar contato e registrar o resultado');}
+  else if(validDate(due)&&due===todayKey){priority='Alta';reason='Follow-up programado para hoje';action=String(p.next_action||'Executar o contato combinado');}
+  else if(String(p.prospect_stage||'')==='Proposta enviada'){priority='Alta';reason='Proposta enviada: confirmar recebimento e objeções';action='Confirmar recebimento da proposta e combinar data de decisão';}
+  else if(['Alto','Médio'].includes(String(p.rental_interest||''))&&!p.next_action){priority='Média';reason='Interesse em locação sem próxima ação registrada';action='Agendar diagnóstico de quantidade, configuração e prazo';}
+  else if(!p.contact_person&&!p.contact_email&&!p.phone){priority='Média';reason='Cadastro sem contato identificado';action='Identificar decisor e canal corporativo de contato';}
+  else if(score>=65){priority='Média';reason='Empresa com pontuação de potencial elevada';action=String(p.next_action||'Qualificar demanda e prazo de implantação');}
+  else continue;
+  items.push({id:r.id,module:r.module,title:name,priority,reason,action,value:0});
+ }
+ for(const r of opportunities){const p=r.payload??{},due=dayKey(p.expected_close),age=validDate(p.stage_updated_at)?Math.floor((new Date(todayKey+'T00:00:00').getTime()-new Date(dayKey(p.stage_updated_at)+'T00:00:00').getTime())/86400000):null;let reason='',action='';if(validDate(due)&&due<todayKey){reason='Previsão de fechamento vencida';action='Revalidar cronograma, decisores e próximos marcos';}else if(!p.next_action){reason='Oportunidade sem próxima ação';action='Definir responsável, atividade e data do próximo contato';}else if(age!==null&&age>=14){reason='Oportunidade sem movimentação há 14 dias ou mais';action='Reabrir conversa e atualizar estágio ou motivo de espera';}else continue;items.push({id:r.id,module:r.module,title:String(p.title||p.company||'Oportunidade'),priority:'Alta',reason,action,value:nonNegative(p.value)});}
+ for(const r of tasks){const p=r.payload??{},due=dayKey(p.due_at);if(validDate(due)&&due<todayKey)items.push({id:r.id,module:r.module,title:String(p.title||'Tarefa'),priority:'Alta',reason:'Tarefa operacional vencida',action:'Atualizar o status ou reagendar com justificativa',value:0});}
+ const rank={Alta:0,Média:1,Baixa:2};items.sort((a,b)=>rank[a.priority]-rank[b.priority]||b.value-a.value||a.title.localeCompare(b.title));
+ return {generatedAt:todayKey,companies:companies.length,openOpportunities:opportunities.length,openTasks:tasks.length,high:items.filter(x=>x.priority==='Alta').length,items:items.slice(0,30),disclaimer:'Recomendações baseadas exclusivamente nos registros do workspace. Não são previsões garantidas nem mensagens enviadas automaticamente.'};
+}
+export function buildFollowupDraft(company:Record<string,any>){const name=String(company.contact_person||'Olá'),business=String(company.name||'sua empresa'),demand=nonNegative(company.notebook_demand),deadline=String(company.delivery_deadline||company.receiving_deadline||'');return `Olá, ${name}! Tudo bem?\n\nEstou entrando em contato pela VEYRION para entender se ${business} tem alguma demanda atual ou prevista de notebooks para a equipe.\n${demand?`Temos registrado um interesse estimado em ${demand} equipamento(s).\n`:''}${deadline?`Vi que o prazo desejado informado foi ${deadline}.\n`:''}Podemos conversar por alguns minutos para entender quantidade, configuração e prazo?\n\nFico à disposição.`;}
