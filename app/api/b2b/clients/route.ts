@@ -37,8 +37,9 @@ export async function POST(request: NextRequest) {
    }
  }
  if(body.credit_review_confirmed) {
-  const {data:memberships}=await auth.client.from("organization_members").select("organization_id,role,created_at").eq("user_id",auth.user.id).order("created_at",{ascending:true}).limit(100);
-  const membership=(memberships||[]).sort((a,b)=>(a.role==="owner"?0:a.role==="admin"?1:2)-(b.role==="owner"?0:b.role==="admin"?1:2))[0];
+  const {data:organizationId,error:organizationError}=await auth.client.rpc("current_user_organization_id");
+  if(organizationError||!organizationId)return jsonError("Não foi possível identificar a organização ativa.",403);
+  const {data:membership}=await auth.client.from("organization_members").select("organization_id,role").eq("user_id",auth.user.id).eq("organization_id",organizationId).maybeSingle();
   if(!membership || !["owner","admin","manager","finance"].includes(membership.role)) return jsonError("Somente gestão ou financeiro pode registrar aprovação manual de crédito.",403);
   if(String(body.credit_review_note||"").trim().length<10) return jsonError("Justificativa da aprovação manual deve ter ao menos 10 caracteres.");
  }
