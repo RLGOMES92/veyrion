@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
      decision="APPROVED"; reasons.push("Triagem cadastral aprovada por revisão humana registrada.");
    }
  }
- const payload = {
+ if(body.credit_review_confirmed) {\n  const {data:membership}=await auth.client.from("organization_members").select("role").eq("user_id",auth.user.id).maybeSingle();\n  if(!membership || !["owner","admin","manager","finance"].includes(membership.role)) return jsonError("Somente gestão ou financeiro pode registrar aprovação manual de crédito.",403);\n  if(String(body.credit_review_note||"").trim().length<10) return jsonError("Justificativa da aprovação manual deve ter ao menos 10 caracteres.");\n }\n const payload = {
   cnpj, legal_name:String(body.legal_name), trade_name:body.trade_name||null,
   registration_status:status||"PENDENTE", opening_date:body.opening_date||null,
   primary_cnae:body.primary_cnae||null, primary_cnae_code:body.primary_cnae_code||null,
