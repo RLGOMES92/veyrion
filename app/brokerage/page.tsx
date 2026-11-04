@@ -1,18 +1,19 @@
 "use client";
-import { useCallback,useEffect,useMemo,useState } from "react";
+import { useCallback,useEffect,useState } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import { supabase } from "@/lib/supabase";
 import { Building2,Search,ShieldCheck,AlertTriangle,FileText,Wallet,Plus,RefreshCw,Send,CheckCircle2,Clock3,Users,Monitor,ArrowLeft } from "lucide-react";
 import Link from "next/link";
 
 type AnyRow=Record<string,any>;
 const money=(v:any)=>Number(v||0).toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
-const inputStyle:React.CSSProperties={width:"100%",padding:"11px 12px",border:"1px solid var(--border,#dbe2ea)",borderRadius:10,background:"var(--surface,#fff)",color:"var(--text,#172033)",fontSize:14};
-const labelStyle:React.CSSProperties={display:"grid",gap:6,fontSize:13,fontWeight:600};
-const btn:React.CSSProperties={border:0,borderRadius:10,padding:"11px 15px",background:"#375dfb",color:"#fff",fontWeight:700,cursor:"pointer",display:"inline-flex",alignItems:"center",gap:8};
-const panel:React.CSSProperties={background:"var(--panel,#fff)",border:"1px solid var(--border,#e2e8f0)",borderRadius:16,padding:18,marginBottom:16};
-const muted:React.CSSProperties={color:"var(--muted,#64748b)",fontSize:13};
-const badge=(color:string):React.CSSProperties=>({display:"inline-flex",padding:"5px 9px",borderRadius:20,background:color==="green"?"#dcfce7":color==="red"?"#fee2e2":"#fef3c7",color:color==="green"?"#166534":color==="red"?"#991b1b":"#92400e",fontSize:11,fontWeight:800});
-function Field({label,children}:{label:string;children:React.ReactNode}){return <label style={labelStyle}><span>{label}</span>{children}</label>}
+const inputStyle:CSSProperties={width:"100%",padding:"11px 12px",border:"1px solid var(--border,#dbe2ea)",borderRadius:10,background:"var(--surface,#fff)",color:"var(--text,#172033)",fontSize:14};
+const labelStyle:CSSProperties={display:"grid",gap:6,fontSize:13,fontWeight:600};
+const btn:CSSProperties={border:0,borderRadius:10,padding:"11px 15px",background:"#375dfb",color:"#fff",fontWeight:700,cursor:"pointer",display:"inline-flex",alignItems:"center",gap:8};
+const panel:CSSProperties={background:"var(--panel,#fff)",border:"1px solid var(--border,#e2e8f0)",borderRadius:16,padding:18,marginBottom:16};
+const muted:CSSProperties={color:"var(--muted,#64748b)",fontSize:13};
+const badge=(color:string):CSSProperties=>({display:"inline-flex",padding:"5px 9px",borderRadius:20,background:color==="green"?"#dcfce7":color==="red"?"#fee2e2":"#fef3c7",color:color==="green"?"#166534":color==="red"?"#991b1b":"#92400e",fontSize:11,fontWeight:800});
+function Field({label,children}:{label:string;children:ReactNode}){return <label style={labelStyle}><span>{label}</span>{children}</label>}
 export default function BrokeragePage(){
  const [token,setToken]=useState(""); const [busy,setBusy]=useState(false); const [notice,setNotice]=useState(""); const [tab,setTab]=useState("credit");
  const [cnpj,setCnpj]=useState(""); const [company,setCompany]=useState<AnyRow|null>(null); const [revenue,setRevenue]=useState(""); const [creditNote,setCreditNote]=useState(""); const [creditConfirmed,setCreditConfirmed]=useState(false);
