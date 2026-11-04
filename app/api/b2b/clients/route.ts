@@ -51,8 +51,8 @@ export async function POST(request: NextRequest) {
   employee_count:body.employee_count===null||body.employee_count===""?null:Number(body.employee_count),
   employee_range:body.employee_range||null, monthly_revenue_estimate:revenue,
   credit_decision:decision, credit_score:riskScore,
-  credit_reasons:reasons, credit_reviewed_at:body.credit_review_confirmed?new Date().toISOString():null,
-  credit_reviewed_by:body.credit_review_confirmed?auth.user.id:null,
+  credit_reasons:reasons, credit_reviewed_at:decision==="APPROVED"?new Date().toISOString():null,
+  credit_reviewed_by:decision==="APPROVED"?auth.user.id:null,
   notes:[body.notes,body.credit_review_note].filter(Boolean).join("\n")
  };
  const {data,error}=await auth.client.from("b2b_clients").upsert(payload,{onConflict:"organization_id,cnpj"}).select().single();
