@@ -47,5 +47,6 @@ export async function POST(request: NextRequest) {
  };
  const {data,error}=await auth.client.from("b2b_clients").upsert(payload,{onConflict:"organization_id,cnpj"}).select().single();
  if(error) return jsonError(error.message,400);
+ await auth.client.from("b2b_credit_assessments").insert({client_id:data.id,provider:"VEYRION_RULES",status:"COMPLETED",score:data.credit_score,decision,factors:reasons.map(reason=>({reason})),raw_summary:{source:payload.source_name,registration_status:status,opening_age_months:age,monthly_revenue_estimate:revenue,rental_limit_monthly:data.rental_limit_monthly},checked_at:new Date().toISOString(),created_by:auth.user.id});
  return NextResponse.json({client:data,decision,reasons,rental_limit_monthly:data.rental_limit_monthly});
 }
