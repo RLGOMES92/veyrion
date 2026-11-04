@@ -20,7 +20,7 @@ export async function POST(request:NextRequest) {
  }
  const walletId=c.supplier.asaas_wallet_id;
  if(!walletId)return jsonError("Fornecedor sem walletId Asaas. O split não pode ser ativado.",409);
- const billingType=body.billing_type==="CREDIT_CARD"?"CREDIT_CARD":"BOLETO";
+ const billingType=["CREDIT_CARD","PIX","BOLETO"].includes(body.billing_type)?body.billing_type:"BOLETO";
  const base=process.env.ASAAS_API_URL||"https://api.asaas.com/v3";
  const response=await fetch(`${base}/subscriptions`,{method:"POST",headers:{access_token:apiKey,"Content-Type":"application/json","User-Agent":"VEYRION-OS/1.0"},body:JSON.stringify({customer:customerId,billingType,value:Number(c.recurring_amount),nextDueDate:body.next_due_date||new Date(Date.now()+86400000*7).toISOString().slice(0,10),cycle:"MONTHLY",description:`Locação TI VEYRION — contrato ${c.id}`,externalReference:c.id,split:[{walletId,fixedValue:Number(c.partner_amount),description:"Repasse parceiro técnico"}]})});
  const payload=await response.json().catch(()=>({}));
