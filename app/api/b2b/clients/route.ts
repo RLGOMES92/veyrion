@@ -38,7 +38,7 @@ export async function POST(request: NextRequest) {
  }
  if(body.credit_review_confirmed) {
   const {data:memberships}=await auth.client.from("organization_members").select("organization_id,role,created_at").eq("user_id",auth.user.id).order("created_at",{ascending:true}).limit(100);
-  const membership=(memberships||[]).sort((a,b)=>({owner:0,admin:1}[a.role]??2)-({owner:0,admin:1}[b.role]??2))[0];
+  const membership=(memberships||[]).sort((a,b)=>(a.role==="owner"?0:a.role==="admin"?1:2)-(b.role==="owner"?0:b.role==="admin"?1:2))[0];
   if(!membership || !["owner","admin","manager","finance"].includes(membership.role)) return jsonError("Somente gestão ou financeiro pode registrar aprovação manual de crédito.",403);
   if(String(body.credit_review_note||"").trim().length<10) return jsonError("Justificativa da aprovação manual deve ter ao menos 10 caracteres.");
  }
