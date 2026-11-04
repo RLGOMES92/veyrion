@@ -20,7 +20,7 @@ export async function POST(request:NextRequest) {
  const number="VYR-"+new Date().getFullYear()+"-"+crypto.randomUUID().slice(0,8).toUpperCase();
  const {data:proposal,error:pe}=await auth.client.from("b2b_proposals").insert({client_id,supplier_id,term_months:Number(term_months),proposal_number:number,status:"DRAFT",notes:body.notes||null}).select().single();
  if(pe||!proposal)return jsonError(pe?.message||"Não foi possível criar proposta.");
- const rows=[];
+ const rows:any[]=[];
  for(const x of items) {
   let model=String(x.model||"Modelo não informado");
   let partnerCost=Number(x.partner_unit_monthly);
@@ -30,7 +30,7 @@ export async function POST(request:NextRequest) {
    if(Number(x.quantity)>product.available_quantity){await auth.client.from("b2b_proposals").delete().eq("id",proposal.id);return jsonError("Estoque insuficiente para o modelo "+product.model+".");}
    model=product.model;partnerCost=Number(product.partner_unit_monthly);
   }
-  rows.push({proposal_id:proposal.id,supplier_product_id:x.supplier_product_id||null,description:String(x.description||model),model,quantity:Number(x.quantity),partner_unit_monthly:partnerCost,client_unit_monthly:Number(x.client_unit_monthly)});
+  if(!x.supplier_product_id&&(x.partner_unit_monthly===undefined||x.partner_unit_monthly==="")){await auth.client.from("b2b_proposals").delete().eq("id",proposal.id);return jsonError("Informe o custo mensal do parceiro ou selecione um modelo do catálogo.");}\n  if(!Number.isFinite(Number(x.client_unit_monthly))||Number(x.client_unit_monthly)<=0){await auth.client.from("b2b_proposals").delete().eq("id",proposal.id);return jsonError("O preço mensal cobrado do cliente deve ser maior que zero.");}\n  rows.push({proposal_id:proposal.id,supplier_product_id:x.supplier_product_id||null,description:String(x.description||model),model,quantity:Number(x.quantity),partner_unit_monthly:partnerCost,client_unit_monthly:Number(x.client_unit_monthly)});
  }
  if(rows.some(x=>!x.model||!Number.isInteger(x.quantity)||x.quantity<1||!Number.isFinite(x.partner_unit_monthly)||!Number.isFinite(x.client_unit_monthly)||x.partner_unit_monthly<0||x.client_unit_monthly<0)){await auth.client.from("b2b_proposals").delete().eq("id",proposal.id);return jsonError("Confira modelo, quantidade e valores dos itens.");}
  const {error:ie}=await auth.client.from("b2b_proposal_items").insert(rows);
