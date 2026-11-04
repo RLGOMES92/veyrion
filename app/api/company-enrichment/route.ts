@@ -50,7 +50,7 @@ function normalizeCompany(raw: AnyRecord, source: string) {
     has_website: Boolean(first(raw.has_website, raw.site, raw.website)),
     has_email: Boolean(first(raw.has_email, raw.email)),
     has_phone: Boolean(first(raw.has_phone, phones.length ? true : false)),
-    registration_assessment: first(typeof status === "object" ? status.descricao : null, raw.descricao_situacao_cadastral, "") === "ATIVA" ? "Cadastro ativo na base consultada" : "Situação cadastral exige conferência",
+    registration_assessment: String(first(typeof status === "object" ? status.descricao : null, raw.descricao_situacao_cadastral, typeof status === "number" ? ({1:"NULA",2:"ATIVA",3:"SUSPENSA",4:"INAPTA",8:"BAIXADA"} as Record<number,string>)[status] : status, "")).toUpperCase() === "ATIVA" ? "Cadastro ativo na base consultada" : "Situação cadastral exige conferência",
     reputation_assessment: "Não consultada. Exige análise adicional em fontes públicas, reclamações e bases de crédito autorizadas.",
   };
 }
