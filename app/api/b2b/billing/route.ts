@@ -3,7 +3,8 @@ import { requireUser,jsonError,getServiceClient } from "@/lib/b2b-server";
 
 export async function POST(request:NextRequest) {
  const auth=await requireUser(request); if(!auth)return jsonError("Sessão inválida.",401);
- const {data:membership}=await auth.client.from("organization_members").select("organization_id,role").eq("user_id",auth.user.id).limit(1).maybeSingle();
+ const {data:memberships}=await auth.client.from("organization_members").select("organization_id,role,created_at").eq("user_id",auth.user.id).order("created_at",{ascending:true}).limit(100);
+ const membership=(memberships||[]).sort((a,b)=>({owner:0,admin:1}[a.role]??2)-({owner:0,admin:1}[b.role]??2))[0];
  if(!membership||!["owner","admin","finance"].includes(membership.role))return jsonError("Somente proprietário, administrador ou financeiro pode ativar cobrança.",403);
  const body=await request.json().catch(()=>null); if(!body?.contract_id)return jsonError("Informe o contrato.");
  const apiKey=process.env.ASAAS_API_KEY;
