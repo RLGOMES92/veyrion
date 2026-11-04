@@ -105,7 +105,7 @@ function normalizeCompany(raw: AnyRecord, source: string) {
     phones,
     employees_range: first(raw.faixa_funcionarios?.faixa, raw.faixa_funcionarios, raw.funcionarios_faixa, raw.faixa_funcionarios_estimada, null),
     revenue_range: first(raw.faixa_faturamento?.faixa, raw.faixa_faturamento, raw.faixa_receita_estimada, null),
-    partners_count: Array.isArray(raw.socios) ? raw.socios.length : Array.isArray(raw.qsa) ? raw.qsa.length : null,
+    qsa: Array.isArray(raw.qsa) ? raw.qsa : Array.isArray(raw.socios) ? raw.socios : Array.isArray(raw.quadro_societario) ? raw.quadro_societario : [],\n    partners_count: Array.isArray(raw.socios) ? raw.socios.length : Array.isArray(raw.qsa) ? raw.qsa.length : null,
     branches_count: branches,
     source,
     source_date: sourceDate,
