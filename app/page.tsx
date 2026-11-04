@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/lib/supabase";
+import { calculateReturnProgress, hasOpenMaintenance } from "@/lib/asset-lifecycle";
 
 type ModuleKey="dashboard"|"companies"|"contacts"|"opportunities"|"assets"|"maintenance"|"proposals"|"procurement"|"tasks"|"contracts"|"finance"|"campaigns"|"audit"|"team";
 type RecordItem={id:string;module:ModuleKey;payload:Record<string,any>;created_at:string;updated_at?:string};
@@ -35,7 +36,6 @@ function parseCsv(text:string){
 function localDate(){const d=new Date();return [d.getFullYear(),String(d.getMonth()+1).padStart(2,"0"),String(d.getDate()).padStart(2,"0")].join("-");}
 function elapsedMonths(start:string,end:string){const startKey=String(start||"").slice(0,10),endKey=String(end||"").slice(0,10);if(startKey.length!==10||endKey.length!==10)return 0;const a=new Date(startKey+"T00:00:00"),b=new Date(endKey+"T00:00:00");if(!Number.isFinite(a.getTime())||!Number.isFinite(b.getTime())||b<a)return 0;let months=(b.getFullYear()-a.getFullYear())*12+b.getMonth()-a.getMonth();if(b.getDate()<a.getDate())months--;return Math.max(0,months)}
 function maintenanceAssetStatus(orderStatus:string,previousStatus:string){if(orderStatus==="Concluída")return "Disponível";if(orderStatus==="Cancelada")return ["Disponível","Indisponível","Em manutenção"].includes(previousStatus)?previousStatus:"Em manutenção";return "Em manutenção";}
-function hasOpenMaintenance(records:RecordItem[],assetId:string,excludeOrderId?:string){return records.some(record=>record.module==="maintenance"&&record.id!==excludeOrderId&&String(record.payload.asset_id||"")===assetId&&!["Concluída","Cancelada"].includes(String(record.payload.status||"Aberta")))}
 function addMonthsClamped(dateKey:string,months:number){const [year,month,day]=dateKey.split("-").map(Number);const target=new Date(year,month-1+months,1);const lastDay=new Date(target.getFullYear(),target.getMonth()+1,0).getDate();return [target.getFullYear(),String(target.getMonth()+1).padStart(2,"0"),String(Math.min(day,lastDay)).padStart(2,"0")].join("-");}
 function prospectIntelligence(p:Record<string,any>){
  const factors:string[]=[];let score=0;
@@ -465,11 +465,10 @@ function printAssetDeliveryTerm(asset:RecordItem){
   const maintenancePayload=damaged?{number:"MAN-"+localDate().replace(/-/g,"")+"-"+String(rows.filter(x=>x.module==="maintenance").length+1).padStart(3,"0"),asset_serial:String(asset.payload.serial||""),asset_tag:String(asset.payload.asset_tag||""),asset_model:[asset.payload.brand,asset.payload.model].filter(Boolean).join(" "),issue:"Avaria identificada na devolução do contrato "+String(contract.payload.number||""),diagnosis,technician:"",status:"Aberta",opened_at:localDate(),completed_at:"",parts_cost:partsCost,labor_cost:laborCost,total_cost:partsCost+laborCost,notes:"Ordem gerada na inspeção de devolução "+inspectionId+". Teste funcional: "+(functional||"Não informado")+". Acessórios: "+(accessories||"Não informado")+".",asset_id:asset.id,contract_id:contract.id,contract_number:String(contract.payload.number||""),return_inspection_id:inspectionId,previous_asset_status:"Em manutenção"}:null;
   const nextAsset=appendAssetMovement({...asset.payload,status:damaged?"Em manutenção":"Disponível",returned_at:now,last_contract_id:contract.id,last_contract_number:contract.payload.number||"",return_inspection:inspection,return_inspection_id:inspectionId,contract_id:null,contract_number:null,assigned_to:null,assigned_at:null,reserved_at:null,status_updated_at:now},{id:inspectionId,type:"Devolução recebida",from:"Alugado",to:damaged?"Em manutenção":"Disponível",at:now,by:String(user?.email||"Responsável não identificado"),serial:String(asset.payload.serial||""),contract_id:contract.id,contract_number:String(contract.payload.number||""),condition:damaged?"Com avarias":"Sem avarias",inspection_id:inspectionId});
   const returnedIds=new Set([...(Array.isArray(contract.payload.returned_asset_ids)?contract.payload.returned_asset_ids:[]),asset.id]);
-  const contractAssetIds=Array.from(new Set([...(Array.isArray(contract.payload.inventory_asset_ids)?contract.payload.inventory_asset_ids:[]),...rows.filter(x=>x.module==="assets"&&(String(x.payload.contract_id||"")===contract.id||String(x.payload.last_contract_id||"")===contract.id)).map(x=>x.id)]));
-  const expectedIds=contractAssetIds.length?contractAssetIds:[asset.id];
-  const requiredQuantity=Math.max(0,Number(contract.payload.quantity)||0);const allReturned=expectedIds.length>=requiredQuantity&&expectedIds.every(id=>returnedIds.has(id));
+  const returnProgress=calculateReturnProgress(contract,rows,returnedIds);
+  const allReturned=returnProgress.allReturned;
   const previousReturnHistory=Array.isArray(contract.payload.return_inspections)?contract.payload.return_inspections:[];
-  const nextContract={...contract.payload,return_status:allReturned?"Recebida":"Em conferência",returned_asset_ids:Array.from(returnedIds),return_inspections:[...previousReturnHistory,inspection],...(allReturned?{status:"Encerrado",closed_at:now,return_completed_at:now}:{})};
+  const nextContract={...contract.payload,return_status:returnProgress.returnStatus,returned_asset_ids:Array.from(returnedIds),return_inspections:[...previousReturnHistory,inspection],...(allReturned?{status:"Encerrado",closed_at:now,return_completed_at:now}:{})};
   if(demo){
    const maintenanceRecord=maintenancePayload?{id:"demo-maint-"+Date.now(),module:"maintenance" as ModuleKey,payload:maintenancePayload,created_at:now}:null;
    setRows(prev=>[...(maintenanceRecord?[maintenanceRecord]:[]),...prev.map(x=>x.id===asset.id?{...x,payload:nextAsset}:x).map(x=>x.id===contract.id?{...x,payload:nextContract}:x)]);
