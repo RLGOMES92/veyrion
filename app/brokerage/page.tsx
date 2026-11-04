@@ -55,7 +55,8 @@ export default function BrokeragePage(){
  const mrr=contracts.filter(x=>x.status==="ACTIVE").reduce((a,x)=>a+Number(x.recurring_amount||0),0);
  
  const overdue=charges.filter(x=>x.status==="OVERDUE"||(x.status==="PENDING"&&x.due_date<new Date().toISOString().slice(0,10))).length;
- const margin=Number(proposalForm.client_unit_monthly||0)-Number(proposalForm.partner_unit_monthly||0);\n const delinquencyRate=charges.length?((overdue/charges.length)*100):0;
+ const margin=Number(proposalForm.client_unit_monthly||0)-Number(proposalForm.partner_unit_monthly||0);
+ const delinquencyRate=charges.length?((overdue/charges.length)*100):0;
  return <main style={{maxWidth:1440,margin:"0 auto",padding:"24px 18px 64px",color:"var(--text,#172033)"}}>
   <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:12,flexWrap:"wrap",marginBottom:20}}>
    <div><Link href="/" style={{display:"inline-flex",alignItems:"center",gap:6,...muted,textDecoration:"none"}}><ArrowLeft size={15}/> Voltar ao workspace</Link><div style={{display:"flex",alignItems:"center",gap:10,marginTop:10}}><div style={{background:"#e0e7ff",padding:10,borderRadius:12,color:"#3730a3"}}><Building2/></div><div><h1 style={{fontSize:26,fontWeight:850,margin:0}}>Brokerage B2B</h1><p style={{...muted,margin:"4px 0 0"}}>Crédito · Propostas · Contratos · Recorrência</p></div></div></div>
