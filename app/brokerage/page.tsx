@@ -57,7 +57,9 @@ export default function BrokeragePage(){
  const startBilling=async()=>{setBusy(true);try{const j=await request("/api/b2b/billing",{contract_id:billingContract,billing_type:billingType});setNotice(j.message||"Assinatura recorrente criada no Asaas.");await load();}catch(e:any){setNotice(e.message)}finally{setBusy(false)}};
  const mrr=contracts.filter(x=>x.status==="ACTIVE").reduce((a,x)=>a+Number(x.recurring_amount||0),0);
  
- const today=new Date().toISOString().slice(0,10);\n const overdue=charges.filter(x=>x.status==="OVERDUE"||(x.status==="PENDING"&&x.due_date<today)).length;\n const dueCharges=charges.filter(x=>x.due_date<=today&&!["CANCELLED","REFUNDED"].includes(x.status));
+ const today=new Date().toISOString().slice(0,10);
+ const overdue=charges.filter(x=>x.status==="OVERDUE"||(x.status==="PENDING"&&x.due_date<today)).length;
+ const dueCharges=charges.filter(x=>x.due_date<=today&&!["CANCELLED","REFUNDED"].includes(x.status));
  const selectedProduct=products.find(p=>p.id===proposalForm.supplier_product_id);
  const margin=Number(proposalForm.client_unit_monthly||0)-Number(proposalForm.partner_unit_monthly||0);
  const delinquencyRate=dueCharges.length?((overdue/dueCharges.length)*100):0;
