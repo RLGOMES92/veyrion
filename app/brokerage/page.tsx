@@ -29,7 +29,7 @@ export default function BrokeragePage(){
  const [manualReason,setManualReason]=useState("");
  const [lastLookup,setLastLookup]=useState("");
  const [contractPreview,setContractPreview]=useState<AnyRow|null>(null); const [previewHtml,setPreviewHtml]=useState("");
- const authHeaders=useCallback(()=>token?{Authorization:"Bearer "+token,"Content-Type":"application/json"}:{"Content-Type":"application/json"},[token]);
+ const authHeaders=useCallback(():Record<string,string>=>token?{Authorization:"Bearer "+token,"Content-Type":"application/json"}:{"Content-Type":"application/json"},[token]);
  const load=useCallback(async()=>{
   if(!supabase)return;
   const [c,s,p,k,b,pr]=await Promise.all([
