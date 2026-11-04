@@ -428,7 +428,7 @@ As migrations `013` a `018` criam e protegem:
 - `b2b_contracts`
 - `b2b_charges`, `b2b_integration_events`
 
-Todas as tabelas B2B têm RLS por organização. A triagem de 0–100 é cadastral/comercial e não substitui bureau de crédito. CNPJ diferente de ATIVA bloqueia proposta; empresas com menos de seis meses exigem revisão; limite padrão de locação = 15% do faturamento mensal informado.
+Todas as tabelas B2B têm RLS por organização. O estoque é validado na proposta e reservado ao ativar o contrato assinado; a devolução física precisa de confirmação operacional. A triagem de 0–100 é cadastral/comercial e não substitui bureau de crédito. CNPJ diferente de ATIVA bloqueia proposta; empresas com menos de seis meses exigem revisão; limite padrão de locação = 15% do faturamento mensal informado.
 
 ### Endpoints
 - `GET /api/company-enrichment?q=<cnpj>&details=true`
