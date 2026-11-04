@@ -15,7 +15,7 @@ export async function PATCH(request:NextRequest,{params}:{params:Promise<{id:str
 
  const {data:proposal,error:proposalError}=await auth.client
   .from("b2b_proposals")
-  .select("id,status,client:b2b_clients(credit_decision,registration_status)")
+  .select("id,status,organization_id,client:b2b_clients(credit_decision,registration_status)")
   .eq("id",id)
   .single();
  if(proposalError||!proposal)return jsonError("Proposta não encontrada.",404);
@@ -38,12 +38,11 @@ export async function PATCH(request:NextRequest,{params}:{params:Promise<{id:str
  if(status==="SENT"&&client.credit_decision!=="APPROVED") {
   const reason=String(body.manual_override_reason||"").trim();
   if(reason.length<10)return jsonError("A proposta exige aprovação cadastral ou justificativa formal de exceção de crédito.",409);
-  const {data:memberships}=await auth.client.from("organization_members")
-   .select("organization_id,role,created_at")
+  const {data:membership}=await auth.client.from("organization_members")
+   .select("organization_id,role")
    .eq("user_id",auth.user.id)
-   .order("created_at",{ascending:true})
-   .limit(100);
-  const membership=(memberships||[]).sort((a,b)=>(a.role==="owner"?0:a.role==="admin"?1:2)-(b.role==="owner"?0:b.role==="admin"?1:2))[0];
+   .eq("organization_id",proposal.organization_id)
+   .maybeSingle();
   if(!membership||!managementRoles.includes(membership.role))return jsonError("Somente gestão ou financeiro pode autorizar exceção de crédito.",403);
   update.manual_credit_override=true;
   update.manual_override_reason=reason;
