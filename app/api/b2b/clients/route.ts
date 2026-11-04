@@ -21,6 +21,10 @@ export async function POST(request: NextRequest) {
  const status = String(body.registration_status||"").toUpperCase();
  const age = monthsSince(body.opening_date);
  const reasons:string[]=[];
+ const qsa=Array.isArray(body.qsa)?body.qsa:[];
+ const agePoints=age===null?0:age>=24?25:age>=6?15:0;
+ const riskScore=Math.min(100,(status==="ATIVA"?30:0)+agePoints+(revenue!==null&&revenue>0?20:0)+(qsa.length?10:0)+(body.contact_email||body.contact_phone?5:0)+(body.employee_count||body.employee_range?10:0)+(body.source_name?10:0));
+ reasons.push("Score de triagem cadastral: "+riskScore+"/100 (não é score de bureau).");
  let decision:"APPROVED"|"MANUAL_REVIEW"|"REJECTED" = "MANUAL_REVIEW";
  if (status!=="ATIVA") { decision="REJECTED"; reasons.push("Situação cadastral diferente de ATIVA: propostas bloqueadas."); }
  else {
@@ -46,7 +50,7 @@ export async function POST(request: NextRequest) {
   contact_email:body.contact_email||null, contact_phone:body.contact_phone||null,
   employee_count:body.employee_count===null||body.employee_count===""?null:Number(body.employee_count),
   employee_range:body.employee_range||null, monthly_revenue_estimate:revenue,
-  credit_decision:decision, credit_score:body.credit_score??null,
+  credit_decision:decision, credit_score:riskScore,
   credit_reasons:reasons, credit_reviewed_at:body.credit_review_confirmed?new Date().toISOString():null,
   credit_reviewed_by:body.credit_review_confirmed?auth.user.id:null,
   notes:[body.notes,body.credit_review_note].filter(Boolean).join("\n")
