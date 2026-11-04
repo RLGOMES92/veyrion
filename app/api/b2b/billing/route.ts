@@ -14,7 +14,8 @@ export async function POST(request:NextRequest) {
  try { db=getServiceClient(); } catch { return jsonError("Configure SUPABASE_SERVICE_ROLE_KEY no ambiente do servidor.",503); }
  const {data:c,error}=await db.from("b2b_contracts").select("*,client:b2b_clients(*),supplier:b2b_suppliers(*),proposal:b2b_proposals(term_months)").eq("id",body.contract_id).eq("organization_id",membership.organization_id).single();
  if(error||!c)return jsonError("Contrato não encontrado nesta organização.");
- if(c.status!=="ACTIVE")return jsonError("Somente contratos ativos podem gerar assinatura recorrente.");\n if(c.billing_subscription_id)return NextResponse.json({error:"Este contrato já possui uma assinatura Asaas vinculada.",subscription_id:c.billing_subscription_id},{status:409});
+ if(c.status!=="ACTIVE")return jsonError("Somente contratos ativos podem gerar assinatura recorrente.");
+ if(c.billing_subscription_id)return NextResponse.json({error:"Este contrato já possui uma assinatura Asaas vinculada.",subscription_id:c.billing_subscription_id},{status:409});
  const walletId=c.supplier.asaas_wallet_id;
  if(!walletId)return jsonError("Fornecedor sem walletId Asaas. O split não pode ser ativado.",409);
  let customerId=c.client.asaas_customer_id;
