@@ -4,7 +4,7 @@ export async function PATCH(request:NextRequest,{params}:{params:Promise<{id:str
  const auth=await requireUser(request); if(!auth)return jsonError("Sessão inválida.",401);
  const {id}=await params; const body=await request.json().catch(()=>({}));
  const status=String(body.status||"");
- if(!["SENT","NEGOTIATION","LOST","CANCELLED"].includes(status))return jsonError("Transição de status inválida.");
+ if(!["CREDIT_REVIEW","SENT","NEGOTIATION","LOST","CANCELLED"].includes(status))return jsonError("Transição de status inválida.");
  const update:any={status};
  if(body.manual_override_reason){
   const {data:membership}=await auth.client.from("organization_members").select("role").eq("user_id",auth.user.id).maybeSingle();
