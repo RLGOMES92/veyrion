@@ -5,7 +5,7 @@ create extension if not exists pgcrypto;
 create table if not exists public.workspace_records (
   id uuid primary key default gen_random_uuid(),
   owner_id uuid not null default auth.uid() references auth.users(id) on delete cascade,
-  module text not null check (module in ('companies','contacts','opportunities','assets','proposals','tasks','contracts','finance')),
+  module text not null check (module in ('companies','contacts','opportunities','assets','maintenance','proposals','procurement','tasks','contracts','finance','campaigns')),
   payload jsonb not null default '{}'::jsonb,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
