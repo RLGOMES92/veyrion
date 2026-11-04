@@ -1,0 +1,20 @@
+-- Restrict direct execution of helper/trigger functions and grant authenticated table access.
+revoke all on function public.current_user_organization_id() from public, anon;
+revoke all on function public.has_org_role(uuid, text[]) from public, anon;
+revoke all on function public.can_access_veyrion_module(uuid, text, boolean) from public, anon;
+grant execute on function public.current_user_organization_id() to authenticated;
+grant execute on function public.has_org_role(uuid, text[]) to authenticated;
+grant execute on function public.can_access_veyrion_module(uuid, text, boolean) to authenticated;
+revoke all on function public.handle_new_veyrion_user() from public, anon, authenticated;
+revoke all on function public.log_veyrion_workspace_record_change() from public, anon, authenticated;
+revoke all on function public.log_veyrion_team_change() from public, anon, authenticated;
+revoke all on function public.prevent_veyrion_membership_identity_change() from public, anon, authenticated;
+revoke all on function public.set_updated_at() from public, anon, authenticated;
+revoke all on function public.set_sales_goal_updated_at() from public, anon, authenticated;
+grant usage on schema public to authenticated;
+grant select, insert, update, delete on public.workspace_records to authenticated;
+grant select on public.workspace_audit_logs to authenticated;
+grant select, insert, update, delete on public.organizations to authenticated;
+grant select, insert, update, delete on public.organization_members to authenticated;
+grant select, insert, update, delete on public.organization_invitations to authenticated;
+grant select, insert, update, delete on public.sales_goals to authenticated;
