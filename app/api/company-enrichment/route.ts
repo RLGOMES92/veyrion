@@ -9,6 +9,53 @@ function first(...values: any[]) {
   return values.find((value) => value !== undefined && value !== null && String(value).trim() !== "");
 }
 
+function buildProspectingAssessment(input: {
+  status: string; cnae: string; state: string; openingDate: string;
+  website: string; email: string; phones: string[]; branches: unknown;
+  employeesRange: unknown; size: string;
+}) {
+  const statusActive = /^(ATIVA|02)$/i.test(input.status.trim());
+  const sectorLabels: Array<[RegExp, string]> = [
+    [/tecnologia|software|informática|processamento de dados|desenvolvimento de programas|telecomunica/i, "Tecnologia"],
+    [/call.?center|teleatendimento|telemarketing|bpo|serviços combinados de escritório/i, "BPO / Call center"],
+    [/consultoria|consultores|gestão empresarial/i, "Consultoria"],
+    [/logística|transporte|armazenamento|depósito|carga/i, "Logística"],
+    [/saúde|hospital|clínica|médic|odontol|laboratório/i, "Saúde"],
+    [/educação|ensino|escola|universidade|treinamento/i, "Educação"],
+    [/indústria|fabricação|industrial|metalúrg|máquinas|equipamentos/i, "Indústria"],
+    [/serviços financeiros|financeir|banco|crédito|seguros|contabilidade/i, "Serviços financeiros"],
+  ];
+  const matchedSector = sectorLabels.find(([pattern]) => pattern.test(input.cnae.toLowerCase()))?.[1] || "";
+  const inSaoPaulo = input.state.toUpperCase() === "SP";
+  const opened = input.openingDate ? new Date(input.openingDate + "T00:00:00Z") : null;
+  const yearsActive = opened && !Number.isNaN(opened.getTime())
+    ? Math.max(0, Math.floor((Date.now() - opened.getTime()) / 31557600000)) : null;
+  const branchCount = Number(input.branches);
+  const reasons: string[] = [];
+  let score = 0;
+  if (statusActive) { score += 20; reasons.push("Cadastro consta como ativo na consulta pública (+20)"); }
+  if (matchedSector) { score += 25; reasons.push("Setor compatível com segmentos prioritários: " + matchedSector + " (+25)"); }
+  if (inSaoPaulo) { score += 15; reasons.push("Empresa localizada em São Paulo (+15)"); }
+  if (yearsActive !== null) { const points = yearsActive >= 5 ? 10 : yearsActive >= 2 ? 6 : 3; score += points; reasons.push("Tempo desde a abertura: " + yearsActive + " ano(s) (+" + points + ")"); }
+  if (input.website) { score += 10; reasons.push("Site identificado (+10)"); }
+  if (input.email) { score += 5; reasons.push("E-mail cadastral identificado (+5)"); }
+  if (input.phones.length) { score += 5; reasons.push("Telefone cadastral identificado (+5)"); }
+  if (Number.isFinite(branchCount) && branchCount > 1) { score += 5; reasons.push("Mais de um estabelecimento identificado (+5)"); }
+  if (input.employeesRange || input.size) { score += 5; reasons.push("Informação de porte disponível (+5)"); }
+  return {
+    score, band: score >= 70 ? "A" : score >= 45 ? "B" : "C",
+    matched_sector: matchedSector || null, years_active: yearsActive, reasons,
+    explanation: "Índice heurístico de aderência comercial para priorizar pesquisa e contato. Não é avaliação de crédito, reputação, solvência ou idoneidade.",
+    market_presence: {
+      registry_active: statusActive, located_in_sao_paulo: inSaoPaulo,
+      website_identified: Boolean(input.website), email_identified: Boolean(input.email),
+      phone_identified: input.phones.length > 0,
+      multiple_establishments: Number.isFinite(branchCount) && branchCount > 1,
+      years_active: yearsActive,
+    },
+  };
+}
+
 function normalizeCompany(raw: AnyRecord, source: string) {
   const address = raw.endereco || raw.address || raw.estabelecimento || {};
   const status = raw.situacao_cadastral ?? raw.situacao;
@@ -26,6 +73,17 @@ function normalizeCompany(raw: AnyRecord, source: string) {
   const state = first(address.uf, raw.uf, "");
   const branches = first(raw.quantidade_estabelecimentos, raw.total_estabelecimentos, raw.estabelecimentos_count, null);
   const sourceDate = first(raw.meta?.data_as_of, raw.data_atualizacao, raw.fonte?.base, raw.base, null);
+
+  const prospecting = buildProspectingAssessment({
+    status: String(statusText || ""), cnae: String(cnaeDescription || ""),
+    state: String(state || ""),
+    openingDate: String(first(raw.data_inicio_atividade, raw.data_abertura, raw.data_abertura_empresa, "") || ""),
+    website: String(first(raw.site, raw.website, raw.sitio, "") || ""),
+    email: String(first(raw.email, raw.email_estabelecimento, "") || ""),
+    phones: phones.map(String), branches,
+    employeesRange: first(raw.faixa_funcionarios?.faixa, raw.faixa_funcionarios, raw.funcionarios_faixa, raw.faixa_funcionarios_estimada, null),
+    size: String(first(typeof size === "object" ? size.descricao : size, raw.porte_empresa, "") || ""),
+  });
 
   return {
     cnpj: first(raw.cnpj, raw.ni, raw.documento, ""),
@@ -65,6 +123,13 @@ function normalizeCompany(raw: AnyRecord, source: string) {
       ? "Cadastro ativo na base consultada"
       : "Situação cadastral exige conferência",
     reputation_assessment: "Não certificada. Situação cadastral, porte e presença não comprovam crédito, solvência ou idoneidade.",
+    prospecting_score: prospecting.score,
+    prospecting_band: prospecting.band,
+    prospecting_reasons: prospecting.reasons,
+    prospecting_explanation: prospecting.explanation,
+    market_presence: prospecting.market_presence,
+    matched_priority_sector: prospecting.matched_sector,
+    years_active: prospecting.years_active,
     public_data: raw,
   };
 }
