@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
   address:body.address||{}, qsa:Array.isArray(body.qsa)?body.qsa:[],
   source_name:body.source_name||null, source_checked_at:new Date().toISOString(),
   contact_email:body.contact_email||null, contact_phone:body.contact_phone||null,
-  employee_count:body.employee_count===null||body.employee_count===""?null:Number(body.employee_count),
+  employee_count:body.employee_count==null||body.employee_count===""||!Number.isFinite(Number(body.employee_count))?null:Number(body.employee_count),
   employee_range:body.employee_range||null, monthly_revenue_estimate:revenue,
   credit_decision:decision, credit_score:riskScore,
   credit_reasons:reasons, credit_reviewed_at:decision==="APPROVED"?new Date().toISOString():null,
