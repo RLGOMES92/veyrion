@@ -421,7 +421,7 @@ A Etapa 6 consolida a rotina física de entregas, locações, devoluções e man
 Área disponível em `/brokerage`. Este fluxo cobre enriquecimento público de CNPJ, triagem cadastral, cadastro de parceiros, propostas com margem recorrente, contratos tripartites, assinatura e cobrança recorrente.
 
 ### Persistência
-As migrations `013` a `018` criam e protegem:
+As migrations `013` a `021` criam e protegem:
 - `b2b_clients`, `b2b_credit_assessments`
 - `b2b_suppliers`, `b2b_supplier_products` (catálogo e estoque físico informado pelo parceiro)
 - `b2b_proposals`, `b2b_proposal_items`
