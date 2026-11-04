@@ -84,7 +84,7 @@ async function providerFetch(url: string, apiKey?: string) {
 }
 
 function extractResults(body: AnyRecord): AnyRecord[] {
-  const candidates = [body?.data, body?.results, body?.empresas, body?.items, body?.resultado];
+  const candidates = [body?.data, body?.results, body?.resultados, body?.empresas, body?.items, body?.resultado];
   for (const value of candidates) {
     if (Array.isArray(value)) return value;
     if (Array.isArray(value?.results)) return value.results;
