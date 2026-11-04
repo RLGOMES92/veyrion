@@ -32,12 +32,18 @@ export async function POST(request: NextRequest) {
      decision="APPROVED"; reasons.push("Triagem cadastral aprovada por revisão humana registrada.");
    }
  }
- if(body.credit_review_confirmed) {\n  const {data:membership}=await auth.client.from("organization_members").select("role").eq("user_id",auth.user.id).maybeSingle();\n  if(!membership || !["owner","admin","manager","finance"].includes(membership.role)) return jsonError("Somente gestão ou financeiro pode registrar aprovação manual de crédito.",403);\n  if(String(body.credit_review_note||"").trim().length<10) return jsonError("Justificativa da aprovação manual deve ter ao menos 10 caracteres.");\n }\n const payload = {
+ if(body.credit_review_confirmed) {
+  const {data:membership}=await auth.client.from("organization_members").select("role").eq("user_id",auth.user.id).maybeSingle();
+  if(!membership || !["owner","admin","manager","finance"].includes(membership.role)) return jsonError("Somente gestão ou financeiro pode registrar aprovação manual de crédito.",403);
+  if(String(body.credit_review_note||"").trim().length<10) return jsonError("Justificativa da aprovação manual deve ter ao menos 10 caracteres.");
+ }
+ const payload = {
   cnpj, legal_name:String(body.legal_name), trade_name:body.trade_name||null,
   registration_status:status||"PENDENTE", opening_date:body.opening_date||null,
   primary_cnae:body.primary_cnae||null, primary_cnae_code:body.primary_cnae_code||null,
   address:body.address||{}, qsa:Array.isArray(body.qsa)?body.qsa:[],
-  source_name:body.source_name||null, source_checked_at:new Date().toISOString(),\n  contact_email:body.contact_email||null, contact_phone:body.contact_phone||null,
+  source_name:body.source_name||null, source_checked_at:new Date().toISOString(),
+  contact_email:body.contact_email||null, contact_phone:body.contact_phone||null,
   employee_count:body.employee_count===null||body.employee_count===""?null:Number(body.employee_count),
   employee_range:body.employee_range||null, monthly_revenue_estimate:revenue,
   credit_decision:decision, credit_score:body.credit_score??null,
