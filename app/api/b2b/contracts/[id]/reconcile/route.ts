@@ -7,6 +7,18 @@ export async function POST(request: NextRequest, context: Context) {
   const auth = await requireUser(request);
   if (!auth) return jsonError("Sessão inválida.", 401);
 
+  const { data: organizationId, error: organizationError } = await auth.client.rpc("current_user_organization_id");
+  if (organizationError || !organizationId) return jsonError("Não foi possível identificar a organização ativa.", 403);
+  const { data: membership, error: membershipError } = await auth.client
+    .from("organization_members")
+    .select("role")
+    .eq("user_id", auth.user.id)
+    .eq("organization_id", organizationId)
+    .maybeSingle();
+  if (membershipError || !membership || !["owner", "admin", "finance"].includes(membership.role)) {
+    return jsonError("Somente proprietário, administrador ou financeiro pode reconciliar a assinatura.", 403);
+  }
+
   const { id } = await context.params;
   if (!id) return jsonError("Contrato inválido.");
 
@@ -23,7 +35,7 @@ export async function POST(request: NextRequest, context: Context) {
   if (signatureUrl) {
     try {
       const parsed = new URL(signatureUrl);
-      if (parsed.protocol !== "https:" || !/(^|\.)zapsign\.com\.br$/i.test(parsed.hostname)) {
+      if (parsed.protocol !== "https:" || !/(^|\\.)zapsign\\.com\\.br$/i.test(parsed.hostname)) {
         return jsonError("O link deve ser HTTPS e pertencer ao domínio oficial da ZapSign.");
       }
     } catch {
