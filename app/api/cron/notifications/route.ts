@@ -6,7 +6,7 @@ const MAX_ATTEMPTS = 8;
 
 async function processQueue(request: NextRequest) {
   const secret = process.env.CRON_SECRET;
-  const supplied = request.headers.get("authorization")?.replace(/^Bearer\\s+/i, "") || request.headers.get("x-cron-secret");
+  const supplied = request.headers.get("authorization")?.replace(/^Bearer\s+/i, "") || request.headers.get("x-cron-secret");
   if (!secret || supplied !== secret) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const apiKey = process.env.RESEND_API_KEY;
