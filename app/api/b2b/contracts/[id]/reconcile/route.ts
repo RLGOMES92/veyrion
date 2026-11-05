@@ -23,7 +23,7 @@ export async function POST(request: NextRequest, context: Context) {
   if (signatureUrl) {
     try {
       const parsed = new URL(signatureUrl);
-      if (parsed.protocol !== "https:" || !/(^|\\.)zapsign\\.com\\.br$/i.test(parsed.hostname)) {
+      if (parsed.protocol !== "https:" || !/(^|\.)zapsign\.com\.br$/i.test(parsed.hostname)) {
         return jsonError("O link deve ser HTTPS e pertencer ao domínio oficial da ZapSign.");
       }
     } catch {
