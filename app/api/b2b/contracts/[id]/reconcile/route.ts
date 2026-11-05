@@ -46,6 +46,9 @@ export async function POST(request: NextRequest, context: Context) {
       current_status: contract.signature_dispatch_status || "MIGRATION_REQUIRED"
     }, { status: 409 });
   }
+  if (!["DRAFT", "PENDING_SIGNATURE"].includes(contract.status)) {
+    return jsonError("O contrato não está em um estado compatível com reconciliação de assinatura. Exige análise manual.", 409);
+  }
   if (contract.signature_document_id && contract.signature_document_id !== documentId) {
     return jsonError("O contrato já possui outro identificador de documento. Exige análise manual.", 409);
   }
