@@ -44,8 +44,10 @@ Somente os módulos `companies`, `tasks` e `opportunities` são considerados. A 
 
 ## Controle de utilização
 
-A migration `029_assistant_analysis_quota.sql` cria um contador privado no Supabase e a função `public.consume_assistant_analysis_quota()`. A função valida a sessão e a associação à organização, serializa requisições concorrentes e limita cada usuário a 10 chamadas generativas por hora UTC. A tabela fica no schema privado, sem acesso direto pela Data API; somente a função autenticada pode reservar uma unidade.
+A migration `029_assistant_analysis_quota.sql` cria um contador privado no Supabase. A migration `030_assistant_analysis_quota_rpc_hardening.sql` mantém a rotina privilegiada no schema privado e expõe somente um wrapper `SECURITY INVOKER` autenticado. A rotina valida sessão e vínculo à organização, serializa requisições concorrentes e limita cada usuário a 10 chamadas generativas por hora UTC. A tabela fica no schema privado, sem acesso direto pela Data API.
 
-## Próxima evolução
+## Painel de consumo por organização
 
-O histórico de análises já aparece no painel **Assistente IA**. A próxima etapa é consolidar o consumo por organização (somando os membros), apresentar limites e utilização no dashboard e permitir que o administrador configure limites, sem ativar cobrança ou chave paga automaticamente.
+A migration `031_assistant_analysis_usage_dashboard.sql` adiciona `public.get_assistant_analysis_usage()`, um RPC `SECURITY INVOKER` que delega a função de leitura privada e só permite consulta a owner, admin e manager. O retorno contém total de chamadas generativas na hora UTC, limite agregado da equipe, análises por IA e por regras no mês, e métricas por membro. Não retorna prompts, payloads comerciais ou conteúdo das análises.
+
+O painel **Assistente IA** carrega esse resumo automaticamente ao abrir a seção e permite atualizar manualmente. O limite está fixado em 10 chamadas generativas por membro/hora; não há configuração de cobrança, alteração automática de plano ou ativação de chave paga. O histórico de análises continua separado e limitado às últimas 20 execuções.
