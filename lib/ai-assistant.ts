@@ -5,7 +5,7 @@ const nonNegative=(value:unknown)=>{const n=Number(value??0);return Number.isFin
 export function buildAssistantBrief(records:AssistantRecord[],todayKey:string){
  const companies=records.filter(r=>r.module==="companies"),tasks=records.filter(r=>r.module==="tasks"&&!['Concluída','Cancelada'].includes(String(r.payload?.status??''))),opportunities=records.filter(r=>r.module==="opportunities"&&!['Ganha','Perdida'].includes(String(r.payload?.stage??'')));
  const items:{id:string;module:string;title:string;priority:'Alta'|'Média'|'Baixa';reason:string;action:string;value:number}[]=[];
- for(const r of companies){const p=r.payload??{},name=String(p.name||'Empresa sem nome'),due=dayKey(p.next_followup),score=nonNegative(p.prospect_score??p.priority_score);let priority:'Alta'|'Média'|'Baixa'='Baixa',reason='',action='Completar dados de contato e validar a necessidade';
+ for(const r of companies){const p=r.payload??{};if(String(p.prospect_stage||"")==="Sem interesse")continue;const name=String(p.name||'Empresa sem nome'),due=dayKey(p.next_followup),score=nonNegative(p.prospect_score??p.priority_score);let priority:'Alta'|'Média'|'Baixa'='Baixa',reason='',action='Completar dados de contato e validar a necessidade';
   if(validDate(due)&&due<todayKey){priority='Alta';reason='Follow-up da empresa está vencido';action=String(p.next_action||'Retomar contato e registrar o resultado');}
   else if(validDate(due)&&due===todayKey){priority='Alta';reason='Follow-up programado para hoje';action=String(p.next_action||'Executar o contato combinado');}
   else if(String(p.prospect_stage||'')==='Proposta enviada'){priority='Alta';reason='Proposta enviada: confirmar recebimento e objeções';action='Confirmar recebimento da proposta e combinar data de decisão';}
