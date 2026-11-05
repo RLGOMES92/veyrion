@@ -67,24 +67,35 @@ export async function POST(request:NextRequest) {
   }
   // Persist the notification before acknowledging the signature event. The deterministic
   // key makes webhook retries safe even when the contract was activated by an earlier attempt.
-  if((contract.status==="ACTIVE"||Boolean(activated))&&supplier?.contact_email) {
+  if(contract.status==="ACTIVE"||Boolean(activated)) {
    const idempotencyKey=`contract-activated:${contract.id}:supplier-email`;
+   const hasRecipient=Boolean(supplier?.contact_email);
    const {error:queueError}=await db.from("b2b_notification_outbox").upsert({
     organization_id:contract.organization_id,
     contract_id:contract.id,
     supplier_id:contract.supplier_id,
     notification_type:"SUPPLIER_CONTRACT_ACTIVATED",
     idempotency_key:idempotencyKey,
-    recipient_email:supplier.contact_email,
+    recipient_email:supplier?.contact_email||null,
     subject:"Contrato VEYRION assinado — preparar entrega",
-    html_body:`<p>O contrato foi assinado. Parceiro: ${supplier.legal_name}. Acesse o VEYRION OS para conferir equipamentos, SLA e data de entrega.</p>`
+    html_body:`<p>O contrato foi assinado. Parceiro: ${supplier?.legal_name||"Fornecedor"}. Acesse o VEYRION OS para conferir equipamentos, SLA e data de entrega.</p>`,
+    status:hasRecipient?"PENDING":"BLOCKED",
+    last_error:hasRecipient?null:"Fornecedor sem e-mail cadastrado; atualize o contato para liberar o envio."
    },{onConflict:"idempotency_key",ignoreDuplicates:true});
    if(queueError) {
     await db.from("b2b_integration_events").update({processing_error:queueError.message,processing_started_at:null}).eq("provider","ZAPSIGN").eq("event_id",eventId);
     return NextResponse.json({error:"Contrato ativado, mas a notificação não entrou na fila. O evento poderá ser repetido com segurança."},{status:500});
    }
-  }
- }
+   if(hasRecipient) {
+    const {error:unblockError}=await db.from("b2b_notification_outbox").update({
+     recipient_email:supplier.contact_email,status:"PENDING",last_error:null,next_attempt_at:new Date().toISOString(),updated_at:new Date().toISOString()
+    }).eq("idempotency_key",idempotencyKey).eq("status","BLOCKED");
+    if(unblockError) {
+     await db.from("b2b_integration_events").update({processing_error:unblockError.message,processing_started_at:null}).eq("provider","ZAPSIGN").eq("event_id",eventId);
+     return NextResponse.json({error:"Contrato ativado, mas a notificação bloqueada não pôde ser liberada."},{status:500});
+    }
+   }
+  } }
  const {error:finalizeError}=await db.from("b2b_integration_events").update({processed_at:new Date().toISOString(),processing_error:null,processing_started_at:null}).eq("provider","ZAPSIGN").eq("event_id",eventId);
  if(finalizeError) return NextResponse.json({error:"Webhook side effects completed but event finalization failed; provider retry required."},{status:500});
  return NextResponse.json({ok:true});
