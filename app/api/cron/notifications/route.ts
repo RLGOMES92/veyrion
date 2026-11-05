@@ -14,6 +14,24 @@ async function processQueue(request: NextRequest) {
   if (!apiKey || !from) return NextResponse.json({ error: "RESEND_API_KEY and RESEND_FROM_EMAIL must be configured." }, { status: 503 });
 
   const db = getServiceClient();
+  // Automatically release notifications that were blocked only because the supplier
+  // had no email address when the contract was activated.
+  const { data: blockedJobs } = await db.from("b2b_notification_outbox")
+    .select("id,supplier_id").eq("status", "BLOCKED").not("supplier_id", "is", null).limit(50);
+  let unblocked = 0;
+  for (const blocked of blockedJobs || []) {
+    const { data: supplier } = await db.from("b2b_suppliers").select("contact_email").eq("id", blocked.supplier_id).maybeSingle();
+    if (!supplier?.contact_email) continue;
+    const { error } = await db.from("b2b_notification_outbox").update({
+      recipient_email: supplier.contact_email,
+      status: "PENDING",
+      last_error: null,
+      next_attempt_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    }).eq("id", blocked.id).eq("status", "BLOCKED");
+    if (!error) unblocked += 1;
+  }
+
   const { data: jobs, error: claimError } = await db.rpc("claim_b2b_notification_outbox", { p_limit: 20 });
   if (claimError) return NextResponse.json({ error: "Could not claim notification jobs.", details: claimError.message }, { status: 500 });
 
@@ -77,7 +95,7 @@ async function processQueue(request: NextRequest) {
     }
   }
 
-  return NextResponse.json({ ok: true, claimed: jobs?.length || 0, results });
+  return NextResponse.json({ ok: true, unblocked, claimed: jobs?.length || 0, results });
 }
 
 export async function POST(request: NextRequest) { return processQueue(request); }
