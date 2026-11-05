@@ -27,7 +27,7 @@ export async function POST(request:NextRequest) {
   const {data:contract}=await db.from("b2b_contracts").select("id,client_id,supplier_id,organization_id,recurring_amount,partner_amount,veyrion_commission").eq("billing_subscription_id",String(payment.subscription)).maybeSingle();
   if(!contract) {
    const message="Assinatura Asaas ainda não vinculada a contrato.";
-   await db.from("b2b_integration_events").update({processing_error:message,processing_started_at:null}).eq("provider","ASAAS").eq("event_id",eventId);
+   await db.from("b2b_integration_events").update({processing_error:message,processing_started_at:null,processing_started_at:null}).eq("provider","ASAAS").eq("event_id",eventId);
    return NextResponse.json({error:message},{status:409});
   }
   const {error}=await db.from("b2b_charges").upsert({
@@ -38,7 +38,7 @@ export async function POST(request:NextRequest) {
    payment_method:payment.billingType||null,invoice_url:payment.invoiceUrl||null,split_status:"PENDING",provider_payload:body
   },{onConflict:"provider,provider_charge_id",ignoreDuplicates:true});
   if(error) {
-   await db.from("b2b_integration_events").update({processing_error:error.message,processing_started_at:null}).eq("provider","ASAAS").eq("event_id",eventId);
+   await db.from("b2b_integration_events").update({processing_error:error.message,processing_started_at:null,processing_started_at:null}).eq("provider","ASAAS").eq("event_id",eventId);
    return NextResponse.json({error:error.message},{status:500});
   }
  }
@@ -50,7 +50,7 @@ export async function POST(request:NextRequest) {
    const {data:charge}=await db.from("b2b_charges").select("supplier_net").eq("provider","ASAAS").eq("provider_charge_id",payment.id).maybeSingle();
    if(!charge) {
     const message="Cobrança não localizada para o evento Asaas.";
-    await db.from("b2b_integration_events").update({processing_error:message}).eq("provider","ASAAS").eq("event_id",eventId);
+    await db.from("b2b_integration_events").update({processing_error:message,processing_started_at:null}).eq("provider","ASAAS").eq("event_id",eventId);
     return NextResponse.json({error:message},{status:409});
    }
    const supplierNet=Number(charge.supplier_net||0);
@@ -61,13 +61,13 @@ export async function POST(request:NextRequest) {
     provider_payload:body
    }).eq("provider","ASAAS").eq("provider_charge_id",payment.id);
    if(error) {
-    await db.from("b2b_integration_events").update({processing_error:error.message}).eq("provider","ASAAS").eq("event_id",eventId);
+    await db.from("b2b_integration_events").update({processing_error:error.message,processing_started_at:null}).eq("provider","ASAAS").eq("event_id",eventId);
     return NextResponse.json({error:error.message},{status:500});
    }
   }
   if(event==="PAYMENT_SPLIT_DONE") {
    const {error}=await db.from("b2b_charges").update({split_status:"DONE",provider_payload:body}).eq("provider","ASAAS").eq("provider_charge_id",payment.id);
-   if(error) return NextResponse.json({error:error.message},{status:500});
+   if(error) { await db.from("b2b_integration_events").update({processing_error:error.message,processing_started_at:null}).eq("provider","ASAAS").eq("event_id",eventId); return NextResponse.json({error:error.message},{status:500}); }
   }
   if(["PAYMENT_SPLIT_DIVERGENCE_BLOCK","PAYMENT_SPLIT_DIVERGENCE_BLOCK_FINISHED"].includes(event)) {
    const {error}=await db.from("b2b_charges").update({split_status:"FAILED",provider_payload:body}).eq("provider","ASAAS").eq("provider_charge_id",payment.id);
