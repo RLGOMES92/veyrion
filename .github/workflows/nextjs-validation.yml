@@ -29,6 +29,8 @@ jobs:
           cache: npm
       - name: Install locked dependencies
         run: npm ci
+      - name: Run unit tests
+        run: npm test
       - name: Audit dependencies
         run: npm audit --audit-level=moderate
       - name: Validate TypeScript and build Next.js
