@@ -16,6 +16,20 @@ type WorkspaceRecord = {
 const allowedModules = new Set(["companies", "tasks", "opportunities"]);
 const text = (value: unknown, max = 240) => String(value ?? "").slice(0, max);
 
+async function writeAnalysisAudit(client: any, userId: string, entry: { engine: "rules" | "ai"; model?: string | null; records: number; insights: number; outcome: "completed" | "fallback" | "empty" }) {
+  try {
+    const { data: organizationId, error } = await client.rpc("current_user_organization_id");
+    if (error || !organizationId) return;
+    await client.from("assistant_analysis_audit").insert({
+      organization_id: organizationId, actor_id: userId, engine: entry.engine,
+      model: entry.model || null, records_analyzed: entry.records,
+      insights_returned: entry.insights, outcome: entry.outcome,
+    });
+  } catch {
+    // A logging failure must not block this read-only analysis.
+  }
+}
+
 function compactRecords(input: unknown): WorkspaceRecord[] {
   if (!Array.isArray(input)) return [];
   return input.slice(0, 300).flatMap((item): WorkspaceRecord[] => {
@@ -50,12 +64,14 @@ export async function POST(request: NextRequest) {
   const today = text(body.today, 10);
   if (!/^\d{4}-\d{2}-\d{2}$/.test(today)) {
     return NextResponse.json({ error: "Informe a data de referência no formato AAAA-MM-DD." }, { status: 400 });
+    await writeAnalysisAudit(auth.client, auth.user.id, { engine: "ai", model: process.env.OPENAI_MODEL || "gpt-4o-mini", records: records.length, insights: Math.min(analysis.insights.length, 5), outcome: "completed" });
   }
   const records = compactRecords(body.records);
   if (!records.length) return NextResponse.json({ error: "Nenhum registro comercial válido foi enviado." }, { status: 400 });
 
   const brief = buildAssistantBrief(records, today);
   if (brief.items.length === 0) {
+    await writeAnalysisAudit(auth.client, auth.user.id, { engine: "rules", records: records.length, insights: 0, outcome: "empty" });
     return NextResponse.json({
       available: true, mode: "rules", brief,
       analysis: { summary: "Não há prioridades críticas identificadas nos registros enviados.", insights: [], recommended_focus: "Mantenha os cadastros e próximos passos atualizados." },
@@ -64,6 +80,7 @@ export async function POST(request: NextRequest) {
 
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) {
+    await writeAnalysisAudit(auth.client, auth.user.id, { engine: "rules", records: records.length, insights: brief.items.length, outcome: "fallback" });
     return NextResponse.json({
       available: false, mode: "rules", brief,
       message: "A análise por IA generativa está desativada. O assistente continua funcionando com regras locais, sem custo de API.",
@@ -92,12 +109,14 @@ export async function POST(request: NextRequest) {
     });
     const result = await response.json().catch(() => ({}));
     if (!response.ok) {
+      await writeAnalysisAudit(auth.client, auth.user.id, { engine: "rules", records: records.length, insights: brief.items.length, outcome: "fallback" });
       return NextResponse.json({ available: false, mode: "rules", brief, message: "A análise generativa não respondeu. As recomendações operacionais continuam disponíveis." });
     }
     const content = result?.choices?.[0]?.message?.content;
     let analysis: Record<string, unknown> | null = null;
     try { analysis = typeof content === "string" ? JSON.parse(content) : null; } catch { analysis = null; }
     if (!analysis || typeof analysis.summary !== "string" || !Array.isArray(analysis.insights)) {
+      await writeAnalysisAudit(auth.client, auth.user.id, { engine: "rules", records: records.length, insights: brief.items.length, outcome: "fallback" });
       return NextResponse.json({ available: false, mode: "rules", brief, message: "A resposta da IA não passou pela validação. Use as recomendações operacionais." });
     }
     return NextResponse.json({
