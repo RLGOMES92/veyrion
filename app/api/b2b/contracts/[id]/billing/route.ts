@@ -144,6 +144,17 @@ export async function POST(request: NextRequest, context: { params: Promise<{ id
     return jsonError("Existe uma tentativa anterior sem resultado conclusivo. Execute a conciliação antes de qualquer novo envio.", 409);
   }
 
+  const billingType = String(body.billing_type || "UNDEFINED");
+  if (!BILLING_TYPES.has(billingType)) return jsonError("Forma de cobrança inválida.");
+  if (!validDate(body.next_due_date)) return jsonError("Informe o primeiro vencimento no formato AAAA-MM-DD.");
+  const due = new Date(`${body.next_due_date}T00:00:00.000Z`);
+  const today = new Date();
+  today.setUTCHours(0, 0, 0, 0);
+  if (due < today) return jsonError("O primeiro vencimento não pode estar no passado.");
+
+  const amount = Number(contract.recurring_amount);
+  if (!Number.isFinite(amount) || amount <= 0) return jsonError("O valor mensal do contrato precisa ser maior que zero.");
+
   const { data: claimed, error: claimError } = await auth.client.from("b2b_contracts")
     .update({ billing_provider: "ASAAS_CREATING" })
     .eq("id", id)
@@ -177,7 +188,7 @@ export async function POST(request: NextRequest, context: { params: Promise<{ id
       else if (String(client.asaas_customer_id || "").startsWith("UNKNOWN:")) {
         throw new Error("Cadastro de cliente com resultado inconclusivo. Nenhum novo cadastro será criado; verifique o Asaas e tente novamente.");
       } else {
-        let customerResponse: Response;
+        let customerResponse: Response | null = null;
         try {
           customerResponse = await fetch(`${SANDBOX_URL}/customers`, {
             method: "POST",
@@ -197,7 +208,7 @@ export async function POST(request: NextRequest, context: { params: Promise<{ id
           if (recovered.length === 1) customerId = String(recovered[0].id);
           else throw new Error("Resultado do cadastro do cliente inconclusivo. O sistema bloqueou nova criação para evitar duplicidade.");
         }
-        if (!customerId && customerResponse!) {
+        if (!customerId && customerResponse) {
           const customerPayload = await customerResponse.json().catch(() => ({}));
           if (customerResponse.ok && customerPayload.id) customerId = String(customerPayload.id);
           else if (customerResponse.status >= 400 && customerResponse.status < 500) {
@@ -220,17 +231,6 @@ export async function POST(request: NextRequest, context: { params: Promise<{ id
       return jsonError(error instanceof Error ? error.message : "Falha ao resolver cliente Asaas.", 409);
     }
   }
-
-  const billingType = String(body.billing_type || "UNDEFINED");
-  if (!BILLING_TYPES.has(billingType)) return jsonError("Forma de cobrança inválida.");
-  if (!validDate(body.next_due_date)) return jsonError("Informe o primeiro vencimento no formato AAAA-MM-DD.");
-  const due = new Date(`${body.next_due_date}T00:00:00.000Z`);
-  const today = new Date();
-  today.setUTCHours(0, 0, 0, 0);
-  if (due < today) return jsonError("O primeiro vencimento não pode estar no passado.");
-
-  const amount = Number(contract.recurring_amount);
-  if (!Number.isFinite(amount) || amount <= 0) return jsonError("O valor mensal do contrato precisa ser maior que zero.");
 
   const externalReference = `veyrion-contract:${id}`;
   let response: Response;
