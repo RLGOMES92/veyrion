@@ -60,10 +60,29 @@ export async function POST(request:NextRequest) {
     return NextResponse.json({error:message},{status:409});
    }
   }
-  const {data:supplier}=await db.from("b2b_suppliers").select("contact_email,legal_name").eq("id",contract.supplier_id).single();
-  if(activated&&supplier?.contact_email&&process.env.RESEND_API_KEY) {
-   const mail=await fetch("https://api.resend.com/emails",{method:"POST",headers:{Authorization:`Bearer ${process.env.RESEND_API_KEY}`,"Content-Type":"application/json"},body:JSON.stringify({from:process.env.RESEND_FROM_EMAIL||"VEYRION OS <onboarding@resend.dev>",to:[supplier.contact_email],subject:"Contrato VEYRION assinado — preparar entrega",html:`<p>O contrato foi assinado. Parceiro: ${supplier.legal_name}. Acesse o VEYRION OS para conferir equipamentos, SLA e data de entrega.</p>`})});
-   if(!mail.ok) console.error("VEYRION supplier notification failed after contract activation.");
+  const {data:supplier,error:supplierError}=await db.from("b2b_suppliers").select("contact_email,legal_name").eq("id",contract.supplier_id).single();
+  if(supplierError) {
+   await db.from("b2b_integration_events").update({processing_error:supplierError.message,processing_started_at:null}).eq("provider","ZAPSIGN").eq("event_id",eventId);
+   return NextResponse.json({error:"Contrato ativado, mas não foi possível consultar o contato do fornecedor."},{status:500});
+  }
+  // Persist the notification before acknowledging the signature event. The deterministic
+  // key makes webhook retries safe even when the contract was activated by an earlier attempt.
+  if(contract.status==="ACTIVE"&&supplier?.contact_email) {
+   const idempotencyKey=`contract-activated:${contract.id}:supplier-email`;
+   const {error:queueError}=await db.from("b2b_notification_outbox").upsert({
+    organization_id:contract.organization_id,
+    contract_id:contract.id,
+    supplier_id:contract.supplier_id,
+    notification_type:"SUPPLIER_CONTRACT_ACTIVATED",
+    idempotency_key:idempotencyKey,
+    recipient_email:supplier.contact_email,
+    subject:"Contrato VEYRION assinado — preparar entrega",
+    html_body:`<p>O contrato foi assinado. Parceiro: ${supplier.legal_name}. Acesse o VEYRION OS para conferir equipamentos, SLA e data de entrega.</p>`
+   },{onConflict:"idempotency_key",ignoreDuplicates:true});
+   if(queueError) {
+    await db.from("b2b_integration_events").update({processing_error:queueError.message,processing_started_at:null}).eq("provider","ZAPSIGN").eq("event_id",eventId);
+    return NextResponse.json({error:"Contrato ativado, mas a notificação não entrou na fila. O evento poderá ser repetido com segurança."},{status:500});
+   }
   }
  }
  const {error:finalizeError}=await db.from("b2b_integration_events").update({processed_at:new Date().toISOString(),processing_error:null,processing_started_at:null}).eq("provider","ZAPSIGN").eq("event_id",eventId);
