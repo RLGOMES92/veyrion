@@ -18,7 +18,7 @@ export async function POST(request:NextRequest) {
  if(insertError?.code==="23505") { const {data:duplicate}=await auth.client.from("b2b_contracts").select("id,status,signature_document_id,signature_url,created_at").eq("proposal_id",p.id).maybeSingle(); return NextResponse.json({contract:duplicate,signature:"ALREADY_EXISTS",message:"Esta proposta já possui contrato. Reutilize o contrato existente para evitar duplicidade."},{status:409}); }
  if(insertError||!contract)return jsonError(insertError?.message||"Falha ao salvar contrato.");
  const token=process.env.ZAPSIGN_API_TOKEN;
- const zapsignBase=(process.env.ZAPSIGN_API_URL||"https://sandbox.api.zapsign.com.br/api/v1").replace(/\\/$/,"");
+ const zapsignBase=(process.env.ZAPSIGN_API_URL||"https://sandbox.api.zapsign.com.br/api/v1").replace(/\/$/, "");
  if(process.env.VEYRION_INTEGRATION_MODE!=="preview"||zapsignBase!=="https://sandbox.api.zapsign.com.br/api/v1"){
   return NextResponse.json({contract,signature:"PREVIEW_BLOCKED",message:"Envio de assinatura bloqueado: o Preview aceita somente o ambiente Sandbox da ZapSign."},{status:201});
  }
