@@ -48,7 +48,7 @@ export async function POST(request:NextRequest) {
   await auth.client.from("b2b_contracts").update({signature_dispatch_status:"UNKNOWN",signature_dispatch_error:"Documento criado na ZapSign, mas não foi possível persistir o vínculo: "+contractUpdateError.message}).eq("id",contract.id);
   return NextResponse.json({contract,signature:"UNKNOWN",message:"Documento criado na ZapSign, mas o vínculo não foi salvo. Não envie novamente; reconcilie pelo identificador externo "+contract.id+".",details:contractUpdateError.message},{status:502});
  }
- const {error:proposalUpdateError}=await auth.client.from("b2b_proposals").update({status:"SIGNING"}).eq("id",p.id);
- if(proposalUpdateError)return NextResponse.json({contract,signature:"PERSISTENCE_FAILED",message:"Documento criado e contrato vinculado, mas a proposta não avançou para SIGNING.",details:proposalUpdateError.message},{status:502});
+ const {data:updatedProposal,error:proposalUpdateError}=await auth.client.from("b2b_proposals").update({status:"SIGNING"}).eq("id",p.id).in("status",["SENT","NEGOTIATION","SIGNING"]).select("id").maybeSingle();
+ if(proposalUpdateError||!updatedProposal)return NextResponse.json({contract:{...contract,status:"PENDING_SIGNATURE",signature_document_id:docId},signature:"SENT_PROPOSAL_NOT_UPDATED",message:"O documento foi criado e vinculado na ZapSign, mas a proposta mudou de etapa ou não pôde ser atualizada. Não reenvie o documento; revise o status da proposta manualmente.",details:proposalUpdateError?.message||"A proposta não está mais em uma etapa válida para assinatura."},{status:409});
  return NextResponse.json({contract:{...contract,status:"PENDING_SIGNATURE",signature_document_id:docId},signature:"SENT",provider_response:z},{status:201});
 }
