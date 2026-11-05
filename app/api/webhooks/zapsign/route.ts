@@ -95,7 +95,8 @@ export async function POST(request:NextRequest) {
      return NextResponse.json({error:"Contrato ativado, mas a notificação bloqueada não pôde ser liberada."},{status:500});
     }
    }
-  } }
+  }
+ }
  const {error:finalizeError}=await db.from("b2b_integration_events").update({processed_at:new Date().toISOString(),processing_error:null,processing_started_at:null}).eq("provider","ZAPSIGN").eq("event_id",eventId);
  if(finalizeError) return NextResponse.json({error:"Webhook side effects completed but event finalization failed; provider retry required."},{status:500});
  return NextResponse.json({ok:true});
