@@ -10,6 +10,10 @@ const source = (path) => readFileSync(resolve(root, path), "utf8");
 test("legacy payment endpoints are disabled and never call a payment provider", () => {
   const billing = source("app/api/b2b/contracts/[id]/billing/route.ts");
   const webhook = source("app/api/webhooks/asaas/route.ts");
+  const contract = source("app/api/b2b/contracts/route.ts");
+  assert.match(contract, /Condições comerciais e pagamento externo/);
+  assert.match(contract, /fora da VEYRION OS/);
+  assert.doesNotMatch(contract, /Cobrança mensal recorrente/);
   assert.match(billing, /EXTERNAL_PAYMENT_ONLY/);
   assert.match(webhook, /EXTERNAL_PAYMENT_ONLY/);
   assert.match(billing, /status:\s*410/);
