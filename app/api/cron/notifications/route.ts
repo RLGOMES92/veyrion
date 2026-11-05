@@ -51,7 +51,7 @@ async function processQueue(request: NextRequest) {
       }
 
       const detail = `Resend HTTP ${response.status}: ${JSON.stringify(payload).slice(0, 1200)}`;
-      const permanent = [400, 401, 403, 422].includes(response.status) || response.status === 409;
+      const permanent = [400, 401, 403, 422].includes(response.status) || (response.status === 409 && (payload.name === "invalid_idempotent_request" || payload.error === "invalid_idempotent_request"));
       const failed = permanent || job.attempt_count >= MAX_ATTEMPTS;
       const delayMinutes = Math.min(360, 2 ** Math.max(0, job.attempt_count - 1) * 5);
       const { error: saveError } = await db.from("b2b_notification_outbox").update({
