@@ -10,18 +10,24 @@ export async function POST(request:NextRequest) {
  const payment=body.payment||{};
  const eventId=String(body.id||`${payment.id||"unknown"}:${event}`);
  const db=getServiceClient();
- const {error:logError}=await db.from("b2b_integration_events").insert({provider:"ASAAS",event_id:eventId,event_type:event,payload:body});
+ const claimedAt=new Date();
+ const {error:logError}=await db.from("b2b_integration_events").insert({provider:"ASAAS",event_id:eventId,event_type:event,payload:body,processing_started_at:claimedAt.toISOString()});
  if(logError?.code==="23505") {
-  const {data:existing}=await db.from("b2b_integration_events").select("processed_at,processing_error").eq("provider","ASAAS").eq("event_id",eventId).single();
-  if(existing?.processed_at&&!existing.processing_error)return NextResponse.json({ok:true,duplicate:true});
-  await db.from("b2b_integration_events").update({processing_error:null}).eq("provider","ASAAS").eq("event_id",eventId);
+  const staleBefore=new Date(claimedAt.getTime()-5*60*1000).toISOString();
+  const {data:claim,error:claimError}=await db.from("b2b_integration_events")
+   .update({processing_started_at:claimedAt.toISOString(),processing_error:null})
+   .eq("provider","ASAAS").eq("event_id",eventId).is("processed_at",null)
+   .or(`processing_started_at.is.null,processing_started_at.lt.${staleBefore}`)
+   .select("id").maybeSingle();
+  if(claimError)return NextResponse.json({error:claimError.message},{status:500});
+  if(!claim)return NextResponse.json({ok:true,duplicate:true,inProgress:true},{status:202});
  } else if(logError) return NextResponse.json({error:logError.message},{status:500});
 
  if(payment.id&&event==="PAYMENT_CREATED"&&payment.subscription) {
   const {data:contract}=await db.from("b2b_contracts").select("id,client_id,supplier_id,organization_id,recurring_amount,partner_amount,veyrion_commission").eq("billing_subscription_id",String(payment.subscription)).maybeSingle();
   if(!contract) {
    const message="Assinatura Asaas ainda não vinculada a contrato.";
-   await db.from("b2b_integration_events").update({processing_error:message}).eq("provider","ASAAS").eq("event_id",eventId);
+   await db.from("b2b_integration_events").update({processing_error:message,processing_started_at:null}).eq("provider","ASAAS").eq("event_id",eventId);
    return NextResponse.json({error:message},{status:409});
   }
   const {error}=await db.from("b2b_charges").upsert({
@@ -32,7 +38,7 @@ export async function POST(request:NextRequest) {
    payment_method:payment.billingType||null,invoice_url:payment.invoiceUrl||null,split_status:"PENDING",provider_payload:body
   },{onConflict:"provider,provider_charge_id",ignoreDuplicates:true});
   if(error) {
-   await db.from("b2b_integration_events").update({processing_error:error.message}).eq("provider","ASAAS").eq("event_id",eventId);
+   await db.from("b2b_integration_events").update({processing_error:error.message,processing_started_at:null}).eq("provider","ASAAS").eq("event_id",eventId);
    return NextResponse.json({error:error.message},{status:500});
   }
  }
@@ -68,6 +74,6 @@ export async function POST(request:NextRequest) {
    if(error) return NextResponse.json({error:error.message},{status:500});
   }
  }
- await db.from("b2b_integration_events").update({processed_at:new Date().toISOString(),processing_error:null}).eq("provider","ASAAS").eq("event_id",eventId);
+ await db.from("b2b_integration_events").update({processed_at:new Date().toISOString(),processing_error:null,processing_started_at:null}).eq("provider","ASAAS").eq("event_id",eventId);
  return NextResponse.json({ok:true});
 }
