@@ -81,6 +81,7 @@ export async function POST(request:NextRequest) {
    }
   }
  }
- await db.from("b2b_integration_events").update({processed_at:new Date().toISOString(),processing_error:null,processing_started_at:null}).eq("provider","ASAAS").eq("event_id",eventId);
+ const {error:finalizeError}=await db.from("b2b_integration_events").update({processed_at:new Date().toISOString(),processing_error:null,processing_started_at:null}).eq("provider","ASAAS").eq("event_id",eventId);
+ if(finalizeError) return NextResponse.json({error:"Webhook side effects completed but event finalization failed; provider retry required."},{status:500});
  return NextResponse.json({ok:true});
 }
