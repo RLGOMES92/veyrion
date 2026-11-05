@@ -196,9 +196,9 @@ export async function POST(request: NextRequest, context: { params: Promise<{ id
             headers: asaasHeaders(apiKey),
             body: JSON.stringify({
               name: client.legal_name,
-              cpfCnpj: String(client.cnpj || "").replace(/\\D/g, ""),
+              cpfCnpj: String(client.cnpj || "").replace(/\D/g, ""),
               email: client.contact_email || undefined,
-              mobilePhone: client.contact_phone ? String(client.contact_phone).replace(/\\D/g, "") : undefined,
+              mobilePhone: client.contact_phone ? String(client.contact_phone).replace(/\D/g, "") : undefined,
               externalReference: customerReference,
             }),
             signal: AbortSignal.timeout(30000),
