@@ -18,14 +18,18 @@ export async function POST(request:NextRequest) {
  if(insertError?.code==="23505") { const {data:duplicate}=await auth.client.from("b2b_contracts").select("id,status,signature_document_id,signature_url,created_at").eq("proposal_id",p.id).maybeSingle(); return NextResponse.json({contract:duplicate,signature:"ALREADY_EXISTS",message:"Esta proposta já possui contrato. Reutilize o contrato existente para evitar duplicidade."},{status:409}); }
  if(insertError||!contract)return jsonError(insertError?.message||"Falha ao salvar contrato.");
  const token=process.env.ZAPSIGN_API_TOKEN;
- if(!token)return NextResponse.json({contract,signature:"NOT_CONFIGURED",message:"Minuta salva. Configure ZAPSIGN_API_TOKEN e os dados do signatário para habilitar assinatura digital."},{status:201});
+ const zapsignBase=(process.env.ZAPSIGN_API_URL||"https://sandbox.api.zapsign.com.br/api/v1").replace(/\\/$/,"");
+ if(process.env.VEYRION_INTEGRATION_MODE!=="preview"||zapsignBase!=="https://sandbox.api.zapsign.com.br/api/v1"){
+  return NextResponse.json({contract,signature:"PREVIEW_BLOCKED",message:"Envio de assinatura bloqueado: o Preview aceita somente o ambiente Sandbox da ZapSign."},{status:201});
+ }
+ if(!token)return NextResponse.json({contract,signature:"NOT_CONFIGURED",message:"Minuta salva. Configure o token da conta Sandbox da ZapSign para habilitar assinatura de teste."},{status:201});
  const signer=body.signer||{};
  if(!signer.name||!signer.email)return NextResponse.json({contract,signature:"MISSING_SIGNER",message:"Informe nome e e-mail do representante legal para enviar à assinatura."},{status:201});
  const {error:dispatchStartError}=await auth.client.from("b2b_contracts").update({signature_dispatch_status:"SENDING",signature_dispatch_error:null,signature_dispatch_attempted_at:new Date().toISOString()}).eq("id",contract.id);
  if(dispatchStartError)return NextResponse.json({contract,signature:"NOT_SENT",message:"Não foi possível registrar o início do envio. A ZapSign não foi chamada.",details:dispatchStartError.message},{status:500});
  let response: Response;
  try {
-  response=await fetch(`${process.env.ZAPSIGN_API_URL||"https://api.zapsign.com.br/api/v1"}/docs/`,{method:"POST",headers:{Authorization:`Bearer ${token}`,"Content-Type":"application/json"},body:JSON.stringify({name:`Contrato VEYRION ${p.proposal_number}`,external_id:contract.id,markdown_text:html.replace(/<[^>]*>/g," ").replace(/&nbsp;/g," ").replace(/&amp;/g,"&").replace(/\s+/g," ").trim(),signers:[{name:signer.name,email:signer.email,auth_mode:"assinaturaTela"}],observers:[p.supplier.contact_email].filter(Boolean),metadata:[{key:"veyrion_contract_id",value:contract.id}]})});
+  response=await fetch(`${zapsignBase}/docs/`,{method:"POST",headers:{Authorization:`Bearer ${token}`,"Content-Type":"application/json"},body:JSON.stringify({name:`Contrato VEYRION ${p.proposal_number}`,external_id:contract.id,markdown_text:html.replace(/<[^>]*>/g," ").replace(/&nbsp;/g," ").replace(/&amp;/g,"&").replace(/\s+/g," ").trim(),signers:[{name:signer.name,email:signer.email,auth_mode:"assinaturaTela"}],observers:[p.supplier.contact_email].filter(Boolean),metadata:[{key:"veyrion_contract_id",value:contract.id}]})});
  } catch (error) {
   const message=error instanceof Error?error.message:"Falha de rede sem confirmação do provedor.";
   await auth.client.from("b2b_contracts").update({signature_dispatch_status:"UNKNOWN",signature_dispatch_error:message}).eq("id",contract.id);
