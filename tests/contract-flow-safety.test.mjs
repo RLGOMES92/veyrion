@@ -25,6 +25,14 @@ test("recurring billing requires signed active contract and supplier notificatio
   assert.match(code, /externalReference/);
 });
 
+test("signature reconciliation is restricted to finance roles and never resends a document", () => {
+  const code = source("app/api/b2b/contracts/[id]/reconcile/route.ts");
+  assert.match(code, /current_user_organization_id/);
+  assert.match(code, /\["owner",\s*"admin",\s*"finance"\]/);
+  assert.match(code, /signature_dispatch_status",\s*"UNKNOWN"/);
+  assert.match(code, /Nenhuma nova solicitação foi enviada/);
+});
+
 test("ZapSign webhook uses a secret, idempotent event claim and conditional activation", () => {
   const code = source("app/api/webhooks/zapsign/route.ts");
   assert.match(code, /ZAPSIGN_WEBHOOK_SECRET/);
