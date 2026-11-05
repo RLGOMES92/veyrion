@@ -20,7 +20,7 @@ async function processQueue(request: NextRequest) {
     return NextResponse.json({ error: "Preview exige RESEND_API_KEY, RESEND_FROM_EMAIL, RESEND_TEST_MODE=true e RESEND_TEST_RECIPIENT." }, { status: 503 });
   }
 
-  const db = getServiceClient();
+  let db: ReturnType<typeof getServiceClient>;\n  try { db = getServiceClient(); } catch { return NextResponse.json({ error: "Configure SUPABASE_SERVICE_ROLE_KEY no ambiente Preview." }, { status: 503 }); }
   // Automatically release notifications that were blocked only because the supplier
   // had no email address when the contract was activated.
   const { data: blockedJobs } = await db.from("b2b_notification_outbox")
