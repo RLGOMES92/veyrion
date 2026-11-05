@@ -79,16 +79,17 @@ export async function POST(request: NextRequest, context: Context) {
     .from("b2b_proposals")
     .update({ status: "SIGNING" })
     .eq("id", contract.proposal_id)
+    .in("status", ["SENT", "NEGOTIATION", "SIGNING"])
     .select("id")
     .maybeSingle();
 
   if (proposalError || !proposal) {
-    const reason = proposalError?.message || "Proposta não encontrada ou sem permissão para atualização.";
+    const reason = proposalError?.message || "Proposta não está em uma etapa válida para assinatura ou não há permissão para atualizá-la.";
     const { error: rollbackError } = await auth.client
       .from("b2b_contracts")
       .update({
         signature_dispatch_status: "UNKNOWN",
-        signature_dispatch_error: "Documento localizado e vinculado, mas a proposta não foi atualizada para SIGNING: " + reason
+        signature_dispatch_error: "Documento localizado e vinculado, mas a proposta não pôde avançar para SIGNING: " + reason
       })
       .eq("id", id)
       .eq("signature_dispatch_status", "SENT")
