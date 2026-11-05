@@ -9,9 +9,16 @@ async function processQueue(request: NextRequest) {
   const supplied = request.headers.get("authorization")?.replace(/^Bearer\s+/i, "") || request.headers.get("x-cron-secret");
   if (!secret || supplied !== secret) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
+  if (process.env.VEYRION_INTEGRATION_MODE !== "preview") {
+    return NextResponse.json({ error: "O worker de notificações está bloqueado fora do modo Preview nesta etapa." }, { status: 403 });
+  }
   const apiKey = process.env.RESEND_API_KEY;
   const from = process.env.RESEND_FROM_EMAIL;
-  if (!apiKey || !from) return NextResponse.json({ error: "RESEND_API_KEY and RESEND_FROM_EMAIL must be configured." }, { status: 503 });
+  const testMode = process.env.RESEND_TEST_MODE === "true";
+  const testRecipient = process.env.RESEND_TEST_RECIPIENT;
+  if (!apiKey || !from || !testMode || !testRecipient) {
+    return NextResponse.json({ error: "Preview exige RESEND_API_KEY, RESEND_FROM_EMAIL, RESEND_TEST_MODE=true e RESEND_TEST_RECIPIENT." }, { status: 503 });
+  }
 
   const db = getServiceClient();
   // Automatically release notifications that were blocked only because the supplier
@@ -47,7 +54,7 @@ async function processQueue(request: NextRequest) {
         },
         body: JSON.stringify({
           from,
-          to: [job.recipient_email],
+          to: [testRecipient],
           subject: job.subject,
           html: job.html_body,
         }),
