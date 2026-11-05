@@ -30,17 +30,17 @@ export async function POST(request:NextRequest) {
   const {data:contract,error:lookupError}=await db.from("b2b_contracts").select("id,proposal_id,supplier_id,organization_id").eq("signature_document_id",docId).single();
   if(lookupError||!contract) {
    const message="Contrato não localizado para o documento assinado.";
-   await db.from("b2b_integration_events").update({processing_error:message,processing_started_at:null}).eq("provider","ZAPSIGN").eq("event_id",eventId);
+   await db.from("b2b_integration_events").update({processing_error:message,processing_started_at:null,processing_started_at:null}).eq("provider","ZAPSIGN").eq("event_id",eventId);
    return NextResponse.json({error:message},{status:409});
   }
   const {error:activationError}=await db.from("b2b_contracts").update({status:"ACTIVE",signed_at:new Date().toISOString()}).eq("id",contract.id);
   if(activationError) {
-   await db.from("b2b_integration_events").update({processing_error:activationError.message,processing_started_at:null}).eq("provider","ZAPSIGN").eq("event_id",eventId);
+   await db.from("b2b_integration_events").update({processing_error:activationError.message,processing_started_at:null,processing_started_at:null}).eq("provider","ZAPSIGN").eq("event_id",eventId);
    return NextResponse.json({error:"Contrato assinado, mas ativação/estoque precisa de intervenção: "+activationError.message},{status:409});
   }
   const {error:proposalError}=await db.from("b2b_proposals").update({status:"WON"}).eq("id",contract.proposal_id);
   if(proposalError) {
-   await db.from("b2b_integration_events").update({processing_error:proposalError.message,processing_started_at:null}).eq("provider","ZAPSIGN").eq("event_id",eventId);
+   await db.from("b2b_integration_events").update({processing_error:proposalError.message,processing_started_at:null,processing_started_at:null}).eq("provider","ZAPSIGN").eq("event_id",eventId);
    return NextResponse.json({error:proposalError.message},{status:500});
   }
   const {data:supplier}=await db.from("b2b_suppliers").select("contact_email,legal_name").eq("id",contract.supplier_id).single();
