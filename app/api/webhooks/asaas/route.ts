@@ -27,7 +27,7 @@ export async function POST(request:NextRequest) {
   const {data:contract}=await db.from("b2b_contracts").select("id,client_id,supplier_id,organization_id,recurring_amount,partner_amount,veyrion_commission").eq("billing_subscription_id",String(payment.subscription)).maybeSingle();
   if(!contract) {
    const message="Assinatura Asaas ainda não vinculada a contrato.";
-   await db.from("b2b_integration_events").update({processing_error:message,processing_started_at:null,processing_started_at:null}).eq("provider","ASAAS").eq("event_id",eventId);
+   await db.from("b2b_integration_events").update({processing_error:message,processing_started_at:null}).eq("provider","ASAAS").eq("event_id",eventId);
    return NextResponse.json({error:message},{status:409});
   }
   const {error}=await db.from("b2b_charges").upsert({
@@ -38,7 +38,7 @@ export async function POST(request:NextRequest) {
    payment_method:payment.billingType||null,invoice_url:payment.invoiceUrl||null,split_status:"PENDING",provider_payload:body
   },{onConflict:"provider,provider_charge_id",ignoreDuplicates:true});
   if(error) {
-   await db.from("b2b_integration_events").update({processing_error:error.message,processing_started_at:null,processing_started_at:null}).eq("provider","ASAAS").eq("event_id",eventId);
+   await db.from("b2b_integration_events").update({processing_error:error.message,processing_started_at:null}).eq("provider","ASAAS").eq("event_id",eventId);
    return NextResponse.json({error:error.message},{status:500});
   }
  }
