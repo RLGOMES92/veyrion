@@ -47,13 +47,13 @@ test("payment endpoints are explicitly disabled because payments happen external
   const billing = source("app/api/b2b/contracts/[id]/billing/route.ts");
   assert.match(webhook, /EXTERNAL_PAYMENT_ONLY/);
   assert.match(billing, /EXTERNAL_PAYMENT_ONLY/);
-  assert.match(webhook, /status:\\s*410/);
-  assert.match(billing, /status:\\s*410/);
+  assert.match(webhook, /status:\s*410/);
+  assert.match(billing, /status:\s*410/);
 });
 
 test("brokerage workspace focuses on company, proposal and contract lifecycle only", () => {
   const code = source("app/brokerage/page.tsx");
-  assert.doesNotMatch(code, /tab===\\"billing\\"/);
+  assert.doesNotMatch(code, /tab==="billing"/);
   assert.doesNotMatch(code, /b2b_charges|Asaas|asaas_wallet_id|split/i);
   assert.match(code, /Contratos e assinatura/);
   assert.match(code, /pagamentos e repasses são combinados e realizados fora da plataforma/i);
