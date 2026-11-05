@@ -30,7 +30,7 @@ export async function POST(request:NextRequest) {
    due_date:payment.dueDate||new Date().toISOString().slice(0,10),gross_amount:Number(payment.value||contract.recurring_amount),
    veyrion_fee:Number(contract.veyrion_commission),supplier_net:Number(contract.partner_amount),gateway_fee:0,veyrion_net:0,
    payment_method:payment.billingType||null,invoice_url:payment.invoiceUrl||null,split_status:"PENDING",provider_payload:body
-  },{onConflict:"provider,provider_charge_id"});
+  },{onConflict:"provider,provider_charge_id",ignoreDuplicates:true});
   if(error) {
    await db.from("b2b_integration_events").update({processing_error:error.message}).eq("provider","ASAAS").eq("event_id",eventId);
    return NextResponse.json({error:error.message},{status:500});
