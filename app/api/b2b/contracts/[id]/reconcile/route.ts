@@ -34,7 +34,7 @@ export async function POST(request: NextRequest, context: Context) {
   // RLS scopes this read to the authenticated user's organization.
   const { data: contract, error: readError } = await auth.client
     .from("b2b_contracts")
-    .select("id,status,signature_dispatch_status,signature_document_id")
+    .select("id,proposal_id,status,signature_dispatch_status,signature_document_id")
     .eq("id", id)
     .maybeSingle();
 
@@ -72,8 +72,40 @@ export async function POST(request: NextRequest, context: Context) {
   if (updateError) return jsonError("Falha ao persistir a reconciliação: " + updateError.message, 500);
   if (!updated) return NextResponse.json({ error: "O estado do contrato mudou durante a operação. Atualize a tela e confira novamente." }, { status: 409 });
 
+  // Keep the sales pipeline consistent with the normal signature-dispatch flow.
+  // If the proposal update fails, restore UNKNOWN so the operator can safely retry
+  // this reconciliation with the same document ID; no provider request is sent.
+  const { data: proposal, error: proposalError } = await auth.client
+    .from("b2b_proposals")
+    .update({ status: "SIGNING" })
+    .eq("id", contract.proposal_id)
+    .select("id")
+    .maybeSingle();
+
+  if (proposalError || !proposal) {
+    const reason = proposalError?.message || "Proposta não encontrada ou sem permissão para atualização.";
+    const { error: rollbackError } = await auth.client
+      .from("b2b_contracts")
+      .update({
+        signature_dispatch_status: "UNKNOWN",
+        signature_dispatch_error: "Documento localizado e vinculado, mas a proposta não foi atualizada para SIGNING: " + reason
+      })
+      .eq("id", id)
+      .eq("signature_dispatch_status", "SENT")
+      .eq("signature_document_id", documentId);
+
+    return NextResponse.json({
+      error: "O documento foi localizado, mas não foi possível concluir a atualização da proposta. " +
+        (rollbackError
+          ? "A reconciliação exige revisão manual: " + rollbackError.message
+          : "O estado foi devolvido para UNKNOWN; tente reconciliar novamente com o mesmo ID do documento."),
+      contract: updated,
+      proposal_error: reason
+    }, { status: 502 });
+  }
+
   return NextResponse.json({
     contract: updated,
-    message: "Documento vinculado manualmente. Nenhuma nova solicitação foi enviada à ZapSign."
+    message: "Documento vinculado e proposta movida para Em assinatura. Nenhuma nova solicitação foi enviada à ZapSign."
   });
 }
