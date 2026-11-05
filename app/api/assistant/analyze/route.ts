@@ -88,6 +88,29 @@ export async function POST(request: NextRequest) {
   }
 
   try {
+    const { data: quotaData, error: quotaError } = await auth.client.rpc("consume_assistant_analysis_quota");
+    if (quotaError) {
+      return NextResponse.json(
+        { error: "Não foi possível confirmar o limite de uso da IA. Nenhuma chamada foi enviada ao provedor; tente novamente." },
+        { status: 503 },
+      );
+    }
+    const quota = Array.isArray(quotaData) ? quotaData[0] : quotaData;
+    if (!quota || typeof quota.allowed !== "boolean") {
+      return NextResponse.json(
+        { error: "O controle de uso da IA está indisponível. Nenhuma chamada foi enviada ao provedor." },
+        { status: 503 },
+      );
+    }
+    if (!quota.allowed) {
+      const resetsAt = typeof quota.resets_at === "string" ? Date.parse(quota.resets_at) : Date.now() + 3600000;
+      const retryAfter = Math.max(1, Math.ceil((resetsAt - Date.now()) / 1000));
+      return NextResponse.json(
+        { error: "Limite de 10 análises generativas por usuário a cada hora atingido. Tente novamente na próxima hora." },
+        { status: 429, headers: { "Retry-After": String(retryAfter) } },
+      );
+    }
+
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
