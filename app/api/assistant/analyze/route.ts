@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { requireUser } from "@/lib/b2b-server";
 import { buildAssistantBrief } from "@/lib/ai-assistant";
 
@@ -16,7 +17,7 @@ type WorkspaceRecord = {
 const allowedModules = new Set(["companies", "tasks", "opportunities"]);
 const text = (value: unknown, max = 240) => String(value ?? "").slice(0, max);
 
-async function writeAnalysisAudit(client: any, userId: string, entry: { engine: "rules" | "ai"; model?: string | null; records: number; insights: number; outcome: "completed" | "fallback" | "empty" }) {
+async function writeAnalysisAudit(client: SupabaseClient, userId: string, entry: { engine: "rules" | "ai"; model?: string | null; records: number; insights: number; outcome: "completed" | "fallback" | "empty" }) {
   try {
     const { data: organizationId, error } = await client.rpc("current_user_organization_id");
     if (error || !organizationId) return;
