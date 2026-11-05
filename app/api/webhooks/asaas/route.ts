@@ -54,12 +54,16 @@ export async function POST(request:NextRequest) {
     return NextResponse.json({error:message},{status:409});
    }
    const supplierNet=Number(charge.supplier_net||0);
-   const {error}=await db.from("b2b_charges").update({
-    status,paid_at:status==="RECEIVED"?new Date().toISOString():null,
+   let chargeUpdate=db.from("b2b_charges").update({
+    status,...(status==="RECEIVED"?{paid_at:new Date().toISOString()}:{}),
     gateway_fee:Math.max(0,grossValue-netValue),
     veyrion_net:status==="RECEIVED"?Math.max(0,netValue-supplierNet):0,
     provider_payload:body
    }).eq("provider","ASAAS").eq("provider_charge_id",payment.id);
+   // Ignore stale status notifications so an out-of-order event cannot regress a settled charge.
+   if(status==="CONFIRMED"||status==="OVERDUE") chargeUpdate=chargeUpdate.eq("status","PENDING");
+   else if(status==="RECEIVED") chargeUpdate=chargeUpdate.in("status",["PENDING","CONFIRMED","OVERDUE"]);
+   const {error}=await chargeUpdate;
    if(error) {
     await db.from("b2b_integration_events").update({processing_error:error.message,processing_started_at:null}).eq("provider","ASAAS").eq("event_id",eventId);
     return NextResponse.json({error:error.message},{status:500});
