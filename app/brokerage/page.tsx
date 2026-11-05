@@ -2,7 +2,7 @@
 import { useCallback,useEffect,useState } from "react";
 import type { CSSProperties, ReactNode } from "react";
 import { supabase } from "@/lib/supabase";
-import { Building2,Search,ShieldCheck,AlertTriangle,FileText,Plus,RefreshCw,Send,CheckCircle2,Clock3,Users,Monitor,ArrowLeft } from "lucide-react";
+import { Building2,Search,ShieldCheck,FileText,Plus,RefreshCw,Send,CheckCircle2,Clock3,Users,Monitor,ArrowLeft } from "lucide-react";
 import Link from "next/link";
 
 type AnyRow=Record<string,any>;
@@ -53,7 +53,6 @@ export default function BrokeragePage(){
  const generateContract=async()=>{setBusy(true);try{const response=await fetch("/api/b2b/contracts",{method:"POST",headers:authHeaders(),body:JSON.stringify({proposal_id:contractProposal,signer})});const j=await response.json().catch(()=>({}));if(j.contract)setContractPreview(j.contract);if(!response.ok&&response.status!==409)throw new Error(j.message||j.error||"Falha ao gerar contrato.");setNotice(j.message||"Minuta gerada. Assinatura: "+j.signature);await load();}catch(e:any){setNotice(e.message)}finally{setBusy(false)}};
  const viewContract=async(id:string)=>{try{const r=await fetch("/api/b2b/contracts/"+id+"/document",{headers:authHeaders()});if(!r.ok)throw new Error("Não foi possível abrir a minuta.");setPreviewHtml(await r.text());}catch(e:any){setNotice(e.message)}};
  const reconcileSignature=async(id:string)=>{const documentId=window.prompt("Informe o ID/token do documento que você localizou no painel ZapSign:");if(!documentId?.trim())return;if(!window.confirm("Confirma que este documento foi localizado na ZapSign e pertence a este contrato? Nenhum novo envio será feito."))return;const signatureUrl=window.prompt("Cole o link de assinatura (opcional):")||"";setBusy(true);try{const response=await fetch("/api/b2b/contracts/"+id+"/reconcile",{method:"POST",headers:authHeaders(),body:JSON.stringify({signature_document_id:documentId.trim(),signature_url:signatureUrl.trim(),document_confirmed:true})});const j=await response.json().catch(()=>({}));if(!response.ok)throw new Error(j.error||"Não foi possível reconciliar o documento.");setNotice(j.message||"Documento reconciliado.");await load();}catch(e:any){setNotice(e.message)}finally{setBusy(false)}};
- const today=new Date().toISOString().slice(0,10);
  const selectedProduct=products.find(p=>p.id===proposalForm.supplier_product_id);
  const margin=Number(proposalForm.client_unit_monthly||0)-Number(proposalForm.partner_unit_monthly||0);
  return <main style={{maxWidth:1440,margin:"0 auto",padding:"24px 18px 64px",color:"var(--text,#172033)"}}>
