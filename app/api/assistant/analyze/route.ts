@@ -64,7 +64,6 @@ export async function POST(request: NextRequest) {
   const today = text(body.today, 10);
   if (!/^\d{4}-\d{2}-\d{2}$/.test(today)) {
     return NextResponse.json({ error: "Informe a data de referência no formato AAAA-MM-DD." }, { status: 400 });
-    await writeAnalysisAudit(auth.client, auth.user.id, { engine: "ai", model: process.env.OPENAI_MODEL || "gpt-4o-mini", records: records.length, insights: Math.min(analysis.insights.length, 5), outcome: "completed" });
   }
   const records = compactRecords(body.records);
   if (!records.length) return NextResponse.json({ error: "Nenhum registro comercial válido foi enviado." }, { status: 400 });
@@ -119,6 +118,7 @@ export async function POST(request: NextRequest) {
       await writeAnalysisAudit(auth.client, auth.user.id, { engine: "rules", records: records.length, insights: brief.items.length, outcome: "fallback" });
       return NextResponse.json({ available: false, mode: "rules", brief, message: "A resposta da IA não passou pela validação. Use as recomendações operacionais." });
     }
+    await writeAnalysisAudit(auth.client, auth.user.id, { engine: "ai", model: process.env.OPENAI_MODEL || "gpt-4o-mini", records: records.length, insights: Math.min(analysis.insights.length, 5), outcome: "completed" });
     return NextResponse.json({
       available: true, mode: "ai", brief,
       analysis: {
@@ -131,6 +131,7 @@ export async function POST(request: NextRequest) {
       },
     });
   } catch {
+    await writeAnalysisAudit(auth.client, auth.user.id, { engine: "rules", records: records.length, insights: brief.items.length, outcome: "fallback" });
     return NextResponse.json({ available: false, mode: "rules", brief, message: "Não foi possível consultar a IA agora. As recomendações operacionais continuam disponíveis." });
   }
 }
