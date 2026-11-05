@@ -21,7 +21,8 @@ export async function POST(request:NextRequest) {
  if(!token)return NextResponse.json({contract,signature:"NOT_CONFIGURED",message:"Minuta salva. Configure ZAPSIGN_API_TOKEN e os dados do signatário para habilitar assinatura digital."},{status:201});
  const signer=body.signer||{};
  if(!signer.name||!signer.email)return NextResponse.json({contract,signature:"MISSING_SIGNER",message:"Informe nome e e-mail do representante legal para enviar à assinatura."},{status:201});
- await auth.client.from("b2b_contracts").update({signature_dispatch_status:"SENDING",signature_dispatch_error:null,signature_dispatch_attempted_at:new Date().toISOString()}).eq("id",contract.id);
+ const {error:dispatchStartError}=await auth.client.from("b2b_contracts").update({signature_dispatch_status:"SENDING",signature_dispatch_error:null,signature_dispatch_attempted_at:new Date().toISOString()}).eq("id",contract.id);
+ if(dispatchStartError)return NextResponse.json({contract,signature:"NOT_SENT",message:"Não foi possível registrar o início do envio. A ZapSign não foi chamada.",details:dispatchStartError.message},{status:500});
  let response: Response;
  try {
   response=await fetch(`${process.env.ZAPSIGN_API_URL||"https://api.zapsign.com.br/api/v1"}/docs/`,{method:"POST",headers:{Authorization:`Bearer ${token}`,"Content-Type":"application/json"},body:JSON.stringify({name:`Contrato VEYRION ${p.proposal_number}`,external_id:contract.id,markdown_text:html.replace(/<[^>]*>/g," ").replace(/&nbsp;/g," ").replace(/&amp;/g,"&").replace(/\s+/g," ").trim(),signers:[{name:signer.name,email:signer.email,auth_mode:"assinaturaTela"}],observers:[p.supplier.contact_email].filter(Boolean),metadata:[{key:"veyrion_contract_id",value:contract.id}]})});
