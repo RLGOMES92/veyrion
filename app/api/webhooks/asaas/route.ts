@@ -75,7 +75,10 @@ export async function POST(request:NextRequest) {
   }
   if(["PAYMENT_SPLIT_DIVERGENCE_BLOCK","PAYMENT_SPLIT_DIVERGENCE_BLOCK_FINISHED"].includes(event)) {
    const {error}=await db.from("b2b_charges").update({split_status:"FAILED",provider_payload:body}).eq("provider","ASAAS").eq("provider_charge_id",payment.id);
-   if(error) return NextResponse.json({error:error.message},{status:500});
+   if(error) {
+    await db.from("b2b_integration_events").update({processing_error:error.message,processing_started_at:null}).eq("provider","ASAAS").eq("event_id",eventId);
+    return NextResponse.json({error:error.message},{status:500});
+   }
   }
  }
  await db.from("b2b_integration_events").update({processed_at:new Date().toISOString(),processing_error:null,processing_started_at:null}).eq("provider","ASAAS").eq("event_id",eventId);
