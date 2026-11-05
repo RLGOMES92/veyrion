@@ -7,22 +7,14 @@ import { fileURLToPath } from "node:url";
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const source = (path) => readFileSync(resolve(root, path), "utf8");
 
-test("billing endpoint is restricted to authenticated finance roles and Preview Sandbox", () => {
-  const code = source("app/api/b2b/contracts/[id]/billing/route.ts");
-  assert.match(code, /requireUser\(request\)/);
-  assert.match(code, /\["owner",\s*"admin",\s*"finance"\]/);
-  assert.match(code, /VEYRION_INTEGRATION_MODE\s*!==\s*"preview"/);
-  assert.match(code, /https:\/\/api-sandbox\.asaas\.com\/v3/);
-  assert.match(code, /ASAAS_UNKNOWN/);
-});
-
-test("recurring billing requires signed active contract and supplier notification", () => {
-  const code = source("app/api/b2b/contracts/[id]/billing/route.ts");
-  assert.match(code, /contract\.status\s*!==\s*"ACTIVE"/);
-  assert.match(code, /signature_document_id/);
-  assert.match(code, /notification\?\.status\s*!==\s*"SENT"/);
-  assert.match(code, /walletId:\s*supplier\.asaas_wallet_id/);
-  assert.match(code, /externalReference/);
+test("legacy payment endpoints are disabled and never call a payment provider", () => {
+  const billing = source("app/api/b2b/contracts/[id]/billing/route.ts");
+  const webhook = source("app/api/webhooks/asaas/route.ts");
+  assert.match(billing, /EXTERNAL_PAYMENT_ONLY/);
+  assert.match(webhook, /EXTERNAL_PAYMENT_ONLY/);
+  assert.match(billing, /status:\s*410/);
+  assert.match(webhook, /status:\s*410/);
+  assert.doesNotMatch(billing + webhook, /api-sandbox\.asaas\.com|ASAAS_API_KEY/);
 });
 
 test("signature reconciliation is restricted to finance roles and never resends a document", () => {
