@@ -27,13 +27,15 @@ export async function POST(request:NextRequest) {
 
  const signed=/signed|assinado|completed/.test(event)||String(doc.status||"").toLowerCase()==="signed";
  if(signed) {
-  const {data:contract,error:lookupError}=await db.from("b2b_contracts").select("id,proposal_id,supplier_id,organization_id").eq("signature_document_id",docId).single();
+  const {data:contract,error:lookupError}=await db.from("b2b_contracts").select("id,proposal_id,supplier_id,organization_id,status").eq("signature_document_id",docId).single();
   if(lookupError||!contract) {
    const message="Contrato não localizado para o documento assinado.";
    await db.from("b2b_integration_events").update({processing_error:message,processing_started_at:null}).eq("provider","ZAPSIGN").eq("event_id",eventId);
    return NextResponse.json({error:message},{status:409});
   }
-  const {error:activationError}=await db.from("b2b_contracts").update({status:"ACTIVE",signed_at:new Date().toISOString()}).eq("id",contract.id);
+  // Activate only once. A retried webhook may still need to finish the proposal update,
+  // but must not repeat post-activation side effects such as supplier notification.
+  const {data:activated,error:activationError}=await db.from("b2b_contracts").update({status:"ACTIVE",signed_at:new Date().toISOString()}).eq("id",contract.id).neq("status","ACTIVE").select("id").maybeSingle();
   if(activationError) {
    await db.from("b2b_integration_events").update({processing_error:activationError.message,processing_started_at:null}).eq("provider","ZAPSIGN").eq("event_id",eventId);
    return NextResponse.json({error:"Contrato assinado, mas ativação/estoque precisa de intervenção: "+activationError.message},{status:409});
@@ -44,7 +46,7 @@ export async function POST(request:NextRequest) {
    return NextResponse.json({error:proposalError.message},{status:500});
   }
   const {data:supplier}=await db.from("b2b_suppliers").select("contact_email,legal_name").eq("id",contract.supplier_id).single();
-  if(supplier?.contact_email&&process.env.RESEND_API_KEY) {
+  if(activated&&supplier?.contact_email&&process.env.RESEND_API_KEY) {
    const mail=await fetch("https://api.resend.com/emails",{method:"POST",headers:{Authorization:`Bearer ${process.env.RESEND_API_KEY}`,"Content-Type":"application/json"},body:JSON.stringify({from:process.env.RESEND_FROM_EMAIL||"VEYRION OS <onboarding@resend.dev>",to:[supplier.contact_email],subject:"Contrato VEYRION assinado — preparar entrega",html:`<p>O contrato foi assinado. Parceiro: ${supplier.legal_name}. Acesse o VEYRION OS para conferir equipamentos, SLA e data de entrega.</p>`})});
    if(!mail.ok) console.error("VEYRION supplier notification failed after contract activation.");
   }
