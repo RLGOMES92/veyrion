@@ -38,7 +38,14 @@ Somente os módulos `companies`, `tasks` e `opportunities` são considerados. A 
 - A IA deve usar apenas evidências fornecidas e retornar resumo, insights e foco recomendado.
 - A resposta generativa é validada e limitada antes de retornar ao cliente.
 - `OPENAI_API_KEY` é segredo server-side; nunca usar prefixo `NEXT_PUBLIC_`.
+- Antes de cada chamada generativa, o servidor reserva atomicamente uma cota de até 10 análises por usuário e por hora UTC. O limite é aplicado no banco, não no botão do navegador.
+- Se o controle de cota estiver indisponível, a rota falha fechada (HTTP 503) e não chama o provedor. Ao exceder a cota, retorna HTTP 429 com `Retry-After`.
+- A cota só é consumida quando a chave generativa está configurada e há uma análise que realmente seria enviada ao provedor; o fallback local gratuito não consome cota.
 
-## Próxima integração
+## Controle de utilização
 
-A interface do módulo **Assistente IA** ainda precisa chamar esta rota, apresentar o resumo generativo e manter o painel atual como fallback. A rota isolada não significa que a análise generativa já esteja visível no dashboard.
+A migration `029_assistant_analysis_quota.sql` cria um contador privado no Supabase e a função `public.consume_assistant_analysis_quota()`. A função valida a sessão e a associação à organização, serializa requisições concorrentes e limita cada usuário a 10 chamadas generativas por hora UTC. A tabela fica no schema privado, sem acesso direto pela Data API; somente a função autenticada pode reservar uma unidade.
+
+## Próxima evolução
+
+O histórico de análises já aparece no painel **Assistente IA**. A próxima etapa é consolidar o consumo por organização (somando os membros), apresentar limites e utilização no dashboard e permitir que o administrador configure limites, sem ativar cobrança ou chave paga automaticamente.
