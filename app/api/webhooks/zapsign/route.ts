@@ -67,7 +67,7 @@ export async function POST(request:NextRequest) {
   }
   // Persist the notification before acknowledging the signature event. The deterministic
   // key makes webhook retries safe even when the contract was activated by an earlier attempt.
-  if(contract.status==="ACTIVE"&&supplier?.contact_email) {
+  if((contract.status==="ACTIVE"||Boolean(activated))&&supplier?.contact_email) {
    const idempotencyKey=`contract-activated:${contract.id}:supplier-email`;
    const {error:queueError}=await db.from("b2b_notification_outbox").upsert({
     organization_id:contract.organization_id,
