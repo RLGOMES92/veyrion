@@ -21,12 +21,32 @@ export async function POST(request:NextRequest) {
  if(!token)return NextResponse.json({contract,signature:"NOT_CONFIGURED",message:"Minuta salva. Configure ZAPSIGN_API_TOKEN e os dados do signatário para habilitar assinatura digital."},{status:201});
  const signer=body.signer||{};
  if(!signer.name||!signer.email)return NextResponse.json({contract,signature:"MISSING_SIGNER",message:"Informe nome e e-mail do representante legal para enviar à assinatura."},{status:201});
- const response=await fetch(`${process.env.ZAPSIGN_API_URL||"https://api.zapsign.com.br/api/v1"}/docs/`,{method:"POST",headers:{Authorization:`Bearer ${token}`,"Content-Type":"application/json"},body:JSON.stringify({name:`Contrato VEYRION ${p.proposal_number}`,markdown_text:html.replace(/<[^>]*>/g," ").replace(/&nbsp;/g," ").replace(/&amp;/g,"&").replace(/\s+/g," ").trim(),signers:[{name:signer.name,email:signer.email,auth_mode:"assinaturaTela"}],observers:[p.supplier.contact_email].filter(Boolean),metadata:[{key:"veyrion_contract_id",value:contract.id}]})});
+ await auth.client.from("b2b_contracts").update({signature_dispatch_status:"SENDING",signature_dispatch_error:null,signature_dispatch_attempted_at:new Date().toISOString()}).eq("id",contract.id);
+ let response: Response;
+ try {
+  response=await fetch(`${process.env.ZAPSIGN_API_URL||"https://api.zapsign.com.br/api/v1"}/docs/`,{method:"POST",headers:{Authorization:`Bearer ${token}`,"Content-Type":"application/json"},body:JSON.stringify({name:`Contrato VEYRION ${p.proposal_number}`,external_id:contract.id,markdown_text:html.replace(/<[^>]*>/g," ").replace(/&nbsp;/g," ").replace(/&amp;/g,"&").replace(/\s+/g," ").trim(),signers:[{name:signer.name,email:signer.email,auth_mode:"assinaturaTela"}],observers:[p.supplier.contact_email].filter(Boolean),metadata:[{key:"veyrion_contract_id",value:contract.id}]})});
+ } catch (error) {
+  const message=error instanceof Error?error.message:"Falha de rede sem confirmação do provedor.";
+  await auth.client.from("b2b_contracts").update({signature_dispatch_status:"UNKNOWN",signature_dispatch_error:message}).eq("id",contract.id);
+  return NextResponse.json({contract,signature:"UNKNOWN",message:"Não foi possível confirmar o resultado na ZapSign. Não reenvie: confira o documento pelo identificador externo "+contract.id+".",provider_error:message},{status:502});
+ }
  const z=await response.json().catch(()=>({}));
- if(!response.ok)return NextResponse.json({contract,signature:"FAILED",provider_error:z},{status:502});
+ if(!response.ok) {
+  const confirmedFailure=response.status>=400&&response.status<500;
+  const dispatchStatus=confirmedFailure?"FAILED":"UNKNOWN";
+  await auth.client.from("b2b_contracts").update({signature_dispatch_status:dispatchStatus,signature_dispatch_error:JSON.stringify(z).slice(0,2000)}).eq("id",contract.id);
+  return NextResponse.json({contract,signature:dispatchStatus,message:confirmedFailure?"A ZapSign rejeitou a solicitação. Corrija os dados antes de tentar novamente.":"A ZapSign retornou erro de servidor; o resultado pode ser incerto. Não reenvie antes de conferir o documento.",provider_error:z},{status:502});
+ }
  const docId=z.token||z.doc_token||z.id;
- const {error:contractUpdateError}=await auth.client.from("b2b_contracts").update({status:"PENDING_SIGNATURE",signature_provider:"ZAPSIGN",signature_document_id:docId,signature_url:z.signers?.[0]?.sign_url||z.url_doc||null}).eq("id",contract.id);
- if(contractUpdateError)return NextResponse.json({contract,signature:"PERSISTENCE_FAILED",message:"Documento criado na ZapSign, mas o vínculo não foi salvo. Não envie novamente antes de conferir o documento.",details:contractUpdateError.message},{status:502});
+ if(!docId) {
+  await auth.client.from("b2b_contracts").update({signature_dispatch_status:"UNKNOWN",signature_dispatch_error:"Resposta 2xx sem identificador do documento."}).eq("id",contract.id);
+  return NextResponse.json({contract,signature:"UNKNOWN",message:"A ZapSign respondeu sem identificador do documento. Não reenvie antes de reconciliar pelo identificador externo "+contract.id+".",provider_response:z},{status:502});
+ }
+ const {error:contractUpdateError}=await auth.client.from("b2b_contracts").update({status:"PENDING_SIGNATURE",signature_provider:"ZAPSIGN",signature_document_id:docId,signature_url:z.signers?.[0]?.sign_url||z.url_doc||null,signature_dispatch_status:"SENT",signature_dispatch_error:null}).eq("id",contract.id);
+ if(contractUpdateError) {
+  await auth.client.from("b2b_contracts").update({signature_dispatch_status:"UNKNOWN",signature_dispatch_error:"Documento criado na ZapSign, mas não foi possível persistir o vínculo: "+contractUpdateError.message}).eq("id",contract.id);
+  return NextResponse.json({contract,signature:"UNKNOWN",message:"Documento criado na ZapSign, mas o vínculo não foi salvo. Não envie novamente; reconcilie pelo identificador externo "+contract.id+".",details:contractUpdateError.message},{status:502});
+ }
  const {error:proposalUpdateError}=await auth.client.from("b2b_proposals").update({status:"SIGNING"}).eq("id",p.id);
  if(proposalUpdateError)return NextResponse.json({contract,signature:"PERSISTENCE_FAILED",message:"Documento criado e contrato vinculado, mas a proposta não avançou para SIGNING.",details:proposalUpdateError.message},{status:502});
  return NextResponse.json({contract:{...contract,status:"PENDING_SIGNATURE",signature_document_id:docId},signature:"SENT",provider_response:z},{status:201});
