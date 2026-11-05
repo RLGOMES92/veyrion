@@ -70,7 +70,7 @@ export async function POST(request: NextRequest, context: { params: Promise<{ id
     return jsonError("A cobrança só pode ser criada depois da assinatura confirmada e da ativação do contrato.", 409);
   }
 
-  const service = getServiceClient();
+  let service;\n  try { service = getServiceClient(); } catch { return jsonError("Configure SUPABASE_SERVICE_ROLE_KEY no ambiente Preview.", 503); }
   const { data: notification, error: notificationError } = await service
     .from("b2b_notification_outbox")
     .select("id,status")
