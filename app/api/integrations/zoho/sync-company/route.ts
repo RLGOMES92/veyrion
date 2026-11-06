@@ -50,13 +50,11 @@ function buildLead(payload: Record<string, unknown>) {
   const lead: Record<string, unknown> = {
     Company: company,
     Last_Name: lastName || company || "Lead VEYRION",
-    Lead_Source: "VEYRION OS",
     Description: description,
   };
   if (email) lead.Email = email;
   if (contactPhone || phone) lead.Phone = contactPhone || phone;
   if (payload.website) lead.Website = String(payload.website);
-  if (payload.sector) lead.Industry = String(payload.sector);
   if (payload.city) lead.City = String(payload.city);
   if (payload.employees && Number(payload.employees) > 0) lead.No_of_Employees = Number(payload.employees);
   return { lead, email };
@@ -122,7 +120,10 @@ export async function POST(request: NextRequest) {
       const searchResponse = await fetch(searchUrl, { headers, cache: "no-store" });
       const searchBody = await searchResponse.json().catch(() => ({}));
       if (searchResponse.ok && Array.isArray(searchBody.data) && searchBody.data.length) {
-        zohoId = String(searchBody.data[0].id || "");
+        const sameCompany = searchBody.data.find((item: Record<string, unknown>) =>
+          String(item.Company || "").trim().toLocaleLowerCase("pt-BR") === String(lead.Company || "").trim().toLocaleLowerCase("pt-BR")
+        );
+        zohoId = String(sameCompany?.id || "");
       } else if (!searchResponse.ok && searchBody.code !== "NO_DATA") {
         throw new Error("Falha ao pesquisar duplicidade no Zoho CRM.");
       }
