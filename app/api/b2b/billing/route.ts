@@ -1,10 +1,10 @@
-import { NextRequest } from "next/server";
-import { jsonError, requireUser } from "@/lib/b2b-server";
+import { NextResponse } from "next/server";
 
-// Retired endpoint: all new billing requests must use the contract-scoped,
-// organization-authorized, Preview/Sandbox-only endpoint.
-export async function POST(request: NextRequest) {
-  const auth = await requireUser(request);
-  if (!auth) return jsonError("Sessão inválida.", 401);
-  return jsonError("Endpoint financeiro legado desativado. Use a cobrança vinculada ao contrato ativo.", 410);
+// Pagamentos, cobranças e repasses são tratados diretamente entre as partes.
+// Este endpoint legado permanece apenas como tombstone para clientes antigos.
+export async function POST() {
+  return NextResponse.json({
+    error: "Pagamentos e repasses são realizados fora da VEYRION. Este endpoint está desativado.",
+    code: "EXTERNAL_PAYMENT_ONLY",
+  }, { status: 410 });
 }
