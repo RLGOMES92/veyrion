@@ -8,12 +8,17 @@ const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const source = (path) => readFileSync(resolve(root, path), "utf8");
 
 test("legacy payment endpoints are disabled and never call a payment provider", () => {
+  const legacyBilling = source("app/api/b2b/billing/route.ts");
   const billing = source("app/api/b2b/contracts/[id]/billing/route.ts");
   const webhook = source("app/api/webhooks/asaas/route.ts");
   const contract = source("app/api/b2b/contracts/route.ts");
   assert.match(contract, /Condições comerciais e pagamento externo/);
   assert.match(contract, /fora da VEYRION OS/);
   assert.doesNotMatch(contract, /Cobrança mensal recorrente/);
+  assert.match(legacyBilling, /EXTERNAL_PAYMENT_ONLY/);
+  assert.match(legacyBilling, /status:\s*410/);
+  assert.match(legacyBilling, /pagamentos e repasses são realizados fora da VEYRION/i);
+  assert.doesNotMatch(legacyBilling, /Use a cobrança vinculada ao contrato ativo|api-sandbox\.asaas\.com|ASAAS_API_KEY/i);
   assert.match(billing, /EXTERNAL_PAYMENT_ONLY/);
   assert.match(webhook, /EXTERNAL_PAYMENT_ONLY/);
   assert.match(billing, /status:\s*410/);
