@@ -68,3 +68,11 @@ test("Preview notification worker cannot send to the real supplier address", () 
   assert.match(code, /to:\s*\[testRecipient\]/);
   assert.match(code, /VEYRION_INTEGRATION_MODE\s*!==\s*"preview"/);
 });
+
+test("main workspace excludes in-platform billing and collection workflows", () => {
+  const code = source("app/page.tsx");
+  assert.doesNotMatch(code, /\["finance","Financeiro"\]|module==="finance"|finance_record_id|payment_history|promise_status|collection_history|billing_day|billing_method|late_fee_percent|interest_percent_month|generateMonthlyCharges|registerFinancePayment|createCollectionTask|registerCollectionContact|receivablesAnalytics|financeReport|delinquentFinance/);
+  assert.match(code, /filter\(item=>item\.module!==\"finance\"\)/);
+  assert.match(code, /key:"monthly_value"/);
+  assert.match(code, /key:"total_value"/);
+});
