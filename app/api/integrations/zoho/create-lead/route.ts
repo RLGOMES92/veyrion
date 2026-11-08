@@ -12,6 +12,14 @@ function text(value: unknown): string {
 export async function POST(request: NextRequest) {
   const auth = await requireUser(request);
   if (!auth) return jsonError("Sessão inválida ou expirada.", 401);
+  const { data: organizationId, error: organizationError } = await auth.client.rpc("current_user_organization_id");
+  if (organizationError || !organizationId) return jsonError("Organização não autorizada.", 403);
+  const { data: membership, error: membershipError } = await auth.client
+    .from("organization_members").select("role")
+    .eq("organization_id", organizationId).eq("user_id", auth.user.id).maybeSingle();
+  if (membershipError || !membership || !["owner", "admin", "manager", "sales"].includes(membership.role)) {
+    return jsonError("Seu perfil não possui permissão para criar Leads no Zoho CRM.", 403);
+  }
 
   const body = await request.json().catch(() => null);
   if (!body || typeof body !== "object") {
