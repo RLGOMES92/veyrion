@@ -1,8 +1,10 @@
-# Integração VEYRION OS ↔ Zoho CRM
+# Integração VEYRION OS ↔ Zoho CRM (API v2)
 
 ## Escopo inicial
 
 - Sincronização manual de uma empresa por vez, pela ação **Sincronizar Zoho** no módulo Empresas.
+- Endpoint autenticado para receber dados de formulário: `POST /api/integrations/zoho/create-lead`.
+- Ambos os fluxos usam a API Zoho CRM v2 (`/crm/v2`) e renovam o access token no servidor com o refresh token.
 - Destino: módulo **Leads** do Zoho CRM.
 - A sincronização usa a sessão autenticada do usuário e valida o acesso ao registro no Supabase.
 - O estado da integração fica em `public.zoho_sync_jobs`, acessível somente pelo servidor com service role.
@@ -30,7 +32,12 @@ Exemplos de domínios para contas em data centers diferentes (confirme o data ce
 
 Os dois domínios precisam pertencer à mesma região da conta Zoho. Não use os exemplos sem confirmar a URL de login da sua organização.
 
-## OAuth
+## OAuth e versão da API
+
+O backend usa `https://accounts.zoho.com/oauth/v2/token` para renovar o access token e `https://www.zohoapis.com/crm/v2` para operações no CRM, conforme a região `.com` validada para esta integração. O helper compartilhado está em `lib/zoho.ts`.
+
+O endpoint `POST /api/integrations/zoho/create-lead` exige uma sessão Supabase válida no cabeçalho `Authorization: Bearer <supabase_access_token>`. Envie JSON com `firstName`, `lastName`, `email`, `phone` e `company`. `lastName` e `company` são obrigatórios. O endpoint pesquisa por e-mail: se encontrar o mesmo e-mail e a mesma empresa, atualiza o Lead; se o e-mail existir em outra empresa, responde `409 POSSIBLE_DUPLICATE`; caso contrário, cria o Lead. Não é uma rota pública anônima.
+
 
 Crie um cliente OAuth no Zoho API Console. Para o fluxo Self Client, gere um grant token com estes escopos mínimos:
 
@@ -54,6 +61,9 @@ Troque o grant token por um refresh token no data center correto e armazene os v
 O e-mail do contato é exigido nesta primeira versão para permitir pesquisa de duplicidade antes da criação. Se estiver ausente, o estado será `needs_data`, sem criar lead no Zoho.
 
 ## Teste seguro
+
+1. Confirme que o usuário está autenticado no VEYRION e que o cliente envia o token de sessão Supabase no cabeçalho `Authorization`.
+2. Teste `POST /api/integrations/zoho/create-lead` com um contato interno de teste antes de conectar o formulário definitivo.
 
 1. Aplique a migration.
 2. Configure os cinco segredos na Vercel.
