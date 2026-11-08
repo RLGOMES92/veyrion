@@ -542,3 +542,68 @@ p{line-height:1.55}
 .login-card .footer-note{margin:12px 0 0;line-height:1.6}
 @media(max-width:900px){.login-page{grid-template-columns:1fr}.login-intro{min-height:440px;padding:28px}.login-copy h1{font-size:clamp(32px,7vw,48px)}.login-side{padding:26px 18px 42px}.login-card{width:min(520px,100%)}}
 @media(max-width:480px){.login-intro{min-height:0;gap:38px;padding:24px 20px 30px}.login-brand strong{font-size:19px}.login-copy h1{font-size:34px;letter-spacing:-1px}.login-copy>p{font-size:14px;line-height:1.65}.login-stats{gap:7px;margin:24px 0 18px}.login-stats>div{padding:12px 10px}.login-stats strong{font-size:21px}.login-stats span{font-size:10px}.login-features span{font-size:11px;padding:8px 10px}.login-footer{font-size:10px}.login-side{padding:20px 14px 30px}.login-card{padding:24px 20px}}
+
+
+/* Visão geral: composição executiva em colunas equilibradas */
+.main{min-width:0;width:100%;max-width:100%;overflow-x:hidden}
+.dashboard-overview-grid{
+  display:grid;
+  grid-template-columns:minmax(0,1.55fr) minmax(290px,.85fr);
+  align-items:stretch;
+  gap:16px;
+  width:100%;
+  min-width:0;
+  margin:0 0 16px;
+}
+.dashboard-overview-grid>.panel{
+  min-width:0;
+  width:100%;
+  height:100%;
+  margin:0!important;
+  padding:18px;
+}
+.dashboard-summary .stats{
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:10px;
+  margin:14px 0;
+}
+.dashboard-summary .stat{
+  display:flex;
+  flex-direction:column;
+  justify-content:space-between;
+  min-height:88px;
+  padding:13px;
+}
+.dashboard-summary .stat span{
+  font-size:11px;
+  line-height:1.4;
+}
+.dashboard-summary .stat strong{
+  margin-top:8px;
+  font-size:clamp(17px,1.5vw,23px);
+  line-height:1.15;
+  overflow-wrap:anywhere;
+}
+.dashboard-context{
+  display:flex;
+  flex-direction:column;
+  justify-content:flex-start;
+}
+.dashboard-context .toolbar{margin-top:auto;padding-top:14px}
+.dashboard-stack{gap:16px}
+.dashboard-stack>.panel{margin:0!important}
+.dashboard-stack>.panel .section-head{align-items:flex-start}
+@media(max-width:1180px){
+  .dashboard-overview-grid{grid-template-columns:minmax(0,1fr)}
+  .dashboard-summary .stats{grid-template-columns:repeat(4,minmax(0,1fr))}
+}
+@media(max-width:767px){
+  .dashboard-overview-grid{grid-template-columns:minmax(0,1fr);gap:12px;margin-bottom:12px}
+  .dashboard-overview-grid>.panel{padding:14px}
+  .dashboard-summary .stats{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+  .dashboard-summary .stat{min-height:76px;padding:11px}
+  .dashboard-stack{gap:12px}
+}
+@media(max-width:390px){
+  .dashboard-summary .stats{grid-template-columns:minmax(0,1fr)}
+}
