@@ -114,7 +114,7 @@
 .form-grid input,.form-grid select,.form-grid textarea{min-width:0;max-width:100%}
 .login{width:min(460px,calc(100% - 32px));margin:clamp(32px,10vh,100px) auto;min-width:0}
 .list-scroll{max-height:min(28rem,65vh);overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain}
-@media (min-width:768px) and (max-width:1199px){
+@media (min-width:768px) and (max-width:1023px){
   .shell{grid-template-columns:220px minmax(0,1fr)}
   .stats{grid-template-columns:repeat(2,minmax(0,1fr))}
   .main{padding:24px clamp(16px,2vw,28px)}
