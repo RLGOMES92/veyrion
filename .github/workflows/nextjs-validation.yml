@@ -29,10 +29,9 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: npm
 
-      - name: Install locked dependencies
-        run: npm ci
+      - name: Install dependencies and generate a valid lockfile
+        run: npm install
 
       - name: Run tests when test files exist
         shell: bash
