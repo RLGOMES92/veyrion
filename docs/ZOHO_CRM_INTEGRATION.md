@@ -34,10 +34,9 @@ Os dois domínios precisam pertencer à mesma região da conta Zoho. Não use os
 
 ## OAuth e versão da API
 
-O backend usa `https://accounts.zoho.com/oauth/v2/token` para renovar o access token e `https://www.zohoapis.com/crm/v2` para operações no CRM, conforme a região `.com` validada para esta integração. O helper compartilhado está em `lib/zoho.ts`.
+O helper compartilhado em `lib/zoho.ts` usa `ZOHO_ACCOUNTS_URL` para renovar o access token em `/oauth/v2/token` e `ZOHO_API_DOMAIN` para operações em `/crm/v2`. Portanto, os endpoints efetivos são definidos pelas variáveis configuradas na Vercel; o código não fixa a região `.com`. Configure ambos os domínios para o mesmo data center da conta Zoho.
 
 O endpoint `POST /api/integrations/zoho/create-lead` exige uma sessão Supabase válida no cabeçalho `Authorization: Bearer <supabase_access_token>`. Envie JSON com `firstName`, `lastName`, `email`, `phone` e `company`. `lastName` e `company` são obrigatórios. O endpoint pesquisa por e-mail: se encontrar o mesmo e-mail e a mesma empresa, atualiza o Lead; se o e-mail existir em outra empresa, responde `409 POSSIBLE_DUPLICATE`; caso contrário, cria o Lead. Não é uma rota pública anônima.
-
 
 Crie um cliente OAuth no Zoho API Console. Para o fluxo Self Client, gere um grant token com estes escopos mínimos:
 
@@ -62,14 +61,12 @@ O e-mail do contato é exigido nesta primeira versão para permitir pesquisa de 
 
 ## Teste seguro
 
-1. Confirme que o usuário está autenticado no VEYRION e que o cliente envia o token de sessão Supabase no cabeçalho `Authorization`.
-2. Teste `POST /api/integrations/zoho/create-lead` com um contato interno de teste antes de conectar o formulário definitivo.
-
-1. Aplique a migration.
-2. Configure os cinco segredos na Vercel.
-3. Faça um cadastro de teste com e-mail controlado pela equipe.
-4. Use **Sincronizar Zoho** somente nesse registro.
-5. Confirme no Zoho o lead criado e, em seguida, sincronize novamente para validar atualização sem duplicação.
-6. Só depois libere o uso operacional pela equipe.
+1. Aplique a migration `032_zoho_crm_sync_jobs.sql` no projeto Supabase.
+2. Configure os cinco segredos Zoho na Vercel, no ambiente de Preview usado para o teste, com o data center confirmado.
+3. Confirme que o usuário está autenticado no VEYRION e que o cliente envia o token de sessão Supabase no cabeçalho `Authorization`.
+4. Faça um cadastro de teste com e-mail controlado pela equipe.
+5. Use **Sincronizar Zoho** somente nesse registro.
+6. Confirme no Zoho o lead criado e, em seguida, sincronize novamente para validar atualização sem duplicação.
+7. Só depois libere o uso operacional pela equipe e configure Production separadamente.
 
 A integração não faz importação em massa, não envia e-mails/WhatsApp e não converte leads em contatos ou negócios automaticamente.
