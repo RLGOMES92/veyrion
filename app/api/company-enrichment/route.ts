@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { requireUser } from "@/lib/b2b-server";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -171,6 +172,16 @@ async function lookupCnpjFree(cnpj: string) {
 }
 
 export async function GET(request: NextRequest) {
+  const auth = await requireUser(request);
+  if (!auth) return NextResponse.json({ error: "Sessão inválida ou expirada." }, { status: 401 });
+  const { data: organizationId, error: organizationError } = await auth.client.rpc("current_user_organization_id");
+  if (organizationError || !organizationId) return NextResponse.json({ error: "Organização não autorizada." }, { status: 403 });
+  const { data: membership, error: membershipError } = await auth.client
+    .from("organization_members").select("role")
+    .eq("organization_id", organizationId).eq("user_id", auth.user.id).maybeSingle();
+  if (membershipError || !membership || !["owner", "admin", "manager", "sales"].includes(membership.role)) {
+    return NextResponse.json({ error: "Seu perfil não possui acesso à consulta de empresas." }, { status: 403 });
+  }
   const q = String(request.nextUrl.searchParams.get("q") || "").trim();
   const details = request.nextUrl.searchParams.get("details") === "true";
   if (q.length < 3) return NextResponse.json({ error: "Informe ao menos 3 caracteres ou um CNPJ completo." }, { status: 400 });
