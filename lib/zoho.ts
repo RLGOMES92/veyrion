@@ -39,7 +39,7 @@ export async function zohoV2Request(
   headers.set("Authorization", `Zoho-oauthtoken ${accessToken}`);
   headers.set("Content-Type", "application/json");
 
-  const response = await fetch(`${apiDomain}/crm/v2/${path.replace(/^\\//, "")}`, {
+  const response = await fetch(`${apiDomain}/crm/v2/${path.replace(/^\/+/, "")}`, {
     ...init,
     headers,
     cache: "no-store",
