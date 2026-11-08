@@ -35,13 +35,13 @@ export async function zohoV2Request(
   init: RequestInit = {},
 ): Promise<{ response: Response; result: any }> {
   const apiDomain = requiredZohoEnv("ZOHO_API_DOMAIN");
-  const response = await fetch(`${apiDomain}/crm/v2/${path.replace(/^\//, "")}`, {
+  const headers = new Headers(init.headers);
+  headers.set("Authorization", `Zoho-oauthtoken ${accessToken}`);
+  headers.set("Content-Type", "application/json");
+
+  const response = await fetch(`${apiDomain}/crm/v2/${path.replace(/^\\//, "")}`, {
     ...init,
-    headers: {
-      Authorization: `Zoho-oauthtoken ${accessToken}`,
-      "Content-Type": "application/json",
-      ...(init.headers || {}),
-    },
+    headers,
     cache: "no-store",
   });
   const result = await response.json().catch(() => ({}));
