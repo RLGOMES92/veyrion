@@ -6,7 +6,7 @@ Plataforma B2B para prospecção, CRM, venda e locação de notebooks, ativos, p
 ## O que está no repositório
 - Aplicação Next.js 15 + React 19 + TypeScript.
 - Interface responsiva VEYRION OS.
-- Login por link mágico via Supabase Auth (sem senha ou perfil selecionável fictício).
+- Login por e-mail e senha via Supabase Auth (`signInWithPassword`); demonstração local opcional, sem privilégios reais.
 - Módulos: dashboard, empresas, contatos, oportunidades, equipamentos, propostas, tarefas, contratos/locações e financeiro.
 - Exportação CSV e impressão de proposta para PDF pelo navegador.
 - Supabase com RLS por organização, associação de equipe e permissões por função (migration 002 preparada).
@@ -35,7 +35,7 @@ Acesse http://localhost:3000.
 11. Copie Project URL e anon/publishable key para `.env.local` e para as Environment Variables da Vercel:
    - `NEXT_PUBLIC_SUPABASE_URL`
    - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-12. Cadastre/invite somente membros autorizados.
+12. Cadastre somente os usuários autorizados em Authentication > Users e defina uma senha individual para cada pessoa. Desative sign-ups públicos em Authentication > Settings se o workspace for fechado.\n13. O login normal usa e-mail e senha e não envia e-mail a cada acesso. O fluxo de convite atual ainda usa link mágico; para convidar novos membros, mantenha SMTP configurado ou migre o convite para criação administrativa de usuário.\n14. Para habilitar a demonstração apenas no ambiente local, defina `NEXT_PUBLIC_VEYRION_DEMO_ENABLED=true` no `.env.local`. O botão não aparece em builds de produção e usa somente dados fictícios em memória.
 
 **Banco de dados:** a migration 003 cria um índice único por organização e `charge_key` no módulo financeiro. A aplicação trata conflito de inserção simultânea como cobrança já existente. Execute-a somente depois das migrations 001 (schema inicial) e 002 (organizações/permissões).\n\n**Segurança:** execute a migration 002 depois do schema inicial. Ela cria uma organização para cada usuário existente e aplica políticas RLS por organização e função. A migration 006 vincula novos usuários convidados diretamente à organização do convite, sem criar uma organização pessoal paralela. Papéis: Owner/Admin, Gerente, Comercial, Operações, Financeiro e Visualizador. Financeiro fica restrito a Financeiro/Admin; equipamentos e contratos a Operações/Admin; dados comerciais a Comercial/Gerente/Admin. A tela de equipe permite convidar novos usuários por e-mail, alterar papéis e remover membros. A versão atual suporta uma organização por conta; convites para e-mails já vinculados a outra organização exigem tratamento administrativo. Não desligue RLS.
 
