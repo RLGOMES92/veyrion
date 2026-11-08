@@ -1,0 +1,50 @@
+name: VEYRION validation
+
+on:
+  push:
+    branches:
+      - fix/ci-validation
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: veyrion-validation-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: Dependencies, security and Next.js build
+    runs-on: ubuntu-22.04
+    timeout-minutes: 20
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install locked dependencies
+        run: npm ci
+
+      - name: Run tests when test files exist
+        shell: bash
+        run: |
+          if compgen -G "tests/*.test.mjs" > /dev/null; then
+            npm test
+          else
+            echo "::warning::No tests/*.test.mjs files are present; unit tests were not run."
+          fi
+
+      - name: Audit dependencies
+        run: npm audit --audit-level=moderate
+
+      - name: Validate TypeScript and build Next.js
+        run: npm run build
