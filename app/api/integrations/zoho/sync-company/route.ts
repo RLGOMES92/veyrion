@@ -1,35 +1,9 @@
 import { NextRequest } from "next/server";
 import { getServiceClient, jsonError, requireUser } from "@/lib/b2b-server";
+import { getZohoAccessToken, zohoV2Request } from "@/lib/zoho";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-
-function requiredEnv(name: string) {
-  const value = process.env[name]?.trim();
-  if (!value) throw new Error(`Configuração ausente: ${name}`);
-  return value.replace(/\/$/, "");
-}
-
-async function getZohoAccessToken() {
-  const accountsUrl = requiredEnv("ZOHO_ACCOUNTS_URL");
-  const body = new URLSearchParams({
-    refresh_token: requiredEnv("ZOHO_REFRESH_TOKEN"),
-    client_id: requiredEnv("ZOHO_CLIENT_ID"),
-    client_secret: requiredEnv("ZOHO_CLIENT_SECRET"),
-    grant_type: "refresh_token",
-  });
-  const response = await fetch(`${accountsUrl}/oauth/v2/token`, {
-    method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body,
-    cache: "no-store",
-  });
-  const result = await response.json().catch(() => ({}));
-  if (!response.ok || !result.access_token) {
-    throw new Error("Não foi possível renovar a autorização do Zoho. Confira região e credenciais OAuth.");
-  }
-  return String(result.access_token);
-}
 
 function buildLead(payload: Record<string, unknown>) {
   const company = String(payload.name || "").trim();
@@ -109,16 +83,13 @@ export async function POST(request: NextRequest) {
   if (jobError || !job) return jsonError("Não foi possível registrar a sincronização. Confira a migration 032.", 503);
 
   try {
-    const apiDomain = requiredEnv("ZOHO_API_DOMAIN");
     const accessToken = await getZohoAccessToken();
-    const headers = { Authorization: `Zoho-oauthtoken ${accessToken}`, "Content-Type": "application/json" };
     let zohoId = job.zoho_record_id ? String(job.zoho_record_id) : "";
 
     if (!zohoId) {
-      const searchUrl = new URL(`${apiDomain}/crm/v8/Leads/search`);
-      searchUrl.searchParams.set("email", email);
-      const searchResponse = await fetch(searchUrl, { headers, cache: "no-store" });
-      const searchBody = await searchResponse.json().catch(() => ({}));
+      const search = await zohoV2Request(`Leads/search?email=${encodeURIComponent(email)}`, accessToken);
+      const searchResponse = search.response;
+      const searchBody = search.result;
       if (searchResponse.ok && Array.isArray(searchBody.data) && searchBody.data.length) {
         const sameCompany = searchBody.data.find((item: Record<string, unknown>) =>
           String(item.Company || "").trim().toLocaleLowerCase("pt-BR") === String(lead.Company || "").trim().toLocaleLowerCase("pt-BR")
@@ -130,15 +101,12 @@ export async function POST(request: NextRequest) {
     }
 
     const endpoint = zohoId
-      ? `${apiDomain}/crm/v8/Leads/${encodeURIComponent(zohoId)}`
-      : `${apiDomain}/crm/v8/Leads`;
-    const response = await fetch(endpoint, {
+      ? `Leads/${encodeURIComponent(zohoId)}`
+      : "Leads";
+    const { response, result } = await zohoV2Request(endpoint, accessToken, {
       method: zohoId ? "PUT" : "POST",
-      headers,
       body: JSON.stringify({ data: [lead], ...(zohoId ? {} : { trigger: [] }) }),
-      cache: "no-store",
     });
-    const result = await response.json().catch(() => ({}));
     const action = result.data?.[0];
     if (!response.ok || !["SUCCESS", "success"].includes(String(action?.status || ""))) {
       const detail = String(action?.message || result.message || "O Zoho recusou a sincronização.");
