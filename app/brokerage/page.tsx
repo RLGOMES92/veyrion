@@ -2,8 +2,7 @@
 import { useCallback,useEffect,useState } from "react";
 import type { CSSProperties, ReactNode } from "react";
 import { supabase } from "@/lib/supabase";
-import { Building2,Search,ShieldCheck,FileText,Plus,RefreshCw,Send,CheckCircle2,Clock3,Users,Monitor,ArrowLeft } from "lucide-react";
-import Link from "next/link";
+import { Building2,Search,ShieldCheck,FileText,Plus,RefreshCw,Send,CheckCircle2,Clock3,Users,Monitor,LogOut } from "lucide-react";
 
 type AnyRow=Record<string,any>;
 const money=(v:any)=>Number(v||0).toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
@@ -40,8 +39,9 @@ export default function BrokeragePage(){
   ]);
   setClients(c.data||[]);setSuppliers(s.data||[]);setProposals(p.data||[]);setContracts(k.data||[]);setProducts(pr.data||[]);
  },[]);
- useEffect(()=>{let live=true;(async()=>{if(!supabase)return;const {data}=await supabase.auth.getSession();if(live){setToken(data.session?.access_token||"");if(data.session)await load();}})();return()=>{live=false}},[load]);
+ useEffect(()=>{let live=true;(async()=>{if(!supabase){window.location.replace("/");return;}const {data}=await supabase.auth.getSession();if(!live)return;if(!data.session){window.location.replace("/");return;}setToken(data.session.access_token||"");await load();})();return()=>{live=false}},[load]);
  const refresh=async()=>{await load();setNotice("Dados atualizados.");};
+ const signOut=async()=>{await supabase?.auth.signOut();window.location.assign("/");};
  const request=async(url:string,body:any)=>{const r=await fetch(url,{method:"POST",headers:authHeaders(),body:JSON.stringify(body)});const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.error||j.message||"Falha na operação");return j;};
  const lookupValue=async(value:string)=>{setBusy(true);setNotice("");try{const query=value.trim();const digits=query.replace(/\D/g,"");const isCnpj=digits.length===14;if(!isCnpj&&query.length<3)throw new Error("Digite um CNPJ completo ou ao menos 3 letras do nome da empresa.");const search=isCnpj?digits:query;const r=await fetch("/api/company-enrichment?q="+encodeURIComponent(search)+"&details=true");const j=await r.json();if(!r.ok||!j.results?.length)throw new Error(j.error||"Empresa não encontrada.");setSearchResults(j.results);setCompany(j.results.length===1?j.results[0]:null);setLastLookup(isCnpj?digits:"");setRevenue("");setCreditConfirmed(false);setCreditNote("");if(j.results.length>1)setNotice(j.results.length+" empresas encontradas. Selecione a empresa correta.");}catch(e:any){setNotice(e.message);setSearchResults([]);setCompany(null);}finally{setBusy(false)}};
  const lookup=()=>lookupValue(cnpj);
@@ -57,8 +57,8 @@ export default function BrokeragePage(){
  const margin=Number(proposalForm.client_unit_monthly||0)-Number(proposalForm.partner_unit_monthly||0);
  return <main style={{maxWidth:1440,margin:"0 auto",padding:"24px 18px 64px",color:"var(--text,#172033)"}}>
   <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:12,flexWrap:"wrap",marginBottom:20}}>
-   <div><Link href="/" style={{display:"inline-flex",alignItems:"center",gap:6,...muted,textDecoration:"none"}}><ArrowLeft size={15}/> Voltar ao workspace</Link><div style={{display:"flex",alignItems:"center",gap:10,marginTop:10}}><div style={{background:"#e0e7ff",padding:10,borderRadius:12,color:"#3730a3"}}><Building2/></div><div><h1 style={{fontSize:26,fontWeight:850,margin:0}}>Brokerage B2B</h1><p style={{...muted,margin:"4px 0 0"}}>Crédito · Propostas · Contratos · Assinaturas</p></div></div></div>
-   <button style={{...btn,background:"#0f172a"}} onClick={refresh}><RefreshCw size={16}/> Atualizar</button>
+   <div><span style={{display:"inline-flex",alignItems:"center",gap:6,...muted}}>VEYRION OS · Gestão B2B</span><div style={{display:"flex",alignItems:"center",gap:10,marginTop:10}}><div style={{background:"#e0e7ff",padding:10,borderRadius:12,color:"#3730a3"}}><Building2/></div><div><h1 style={{fontSize:26,fontWeight:850,margin:0}}>Brokerage B2B</h1><p style={{...muted,margin:"4px 0 0"}}>Crédito · Propostas · Contratos · Assinaturas</p></div></div></div>
+   <div style={{display:"flex",gap:8,flexWrap:"wrap"}}><button style={{...btn,background:"#0f172a"}} onClick={refresh}><RefreshCw size={16}/> Atualizar</button><button style={{...btn,background:"#475569"}} onClick={()=>void signOut()}><LogOut size={16}/> Sair</button></div>
   </div>
   {notice&&<div role="status" style={{...panel,borderColor:"#f59e0b",background:"#fffbeb",color:"#78350f"}}>{notice}</div>}
   <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(190px,1fr))",gap:12,marginBottom:18}}>

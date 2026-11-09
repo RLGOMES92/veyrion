@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -10,6 +10,7 @@ const source = (path) => readFileSync(resolve(root, path), "utf8");
 test("legacy payment endpoints are disabled and never call a payment provider", () => {
   const billing = source("app/api/b2b/contracts/[id]/billing/route.ts");
   const webhook = source("app/api/webhooks/asaas/route.ts");
+  const legacyBilling = source("app/api/b2b/billing/route.ts");
   const contract = source("app/api/b2b/contracts/route.ts");
   assert.match(contract, /Condições comerciais e pagamento externo/);
   assert.match(contract, /fora da VEYRION OS/);
@@ -18,6 +19,8 @@ test("legacy payment endpoints are disabled and never call a payment provider", 
   assert.match(webhook, /EXTERNAL_PAYMENT_ONLY/);
   assert.match(billing, /status:\s*410/);
   assert.match(webhook, /status:\s*410/);
+  assert.match(legacyBilling, /EXTERNAL_PAYMENT_ONLY/);
+  assert.match(legacyBilling, /status:\s*410/);
   assert.doesNotMatch(billing + webhook, /api-sandbox\.asaas\.com|ASAAS_API_KEY/);
 });
 
@@ -62,4 +65,11 @@ test("Preview notification worker cannot send to the real supplier address", () 
   assert.match(code, /RESEND_TEST_RECIPIENT/);
   assert.match(code, /to:\s*\[testRecipient\]/);
   assert.match(code, /VEYRION_INTEGRATION_MODE\s*!==\s*"preview"/);
+});
+
+test("primary entry point only exposes the approved brokerage workspace", () => {
+  const code = source("app/page.tsx");
+  assert.ok(code.includes('router.replace("/brokerage")'));
+  assert.doesNotMatch(code, /Financeiro|finance-analytics|generateMonthlyCharges|Recebível vencido|Cobrança mensal/i);
+  assert.equal(existsSync(resolve(root, "lib/finance-analytics.ts")), false);
 });
