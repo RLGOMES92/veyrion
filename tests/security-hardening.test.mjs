@@ -25,9 +25,12 @@ test('Git ignora segredos de ambiente e mantém apenas o modelo de exemplo', asy
   assert.match(ignore, /^!\.env\.example$/m);
 });
 
-test('CI instala pelo lockfile e executa auditoria, testes e build', async () => {
+test('CI instala pelo manifesto e executa auditoria, testes e build', async () => {
   const workflow = await read('.github/workflows/nextjs-validation.yml');
-  for (const command of ['npm ci', 'npm audit --audit-level=moderate', 'npm test', 'npm run build']) {
+  const pkg = JSON.parse(await read('package.json'));
+  assert.ok(workflow.includes('run: npm install'), 'instalação por manifesto ausente no CI');
+  assert.ok(pkg.scripts?.prebuild?.includes('npm install --package-lock-only --include=optional'), 'prebuild não gera lockfile com dependências opcionais');
+  for (const command of ['npm audit --audit-level=moderate', 'npm test', 'npm run build']) {
     assert.ok(workflow.includes(command), `etapa ausente no CI: ${command}`);
   }
 });
