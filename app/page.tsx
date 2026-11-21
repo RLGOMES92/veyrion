@@ -239,7 +239,8 @@ export default function Home(){
   if(term.length<3){setCompanyLookupError("Digite pelo menos 3 caracteres ou informe o CNPJ.");return}
   setCompanyLookupLoading(true);setCompanyLookupError("");setCompanyLookupResults([]);setCompanyLookupSelected(null);
   try{
-   const {data:{session}}=await supabase?.auth.getSession()||{data:{session:null}};
+   if(!supabase)throw new Error("Conexão com o sistema indisponível.");
+   const {data:{session}}=await supabase.auth.getSession();
    if(!session?.access_token)throw new Error("Faça login novamente para consultar os dados da empresa.");
    const response=await fetch("/api/company-enrichment?q="+encodeURIComponent(term),{headers:{Authorization:"Bearer "+session.access_token}});
    const body=await response.json();
