@@ -41,3 +41,10 @@ Base: `main` at `2c3278c07097c91069fe1e822591ec9193121bd9`
 - Inspect API routes for auth/session checks, rate limits, secret exposure, and webhook signature/idempotency.
 - Check Vercel production deployment target and live critical flows. Preview READY status alone is insufficient.
 - UI/browser review on mobile and desktop; check responsive navigation and dashboard density.
+
+## Runtime and endpoint findings
+
+- Vercel confirms the Production deployment on `main` is READY and points to commit `2c3278c`. Build logs show a package-lock parsing error warning, but the build continued to install dependencies and completed successfully. This means production is deployed, while lockfile reproducibility still needs cleanup.
+- `app/api/company-enrichment/route.ts` exposes a GET that calls third-party company/CNPJ data providers. Before this audit, it did not authenticate callers; it also has no explicit request-rate limit. This can be abused to consume provider quota. A focused fix is underway in branch `fix/company-enrichment-auth`: require a valid Supabase session and cap the query length; the UI now sends the bearer token.
+- `app/api/assistant/analyze/route.ts` already authenticates with `requireUser`, caps input records, uses a server-side OpenAI key, has a per-user quota RPC, and falls back to deterministic rules. This is a stronger pattern to follow for other routes.
+- The Vercel Preview for `fix/company-enrichment-auth` is currently QUEUED (not yet built). Do not merge or publish this change until the preview build completes and behavior is checked.
