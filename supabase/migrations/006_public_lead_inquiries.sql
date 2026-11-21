@@ -38,7 +38,7 @@ create policy "Organization members can read rental inquiries"
   on public.public_lead_inquiries
   for select to authenticated
   using (
-    public.has_org_role(organization_id, array['owner','admin','manager','sales'])
+    organization_id = public.current_user_organization_id()
   );
 
 grant insert on public.public_lead_inquiries to anon;
