@@ -47,4 +47,13 @@ Base: `main` at `2c3278c07097c91069fe1e822591ec9193121bd9`
 - Vercel confirms the Production deployment on `main` is READY and points to commit `2c3278c`. Build logs show a package-lock parsing error warning, but the build continued to install dependencies and completed successfully. This means production is deployed, while lockfile reproducibility still needs cleanup.
 - `app/api/company-enrichment/route.ts` exposes a GET that calls third-party company/CNPJ data providers. Before this audit, it did not authenticate callers; it also has no explicit request-rate limit. This can be abused to consume provider quota. A focused fix is underway in branch `fix/company-enrichment-auth`: require a valid Supabase session and cap the query length; the UI now sends the bearer token.
 - `app/api/assistant/analyze/route.ts` already authenticates with `requireUser`, caps input records, uses a server-side OpenAI key, has a per-user quota RPC, and falls back to deterministic rules. This is a stronger pattern to follow for other routes.
-- The Vercel Preview for `fix/company-enrichment-auth` is currently QUEUED (not yet built). Do not merge or publish this change until the preview build completes and behavior is checked.
+- The Vercel Preview for `fix/company-enrichment-auth` is READY and its build passed TypeScript, compilation and page generation. Live authenticated/unauthenticated endpoint behavior remains unverified; do not merge until that runtime test is done.
+
+## Architecture visualization workflow
+
+- Interactive GitDiagram: https://gitdiagram.com/RLGOMES92/veyrion
+- Markdown diagram endpoint: https://gitdiagram.com/RLGOMES92/veyrion.md
+- GitReverse generated prompt: https://gitreverse.com/RLGOMES92/veyrion
+- Hand-authored map and reconstruction brief: `docs/architecture-map.md` on this audit branch.
+
+GitDiagram provides an AI-generated overview, not a complete import graph. GitReverse generates a synthetic prompt based on repo metadata, shallow tree and README; it is not an original prompt or source-level reverse engineering. Because the repository is public, outputs may be cached or shared. The architecture map committed in this branch is a manual synthesis of inspected code and audit notes, not output copied from either service.
