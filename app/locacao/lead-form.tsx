@@ -40,17 +40,17 @@ export default function LeadForm() {
       const message = [
         "Olá! Acabei de enviar uma solicitação pelo site da VEYRION.",
         "",
-        `Nome: \${lead.name}`,
-        `Empresa: \${lead.company}`,
-        `Cargo: \${lead.role || "Não informado"}`,
-        `E-mail: \${lead.email}`,
-        `Cidade/UF: \${lead.city}`,
-        `Quantidade estimada: \${lead.quantity}`,
-        `Prazo: \${lead.term}`,
-        `Necessidade: \${lead.need || "A avaliar"}`,
+        `Nome: ${lead.name}`,
+        `Empresa: ${lead.company}`,
+        `Cargo: ${lead.role || "Não informado"}`,
+        `E-mail: ${lead.email}`,
+        `Cidade/UF: ${lead.city}`,
+        `Quantidade estimada: ${lead.quantity}`,
+        `Prazo: ${lead.term}`,
+        `Necessidade: ${lead.need || "A avaliar"}`,
       ].join("\n");
       if (whatsapp) {
-        window.open(`https://wa.me/\${whatsapp}?text=\${encodeURIComponent(message)}`, "_blank", "noopener,noreferrer");
+        window.open(`https://wa.me/${whatsapp}?text=${encodeURIComponent(message)}`, "_blank", "noopener,noreferrer");
       }
       form.reset();
     } catch (err) {
