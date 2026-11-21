@@ -28,3 +28,16 @@ Base: `main` at `2c3278c07097c91069fe1e822591ec9193121bd9`
 - Make focused fixes, review diffs, validate, and deploy preview before production.
 - No secrets in commits or reports.
 - Do not claim a fix is complete until the deployed behavior is verified.
+
+## Additional findings from policy review
+
+- The role matrix in migration 002 is restrictive by design, but several modules are not explicitly granted to non-admin roles: `maintenance`, `procurement`, and `campaigns` (as well as module-specific `audit`/team UI handled outside `workspace_records`). Confirm whether this is intended; operations currently gets explicit access to `assets` and `contracts`, not `maintenance`/procurement. This can look like broken screens for those roles even if RLS is functioning correctly.
+- `current_user_organization_id()` selects one membership (owner first, then admin, then other roles). The app has no visible organization selector in the reviewed code. Multi-organization users may silently act in the selected/first organization; verify and consider an explicit org picker or reject multi-org accounts until supported.
+- The insert/update RLS checks organization against that helper; update also checks module permission. Deletes are restricted to owner/admin. This is a positive security control, but should be tested with each role and organization, not inferred from the UI.
+
+## Next checks (not yet performed)
+- Full migration policy review and Supabase live migration-state verification.
+- Inventory and run the repository's actual test files; then run TypeScript/build without Actions.
+- Inspect API routes for auth/session checks, rate limits, secret exposure, and webhook signature/idempotency.
+- Check Vercel production deployment target and live critical flows. Preview READY status alone is insufficient.
+- UI/browser review on mobile and desktop; check responsive navigation and dashboard density.
