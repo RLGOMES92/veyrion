@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { requireUser } from "@/lib/b2b-server";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -171,9 +172,13 @@ async function lookupCnpjFree(cnpj: string) {
 }
 
 export async function GET(request: NextRequest) {
+  const auth = await requireUser(request);
+  if (!auth) return NextResponse.json({ error: "Sessão inválida ou expirada." }, { status: 401 });
+
   const q = String(request.nextUrl.searchParams.get("q") || "").trim();
   const details = request.nextUrl.searchParams.get("details") === "true";
   if (q.length < 3) return NextResponse.json({ error: "Informe ao menos 3 caracteres ou um CNPJ completo." }, { status: 400 });
+  if (q.length > 120) return NextResponse.json({ error: "A consulta excede o limite de 120 caracteres." }, { status: 400 });
 
   const apiKey = process.env.CNPJIA_KEY;
   const digits = q.replace(/\D/g, "");
