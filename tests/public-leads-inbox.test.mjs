@@ -31,6 +31,21 @@ test("public form includes bot honeypot and server submission", () => {
   assert.match(form, /setSending\(true\)/);
 });
 
+test("public lead endpoint rejects non-JSON and oversized requests before parsing", () => {
+  assert.match(api, /content-type/);
+  assert.match(api, /status: 415/);
+  assert.match(api, /MAX_REQUEST_BYTES = 8 \* 1024/);
+  assert.match(api, /status: 413/);
+  assert.ok(api.indexOf("request.text()") < api.indexOf("JSON.parse(rawBody)"));
+});
+
+test("public lead endpoint rejects non-object payloads and keeps bounded fields", () => {
+  assert.match(api, /typeof body !== "object" \|\| Array\.isArray\(body\)/);
+  assert.match(api, /clean\(payload\.name, 120\)/);
+  assert.match(api, /clean\(payload\.email, 254\)/);
+  assert.match(api, /name="website"/);
+});
+
 test("company enrichment API requires session and caps search input", () => {
   const enrichment = readFileSync(new URL("../app/api/company-enrichment/route.ts", import.meta.url), "utf8");
   const crm = readFileSync(new URL("../app/page.tsx", import.meta.url), "utf8");
