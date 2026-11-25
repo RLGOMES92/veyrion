@@ -39,7 +39,7 @@ O comando `npm run build` executa automaticamente os testes estruturais, TypeScr
 ## Banco de dados
 O projeto usa migrations versionadas em `supabase/migrations/`. O Supabase VEYRION conectado já contém o schema e as migrations do CRM, contratos, segurança, integrações e captação de leads. Não desligue RLS nem aplique migrations manualmente sem revisar o ambiente alvo.
 
-A migration `034_public_lead_inquiries_role_restriction.sql` restringe leitura de dados pessoais dos leads aos perfis comerciais autorizados. Ela foi aplicada ao Supabase conectado em 25/11/2026 e sua policy foi verificada após a aplicação.
+As migrations `034_public_lead_inquiries_role_restriction.sql` e `035_public_lead_inquiries_minimal_grants.sql` foram aplicadas ao Supabase conectado em 25/11/2026 e verificadas: somente perfis Owner/Admin/Manager/Sales leem os leads; anon tem apenas INSERT e authenticated apenas SELECT na tabela de leads.
 
 ## Rotas e integrações
 - `/locacao`: página pública e formulário de qualificação comercial.
