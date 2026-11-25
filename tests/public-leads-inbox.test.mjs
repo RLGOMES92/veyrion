@@ -47,3 +47,24 @@ test("lead PII read policy is role-restricted and grants are minimized", () => {
   assert.match(migration, /grant select .* authenticated/i);
   assert.match(migration, /grant insert .* anon/i);
 });
+
+test("VEYRION login uses password and invitation-gated first access", () => {
+  const crm = readFileSync(new URL("../app/page.tsx", import.meta.url), "utf8");
+  const inviteMigration = readFileSync(new URL("../supabase/migrations/20261108153806_restrict_veyrion_signups_to_invites.sql", import.meta.url), "utf8");
+  assert.match(crm, /signInWithPassword/);
+  assert.match(crm, /firstAccess/);
+  assert.match(crm, /password\.length<8/);
+  assert.match(inviteMigration, /organization_invitations/);
+  assert.match(inviteMigration, /raise exception/);
+});
+
+test("Zoho integration requires authenticated requests and server-only credentials", () => {
+  const sync = readFileSync(new URL("../app/api/integrations/zoho/sync-company/route.ts", import.meta.url), "utf8");
+  const create = readFileSync(new URL("../app/api/integrations/zoho/create-lead/route.ts", import.meta.url), "utf8");
+  const zoho = readFileSync(new URL("../lib/zoho.ts", import.meta.url), "utf8");
+  assert.match(sync, /requireUser\(request\)/);
+  assert.match(create, /requireUser\(request\)/);
+  assert.match(zoho, /ZOHO_CLIENT_SECRET/);
+  assert.match(zoho, /ZOHO_REFRESH_TOKEN/);
+  assert.doesNotMatch(zoho, /NEXT_PUBLIC_ZOHO/);
+});
