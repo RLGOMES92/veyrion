@@ -30,3 +30,11 @@ test("public form includes bot honeypot and server submission", () => {
   assert.match(form, /fetch\("\/api\/public-leads"/);
   assert.match(form, /setSending\(true\)/);
 });
+
+test("company enrichment API requires session and caps search input", () => {
+  const enrichment = readFileSync(new URL("../app/api/company-enrichment/route.ts", import.meta.url), "utf8");
+  const crm = readFileSync(new URL("../app/page.tsx", import.meta.url), "utf8");
+  assert.match(enrichment, /requireUser\(request\)/);
+  assert.match(enrichment, /q\.length > 120/);
+  assert.match(crm, /Authorization:"Bearer "\+session\.access_token/);
+});
