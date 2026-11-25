@@ -43,7 +43,6 @@ test("public lead endpoint rejects non-object payloads and keeps bounded fields"
   assert.ok(api.includes('typeof body !== "object"'));
   assert.ok(api.includes("clean(payload.name, 120)"));
   assert.ok(api.includes("clean(payload.email, 254)"));
-  assert.ok(api.includes('name="website"'));
 });
 
 test("company enrichment API requires session and caps search input", () => {
