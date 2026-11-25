@@ -21,7 +21,7 @@ test("lead inbox API limits access to VEYRION sales roles and organization", () 
 });
 
 test("lead inbox fetch uses bearer session and does not cache", () => {
-  assert.match(page, /Authorization: `Bearer \\?\$\{token\}`/);
+  assert.ok(page.includes("Authorization: `Bearer ${token}`"));
   assert.match(page, /cache: "no-store"/);
 });
 
