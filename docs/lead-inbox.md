@@ -20,3 +20,7 @@ A rota `/leads` apresenta solicitações enviadas pelo formulário público `/lo
 - Build Preview comprova compilação, não a autenticação real nem uma submissão ao banco.
 - O teste de submissão requer autorização para criar um lead de teste e confirmar a gravação no Supabase.
 - O Preview está conectado ao Supabase compartilhado; não realizar testes de gravação sem combinar o registro de teste com o proprietário.
+
+
+## Security hardening follow-up
+A live read-only policy/privilege inspection found the original SELECT policy allowed all organization members (including Viewer/Operations/Finance) to read lead PII, even though the inbox API restricted roles. The staged migration `034_public_lead_inquiries_role_restriction.sql` narrows SELECT to Owner/Admin/Manager/Sales and removes unused SELECT/UPDATE/DELETE grants from anonymous/authenticated roles, re-granting only the intended SELECT/INSERT. **This migration has not been applied to production.**
