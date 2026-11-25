@@ -5,6 +5,7 @@ import { requireUser } from "@/lib/b2b-server";
 export const runtime = "nodejs";
 
 const organizationId = "415757ac-3b33-4cf2-8a7a-6daa9d49d725";
+const MAX_REQUEST_BYTES = 8 * 1024;
 
 function clean(value: unknown, max: number) {
   return typeof value === "string" ? value.trim().slice(0, max) : "";
@@ -47,22 +48,35 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
+    if (!request.headers.get("content-type")?.toLowerCase().includes("application/json")) {
+      return NextResponse.json({ error: "Formato de solicitação inválido." }, { status: 415 });
+    }
+
+    const rawBody = await request.text();
+    if (new TextEncoder().encode(rawBody).byteLength > MAX_REQUEST_BYTES) {
+      return NextResponse.json({ error: "Solicitação muito grande." }, { status: 413 });
+    }
+
+    const body: unknown = JSON.parse(rawBody);
+    if (!body || typeof body !== "object" || Array.isArray(body)) {
+      return NextResponse.json({ error: "Solicitação inválida." }, { status: 400 });
+    }
+    const payload = body as Record<string, unknown>;
 
     // Honeypot: silently accept bot submissions without storing them.
-    if (clean(body.website, 180)) {
+    if (clean(payload.website, 180)) {
       return NextResponse.json({ ok: true });
     }
 
     const lead = {
-      name: clean(body.name, 120),
-      company: clean(body.company, 180),
-      role: clean(body.role, 120),
-      email: clean(body.email, 254).toLowerCase(),
-      city: clean(body.city, 140),
-      quantity: clean(body.quantity, 80),
-      term: clean(body.term, 80),
-      need: clean(body.need, 180),
+      name: clean(payload.name, 120),
+      company: clean(payload.company, 180),
+      role: clean(payload.role, 120),
+      email: clean(payload.email, 254).toLowerCase(),
+      city: clean(payload.city, 140),
+      quantity: clean(payload.quantity, 80),
+      term: clean(payload.term, 80),
+      need: clean(payload.need, 180),
     };
 
     if (lead.name.length < 2 || lead.company.length < 2 || lead.city.length < 2 ||
