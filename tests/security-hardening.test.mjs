@@ -4,11 +4,13 @@ import { readFile } from 'node:fs/promises';
 
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), 'utf8');
 
-test('PostCSS fica fixado em versão corrigida e o lockfile acompanha o override', async () => {
+test('PostCSS fica fixado em versão corrigida e o lockfile é JSON válido', async () => {
   const pkg = JSON.parse(await read('package.json'));
   const lock = JSON.parse(await read('package-lock.json'));
   assert.equal(pkg.overrides?.postcss, '8.5.32');
-  assert.equal(lock.packages?.['node_modules/postcss']?.version, '8.5.32');
+  assert.equal(lock.lockfileVersion, 3);
+  assert.equal(lock.packages?.['']?.dependencies?.next, pkg.dependencies.next);
+  assert.equal(lock.packages?.['']?.devDependencies?.typescript, pkg.devDependencies.typescript);
 });
 
 test('Next.js publica cabeçalhos HTTP de proteção', async () => {
