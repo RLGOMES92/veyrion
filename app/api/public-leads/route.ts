@@ -66,7 +66,7 @@ export async function POST(request: NextRequest) {
     };
 
     if (lead.name.length < 2 || lead.company.length < 2 || lead.city.length < 2 ||
-        !/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(lead.email) ||
+        !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(lead.email) ||
         !lead.quantity || !lead.term) {
       return NextResponse.json({ error: "Confira os campos obrigatórios e tente novamente." }, { status: 400 });
     }
