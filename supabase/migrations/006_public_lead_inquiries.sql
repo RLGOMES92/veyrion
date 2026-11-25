@@ -34,11 +34,18 @@ create policy "Public can submit VEYRION rental inquiry"
   );
 
 drop policy if exists "Organization members can read rental inquiries" on public.public_lead_inquiries;
-create policy "Organization members can read rental inquiries"
+drop policy if exists "VEYRION sales roles can read rental inquiries" on public.public_lead_inquiries;
+create policy "VEYRION sales roles can read rental inquiries"
   on public.public_lead_inquiries
   for select to authenticated
   using (
     organization_id = public.current_user_organization_id()
+    and exists (
+      select 1 from public.organization_members member
+      where member.organization_id = public_lead_inquiries.organization_id
+        and member.user_id = (select auth.uid())
+        and member.role = any (array['owner','admin','manager','sales'])
+    )
   );
 
 grant insert on public.public_lead_inquiries to anon;
