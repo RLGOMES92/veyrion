@@ -68,3 +68,9 @@ test("Zoho integration requires authenticated requests and server-only credentia
   assert.match(zoho, /ZOHO_REFRESH_TOKEN/);
   assert.doesNotMatch(zoho, /NEXT_PUBLIC_ZOHO/);
 });
+
+test("Zoho company sync requires commercial role", () => {
+  const sync = readFileSync(new URL("../app/api/integrations/zoho/sync-company/route.ts", import.meta.url), "utf8");
+  assert.match(sync, /organization_members/);
+  assert.match(sync, /\["owner", "admin", "manager", "sales"\]/);
+});
