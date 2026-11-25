@@ -40,7 +40,7 @@ test("public lead endpoint rejects non-JSON and oversized requests before parsin
 });
 
 test("public lead endpoint rejects non-object payloads and keeps bounded fields", () => {
-  assert.match(api, /typeof body !== \\"object\\" \|\| Array\.isArray\(body\)/);
+  assert.match(api, /typeof body !== "object" \|\| Array\.isArray\(body\)/);
   assert.match(api, /clean\(payload\.name, 120\)/);
   assert.match(api, /clean\(payload\.email, 254\)/);
   assert.match(api, /name="website"/);
