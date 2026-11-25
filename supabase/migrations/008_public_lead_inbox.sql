@@ -35,3 +35,20 @@ create policy "VEYRION sales roles can update rental inquiries"
   );
 
 grant update on public.public_lead_inquiries to authenticated;
+
+-- Align the live SELECT policy with the sales-role restriction. This also repairs
+-- environments where migration 006 was applied before its policy was tightened.
+drop policy if exists "Organization members can read rental inquiries" on public.public_lead_inquiries;
+drop policy if exists "VEYRION sales roles can read rental inquiries" on public.public_lead_inquiries;
+create policy "VEYRION sales roles can read rental inquiries"
+  on public.public_lead_inquiries
+  for select to authenticated
+  using (
+    organization_id = public.current_user_organization_id()
+    and exists (
+      select 1 from public.organization_members member
+      where member.organization_id = public_lead_inquiries.organization_id
+        and member.user_id = (select auth.uid())
+        and member.role = any (array['owner','admin','manager','sales'])
+    )
+  );
