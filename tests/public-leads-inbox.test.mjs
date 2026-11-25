@@ -70,6 +70,14 @@ test("lead table privileges are reduced to anonymous INSERT and authenticated SE
   assert.doesNotMatch(migration, /grant update|grant delete|grant truncate/i);
 });
 
+test("lead inbox remains read-only after the corrective migration", () => {
+  const migration = readFileSync(new URL("../supabase/migrations/036_public_lead_inquiries_read_only.sql", import.meta.url), "utf8");
+  assert.match(migration, /drop policy if exists .*can update rental inquiries/i);
+  assert.match(migration, /revoke update, delete, truncate/i);
+  assert.match(migration, /grant insert .* anon/i);
+  assert.match(migration, /grant select .* authenticated/i);
+});
+
 test("VEYRION login uses password and invitation-gated first access", () => {
   const crm = readFileSync(new URL("../app/page.tsx", import.meta.url), "utf8");
   const inviteMigration = readFileSync(new URL("../supabase/migrations/20261108153806_restrict_veyrion_signups_to_invites.sql", import.meta.url), "utf8");
