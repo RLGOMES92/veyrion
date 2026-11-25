@@ -239,7 +239,10 @@ export default function Home(){
   if(term.length<3){setCompanyLookupError("Digite pelo menos 3 caracteres ou informe o CNPJ.");return}
   setCompanyLookupLoading(true);setCompanyLookupError("");setCompanyLookupResults([]);setCompanyLookupSelected(null);
   try{
-   const response=await fetch("/api/company-enrichment?q="+encodeURIComponent(term));
+   if(!supabase)throw new Error("Conexão com o sistema indisponível.");
+   const {data:{session}}=await supabase.auth.getSession();
+   if(!session?.access_token)throw new Error("Faça login novamente para consultar os dados da empresa.");
+   const response=await fetch("/api/company-enrichment?q="+encodeURIComponent(term),{headers:{Authorization:"Bearer "+session.access_token}});
    const body=await response.json();
    if(!response.ok)throw new Error(body.error||"Não foi possível consultar a empresa.");
    const results=Array.isArray(body.results)?body.results:[];
@@ -254,7 +257,9 @@ export default function Home(){
    const cnpj=String(company.cnpj||"").replace(/[^0-9A-Za-z]/g,"");
    let enriched=company;
    if(cnpj.length===14){
-    const response=await fetch("/api/company-enrichment?q="+encodeURIComponent(cnpj)+"&details=true");
+    const {data:{session}}=await supabase?.auth.getSession()||{data:{session:null}};
+    if(!session?.access_token)throw new Error("Faça login novamente para consultar os dados da empresa.");
+    const response=await fetch("/api/company-enrichment?q="+encodeURIComponent(cnpj)+"&details=true",{headers:{Authorization:"Bearer "+session.access_token}});
     const body=await response.json();
     if(response.ok&&body.results?.[0])enriched=body.results[0];
     else if(!response.ok)throw new Error(body.error||"Não foi possível completar os dados.");
