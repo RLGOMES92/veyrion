@@ -10,7 +10,7 @@ Base: `main` at `2c3278c07097c91069fe1e822591ec9193121bd9`
 - The app reads/writes workspace records directly through the Supabase client. Correct isolation therefore depends on RLS policies and the organization/membership functions/migrations being applied and correct.
 - `package.json` scripts: `build = tsc --noEmit && next build`, `test = node --experimental-strip-types --test tests/*.test.mjs`. The test suite's file inventory and actual execution have not yet been verified.
 - `next.config.ts` sets security headers (DENY frame, nosniff, Referrer Policy, Permissions Policy, HSTS, etc.).
-- The repo's GitHub Actions validation workflow was removed on 2026-11-08 (commit above), consistent with owner's request to avoid paid/locked Actions. No Actions-based CI will be assumed.
+- The repo's GitHub Actions validation workflow was removed on 2026-11-08, consistent with owner's request to avoid paid/locked Actions. No Actions-based CI will be assumed.
 - Current Vercel project `veyrion-os` exists and its production domain `veyrion-os.vercel.app` is verified. The latest deployment records available include READY previews on `hardening/contract-idempotency`; the deployment list did not clearly identify a Production target, so production commit/state remains unverified.
 - Supabase schema/migrations include initial workspace records, organizations/roles (002), duplicate monthly charge prevention (003), workspace audit (004), sales goals (005), invitations (006), team audit (007). Actual database migration state is not confirmed.
 
@@ -80,3 +80,14 @@ GitDiagram provides an AI-generated overview, not a complete import graph. GitRe
 4. Resolver aviso de parsing do package-lock.json e tornar build reprodutível; não habilitar GitHub Actions (restrição de billing permanece).
 5. Testar runtime/auth/RLS e fluxos críticos em Preview antes de merge/publicação.
 6. Revisar PRs #3, #4, #5, #6 e #7; todos devem permanecer isolados até validação específica e revisão do risco de conflitos/base desatualizada.
+
+## Verificação do banco e política de leads — 25/11/2026
+- Projeto Supabase `veyrion` (`cmoapcgnsnbmcsizqcom`) está ACTIVE_HEALTHY.
+- A tabela `public.public_lead_inquiries` existe e está com RLS habilitado.
+- Consulta somente leitura encontrou **0 registros** em `public_lead_inquiries`; portanto, ainda não há evidência de que o formulário recebeu uma solicitação real.
+- A organização `rlgomes92` existe com o UUID esperado pela rota pública.
+- A política atualmente instalada permite INSERT para `anon` apenas com organization_id fixo, source `site_locacao` e status `novo`.
+- A política SELECT atualmente instalada exige organização corrente e membership explícito com papel owner, admin, manager ou sales. A migration do PR #7 consultada não contém essa verificação explícita de papel; há divergência entre o SQL versionado e a política efetiva. Alinhar migration e banco antes de qualquer alteração adicional.
+- A rota pública usa a chave anon, valida campos e honeypot, mas não apresenta rate limit. A mitigação de abuso precisa ser avaliada antes de abrir tráfego amplo.
+- PR #7 segue Draft/open e não deve ser mesclado até submissão controlada, confirmação de inserção e revisão de segurança.
+- A inbox ainda não está implementada. O caminho correto é uma tela interna autenticada, usando a sessão Supabase do usuário e a política RLS existente; não expor leitura pública nem inserir leads diretamente em `workspace_records` sem revisão de esquema e autorização.
