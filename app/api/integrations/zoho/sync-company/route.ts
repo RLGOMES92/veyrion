@@ -49,6 +49,13 @@ export async function POST(request: NextRequest) {
     .maybeSingle();
   if (recordError || !record) return jsonError("Empresa não encontrada ou sem permissão de acesso.", 404);
 
+  const { data: membership, error: membershipError } = await auth.client
+    .from("organization_members").select("role")
+    .eq("organization_id", record.organization_id).eq("user_id", auth.user.id).maybeSingle();
+  if (membershipError || !membership || !["owner", "admin", "manager", "sales"].includes(membership.role)) {
+    return jsonError("Seu perfil não possui permissão para sincronizar empresas com o Zoho.", 403);
+  }
+
   const payload = (record.payload || {}) as Record<string, unknown>;
   const { lead, email } = buildLead(payload);
   if (!String(lead.Company || "").trim()) return jsonError("Cadastre a razão social ou nome da empresa antes de sincronizar.", 422);
