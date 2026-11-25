@@ -38,3 +38,11 @@ test("company enrichment API requires session and caps search input", () => {
   assert.match(enrichment, /q\.length > 120/);
   assert.match(crm, /Authorization:"Bearer "\+session\.access_token/);
 });
+
+test("lead PII read policy is role-restricted and grants are minimized", () => {
+  const migration = readFileSync(new URL("../supabase/migrations/034_public_lead_inquiries_role_restriction.sql", import.meta.url), "utf8");
+  assert.match(migration, /member\.role in \('owner', 'admin', 'manager', 'sales'\)/);
+  assert.match(migration, /revoke select, update, delete/i);
+  assert.match(migration, /grant select .* authenticated/i);
+  assert.match(migration, /grant insert .* anon/i);
+});
