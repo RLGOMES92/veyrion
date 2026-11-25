@@ -1,448 +1,64 @@
 # VEYRION OS
+
 **Tecnologia. Inteligência. Crescimento.**
 
-Plataforma B2B para prospecção, CRM, venda e locação de notebooks, ativos, propostas, contratos e acompanhamento financeiro.
+Sistema B2B para prospecção e gestão comercial de locação e intermediação de notebooks/equipamentos de TI: empresas, contatos, oportunidades, fornecedores, catálogo, propostas, contratos, assinatura e acompanhamento de ativação.
 
-## O que está no repositório
-- Aplicação Next.js 15 + React 19 + TypeScript.
-- Interface responsiva VEYRION OS.
-- Login por link mágico via Supabase Auth (sem senha ou perfil selecionável fictício).
-- Módulos: dashboard, empresas, contatos, oportunidades, equipamentos, propostas, tarefas, contratos/locações e financeiro.
-- Exportação CSV e impressão de proposta para PDF pelo navegador.
-- Supabase com RLS por organização, associação de equipe e permissões por função (migration 002 preparada).
-- Modelos de variáveis em `.env.example`.
-- Versões HTML anteriores preservadas em `legacy/`.
+## Escopo aprovado
+- CRM e pipeline de oportunidades.
+- Cadastro/enriquecimento de empresas e CNPJ.
+- Cadastro de fornecedores e catálogo de equipamentos.
+- Propostas comerciais, margem estimada e contratos.
+- Assinatura eletrônica (ZapSign) e notificações operacionais, quando configuradas.
+- Landing page comercial de locação: `/locacao`.
+- Caixa de leads do formulário: `/leads` (perfis Owner/Admin/Manager/Sales).
+- Zoho CRM: sincronização manual e controlada de empresas/Leads.
+- Login Supabase por e-mail/senha; primeiro acesso restrito a convite.
+- Dados segregados por organização, RLS e permissões por perfil.
 
-## Rodar localmente
+**Fora do escopo:** pagamentos, cobrança, split, repasses, conciliação e gateway financeiro. O pagamento da locação é tratado diretamente pelas partes, fora da VEYRION.
+
+## Stack
+Next.js 15 · React 19 · TypeScript · Supabase Auth/Postgres/RLS · Vercel.
+
+## Desenvolvimento local
 ```bash
 npm install
 cp .env.example .env.local
 npm run dev
 ```
-Acesse http://localhost:3000.
-
-## Configurar Supabase
-1. Crie um projeto Supabase.
-2. No SQL Editor, execute todo o arquivo `supabase/schema.sql`.
-3. Depois, execute `supabase/migrations/002_organizations_roles.sql` para habilitar organizações, membros e permissões por função.
-4. Por último, execute `supabase/migrations/003_unique_monthly_rental_charges.sql` para impedir cobranças mensais duplicadas por contrato e competência. Se a migration apontar duplicidades existentes, revise os lançamentos antes de tentar novamente.
-5. Execute `supabase/migrations/004_workspace_audit_logs.sql` para habilitar o histórico de auditoria de criação, edição e exclusão. O histórico registra organização, usuário, módulo, ação, data e nomes dos campos alterados, sem copiar os valores dos cadastros.
-6. Execute `supabase/migrations/005_sales_goals.sql` para habilitar metas comerciais mensais por responsável. A migration aplica RLS: leitura para membros da organização e criação/edição/exclusão somente para Owner, Admin e Gerente.
-7. Execute `supabase/migrations/006_organization_invitations.sql` para habilitar convites seguros por e-mail. Proprietários e administradores podem criar convites; novos usuários recebem um link mágico do Supabase e entram na organização do convite após autenticar com o mesmo e-mail. Os convites expiram em 7 dias. Configure SMTP no Supabase para entrega confiável.
-8. Execute `supabase/migrations/007_team_audit_history.sql` para registrar criação, alteração e remoção de membros e convites na tela Auditoria. O histórico armazena somente os nomes dos campos alterados, não os valores de e-mail ou identificadores pessoais.
-9. Em Authentication > Providers, habilite Email.
-10. Configure Site URL e Redirect URLs para localhost e o domínio Vercel.
-11. Copie Project URL e anon/publishable key para `.env.local` e para as Environment Variables da Vercel:
-   - `NEXT_PUBLIC_SUPABASE_URL`
-   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-12. Cadastre/invite somente membros autorizados.
-
-**Banco de dados:** a migration 003 cria um índice único por organização e `charge_key` no módulo financeiro. A aplicação trata conflito de inserção simultânea como cobrança já existente. Execute-a somente depois das migrations 001 (schema inicial) e 002 (organizações/permissões).\n\n**Segurança:** execute a migration 002 depois do schema inicial. Ela cria uma organização para cada usuário existente e aplica políticas RLS por organização e função. A migration 006 vincula novos usuários convidados diretamente à organização do convite, sem criar uma organização pessoal paralela. Papéis: Owner/Admin, Gerente, Comercial, Operações, Financeiro e Visualizador. Financeiro fica restrito a Financeiro/Admin; equipamentos e contratos a Operações/Admin; dados comerciais a Comercial/Gerente/Admin. A tela de equipe permite convidar novos usuários por e-mail, alterar papéis e remover membros. A versão atual suporta uma organização por conta; convites para e-mails já vinculados a outra organização exigem tratamento administrativo. Não desligue RLS.
-
-## Integrações previstas (não ativadas)
-O arquivo `.env.example` lista variáveis para OpenAI, WhatsApp Cloud API, Zoho e SMTP. A presença dessas variáveis não significa que a integração esteja ativa. Implementar cada conector exige credenciais reais, URLs de webhook, templates aprovados e testes. Nenhum segredo deve ser commitado no GitHub.
-
-## Painel operacional de locação
-
-A Visão geral apresenta indicadores calculados a partir dos registros existentes: total de equipamentos por status, contratos ativos, receita mensal contratada (soma das mensalidades dos contratos com status Ativo), lançamentos financeiros vencidos e contratos com término previsto em até 30 dias ou já vencidos.
-
-Os alertas de contrato consideram o campo de término previsto e excluem contratos encerrados ou cancelados. Os indicadores são operacionais e dependem da qualidade dos dados cadastrados; receita mensal contratada não equivale a recebimento confirmado. O contador financeiro considera lançamentos não pagos/cancelados com vencimento anterior à data atual.
-
-## Gestão individual de equipamentos
-
-O módulo de equipamentos mantém um registro por notebook, com patrimônio/etiqueta, marca, modelo, número de série, configuração, condição, custos, valor de locação, localização, garantia e observações de manutenção. O número de série é validado para evitar duplicidade no cadastro.
-
-O ciclo operacional disponível é:
-1. **Disponível:** pode ser reservado para um contrato em preparação, aguardando assinatura ou ativo.
-2. **Reservado:** fica vinculado ao contrato e à empresa; a equipe pode registrar a entrega.
-3. **Alugado:** registra a entrega e a data de início da posse pelo cliente.
-4. **Devolvido:** a ação de devolução registra a data e libera o vínculo atual, mantendo a referência do último contrato para histórico.
-
-A reserva e a entrega são registros administrativos. O sistema não confirma movimentação física, assinatura ou disponibilidade real sem conferência da equipe. A baixa de devolução retorna o item a Disponível; inspecione o notebook antes de disponibilizá-lo novamente. Para equipamentos em manutenção, atualize o status após a devolução e registre as observações.
-
-## Conversão de propostas aceitas em contratos
-
-Uma proposta com status **Aceita** pode ser convertida em um registro do módulo **Contratos e locações** pela ação "Gerar contrato". O sistema aproveita os dados comerciais, cliente, equipamento, quantidade, prazo e valores da proposta, gera um número de contrato e registra a referência interna da proposta para evitar conversões duplicadas.
-
-O contrato é criado inicialmente em **Preparação**, com datas previstas calculadas a partir da data atual e do prazo informado. Antes de ativar a locação, a equipe deve confirmar a assinatura, disponibilidade dos equipamentos, números de série, endereço e agenda de entrega.
-
-A conversão **não reserva equipamentos automaticamente**, não assina documentos, não envia contrato ao cliente e não cria cobranças. Essas ações exigem validação operacional e integrações específicas.
-
-
-## Cobranças mensais de locação
-
-No módulo **Financeiro**, a ação **Gerar cobranças do mês** cria uma receita prevista para cada contrato com status **Ativo**, modalidade de locação e data de início válida, para a competência atual (`YYYY-MM`). A chave do registro combina o ID do contrato e a competência, permitindo reconhecer cobranças já geradas e evitar duplicidade em execuções repetidas.
-
-O vencimento é calculado usando o dia do mês da data de início do contrato; quando o mês tiver menos dias, usa-se o último dia daquele mês. Contratos com início futuro ou sem data de início válida são ignorados e contabilizados no retorno da operação. A geração é manual e não cria cobranças para contratos em preparação, encerrados, cancelados ou de venda.
-
-As cobranças são gravadas como **Previsto** quando ainda não venceram ou **Pendente** quando o vencimento já passou. A ação nunca marca uma cobrança como paga. O recebimento mensal considera lançamentos de receita com status **Pago** e data de pagamento na competência atual. Revise valor, vencimento e condições antes de cobrar o cliente; o sistema não envia boletos, não processa pagamentos e não substitui a conciliação bancária.
-
-A proteção contra duplicidade é aplicada pela chave no payload e pela conferência dos registros carregados. Em ambientes com múltiplos operadores gerando cobranças simultaneamente, recomenda-se adicionar uma restrição única no banco para `module` + `charge_key`, como reforço transacional.
-
-## Propostas comerciais de locação
-
-O módulo de propostas permite criar um rascunho a partir de uma oportunidade e aproveitar os dados de contato já cadastrados na empresa. O editor contempla empresa contratante, responsável, e-mail, telefone, CNPJ/CPF, modelo e especificações dos notebooks, quantidade, valor mensal por equipamento, prazo, condições comerciais, entrega/suporte e validade.
-
-Ao salvar uma proposta, o sistema calcula:
-- **Mensalidade total:** quantidade × valor mensal por equipamento.
-- **Valor estimado do contrato:** mensalidade total × prazo em meses.
-
-Cada proposta possui acompanhamento de status (Rascunho, Enviada, Em negociação, Aceita, Recusada ou Expirada). A ação de impressão gera um documento comercial VEYRION em formato A4; no diálogo de impressão do navegador, selecione **Salvar como PDF** para gerar o arquivo.
-
-Os status e datas de movimentação são registrados no payload da proposta. A ação de alterar para "Enviada" registra a data de envio, mas não dispara e-mail ou WhatsApp: o envio externo depende de uma integração configurada e autorizada.
-
-## Escopo comercial e operacional
-- Prospecção B2B em São Paulo e Grande São Paulo, para empresas de todos os portes.
-- Setores iniciais: tecnologia, BPO/call center, consultorias, logística, saúde, educação, indústria e serviços financeiros.
-- Pipeline com 12 etapas, desde novo lead até ganho/perdido.
-- Cadastro de notebooks com número de série, configuração, custo, preço, aluguel, localização e status.
-- Propostas, tarefas/follow-ups, contratos, entrega/devolução e registros financeiros.
-
-## Organizações e permissões (migration 002)\n\nArquivo: `supabase/migrations/002_organizations_roles.sql`. Execute no SQL Editor somente depois do `schema.sql`. A migration adiciona `organizations`, `organization_members` e `workspace_records.organization_id`, migra os registros existentes e substitui as políticas individuais por políticas multi-tenant com controle por módulo. Ela não foi executada automaticamente no projeto Supabase.\n\n| Papel | Acesso previsto |\n|---|---|\n| Owner / Admin | Todos os módulos e gestão da organização |\n| Gerente | Módulos comerciais |\n| Comercial | Empresas, contatos, oportunidades, propostas e tarefas |\n| Operações | Equipamentos e contratos |\n| Financeiro | Financeiro |\n| Visualizador | Leitura dos módulos não financeiros |\n\nO usuário atual não recebe automaticamente uma tela de administração por esta migration; a gestão de membros e a seleção de organização no frontend são etapas seguintes.\n\n## Metas comerciais (migration 005)\n\nArquivo: `supabase/migrations/005_sales_goals.sql`. Cria metas por organização, responsável (nome), competência `YYYY-MM`, valor financeiro e quantidade de oportunidades. Use a mesma grafia do campo Responsável nos registros comerciais para comparar meta e realizado. A tabela não calcula comissão nem altera negócios. A criação e edição são restritas a Owner/Admin/Gerente por RLS.\n\n## Próximas etapas antes de produção
-- Criar tela administrativa para convidar membros, selecionar organização e gerenciar papéis; validar os fluxos multiempresa.
-- Validar CNPJ, deduplicar empresas e implementar importação CSV com pré-visualização.
-- Implementar contratos com geração PDF, assinatura e trilha de auditoria.
-- Criar ciclo de vida do ativo: reserva, entrega, manutenção, devolução e conferência.
-- Conectar WhatsApp Cloud API, Zoho CRM, e-mail e Google Workspace por webhooks seguros.
-- Implementar IA com aprovação humana, limites de uso e registro das ações.
-- Testes automatizados, logs, backups, monitoramento e revisão LGPD.
-
-## Observação
-O HTML anterior foi preservado em `legacy/`. Dados de demonstração devem ser identificados como DEMO; não representam clientes ou oportunidades reais.
-
-
-## Histórico do funil e conversão mensal
-
-A edição de oportunidades registra cada mudança de etapa em `payload.stage_history`, com etapa anterior, nova etapa, data/hora e usuário autenticado. Ao entrar em **Ganha**, a oportunidade recebe `won_at`; ao sair de **Ganha**, essa data é limpa. Propostas também mantêm `status_history` quando seu status é alterado pela ação do módulo. O painel de metas calcula o ganho do mês a partir de `won_at` e o volume de oportunidades a partir de `created_at`. O histórico é iniciado a partir desta versão: mudanças antigas não são reconstruídas retroativamente e não devem ser interpretadas como dados históricos completos.
-
-
-## Previsão comercial e alertas de pipeline
-
-O painel **Previsão comercial** considera oportunidades abertas (exclui Ganha e Perdida), soma o pipeline nominal e calcula a previsão ponderada por responsável com `valor estimado × probabilidade / 100`. A probabilidade é limitada ao intervalo de 0 a 100. O quadro também destaca oportunidades com previsão de fechamento vencida, sem próxima ação, sem movimentação há pelo menos 14 dias ou com probabilidade de 70% ou mais e fechamento previsto nos próximos 7 dias. O indicador de fechamento próximo usa janela de 14 dias. Esses indicadores são sinais de priorização, não previsões garantidas; mantenha valor, probabilidade, responsável, etapa, próxima ação e data de fechamento atualizados. Para registros antigos sem `stage_updated_at`, a idade do último movimento é aproximada pela data de criação.
-
-## Inteligência de prospecção B2B
-
-O painel **Empresas prioritárias** calcula uma nota heurística de potencial de locação a partir dos dados preenchidos no cadastro: porte (até 25 pontos), demanda estimada de notebooks (até 30), setor (até 15), interesse declarado em locação (até 20) e existência de canal/pessoa de contato (até 10). A nota é limitada a 100 e não usa dados externos nem presume demanda quando os campos estão vazios.
-
-A classe de prospecção é A (70+), B (40–69) ou C (abaixo de 40). A qualidade/completude do cadastro aparece separadamente da nota, com indicação dos dados que ainda faltam. A fila prioriza empresas com follow-up vencido ou previsto para hoje e, em seguida, potencial e prioridade comercial. Empresas nas etapas **Cliente** e **Sem interesse** não aparecem na fila de novos alvos. Essa classificação apoia a organização da equipe; não substitui qualificação humana, pesquisa da empresa ou confirmação do interesse.
-
-## Ações comerciais a partir da prospecção
-
-Na fila **Empresas prioritárias** e nos cartões do quadro de prospecção, a ação **Criar tarefa** abre um follow-up pré-preenchido com empresa, contato, próxima ação e data de retorno. A prioridade da tarefa deriva da prioridade comercial cadastrada (Alta → Urgente; Média → Alta; demais → Normal). O contexto disponível — canal de contato, demanda estimada, interesse declarado e observações — é incluído nas notas, e o identificador interno da empresa e a pontuação estimada acompanham o registro da tarefa.
-
-A tarefa só é gravada depois que o usuário revisa e clica em **Salvar registro**. Depois disso, ela aparece no módulo **Tarefas** e na agenda/central de follow-ups, onde pode ser acompanhada e atualizada. A criação não envia mensagens nem realiza ligações automaticamente.
-
-## Cadência inteligente de prospecção
-
-A fila de empresas prioritárias também apresenta a quantidade de interações registradas, data do último contato, situação da cadência e próxima ação sugerida. As recomendações usam apenas o histórico salvo no cadastro: sinais positivos (interessado, proposta solicitada ou reunião agendada) recebem prioridade; follow-ups vencidos ou para hoje vêm em seguida; contatos sem resposta há pelo menos três dias sugerem avaliar um canal alternativo; contatos parados há sete dias sugerem retomada contextual. Empresas sem interesse declarado devem ser respeitadas e não recebem sugestão de insistência.
-
-A ordenação combina prioridade da cadência, pontuação de potencial e prioridade comercial. O sistema não envia e-mails, WhatsApp ou ligações automaticamente: a equipe registra cada tentativa no histórico da empresa e executa a ação manualmente. A contagem considera registros de interação existentes, não mensagens efetivamente entregues ou visualizadas.
-
-## Abordagens comerciais por canal
-
-Na fila de empresas prioritárias, a ação **Abordar** prepara um rascunho para WhatsApp, e-mail ou LinkedIn. O texto considera somente dados já cadastrados (nome da empresa, contato, setor, demanda estimada e observações), evita afirmar necessidades não confirmadas e pode ser editado antes de copiar. No e-mail, também sugere assunto. A ferramenta não envia mensagens nem confirma destinatário, entrega ou leitura; a equipe deve revisar, personalizar e respeitar as preferências de contato e regras aplicáveis antes de usar.
-
-## Inteligência de mercado e prospecção regional
-
-O módulo **Empresas** inclui o painel **Inteligência de mercado · Prospecção regional**, com filtros sobre a base de empresas já cadastrada:
-- Região/cidade (busca textual no campo Cidade / UF).
-- Setor empresarial.
-- Porte informado por número de funcionários: pequena (até 99), média (100–499) e grande (500+).
-- Visualização da demanda de notebooks cadastrada, pontuação heurística e origem da informação.
-- Acesso ao cadastro existente e criação de tarefas de follow-up.
-- Atalho para registrar uma empresa pesquisada manualmente, já identificada como **Empresa pesquisada**, com data e origem sugeridas para preenchimento.
-
-O painel **não realiza busca na internet, raspagem, enriquecimento automático ou consulta a bases empresariais externas**. Ele filtra os registros existentes no CRM. O cadastro manual e a importação CSV são os caminhos atuais para incluir empresas verificadas. Registre uma referência rastreável em **Fonte / referência da pesquisa**, revise a data e não preencha decisores ou demanda sem evidência. Os limites de porte são filtros operacionais configuráveis pela equipe, não uma classificação legal de porte empresarial.
-
-### Fluxo recomendado de pesquisa
-1. Pesquise empresas em fontes públicas ou bases autorizadas, fora do VEYRION, e valide nome, cidade, setor e site.
-2. Registre a origem e a data da consulta; inclua apenas dados profissionais necessários e pertinentes.
-3. Importe uma planilha CSV no módulo Empresas ou use **Registrar empresa pesquisada**.
-4. Complete porte, contato/decisor e demanda somente quando houver fonte confiável.
-5. Use a nota de potencial como apoio à priorização, abra o cadastro e crie uma tarefa para a próxima ação.
-
-A integração futura com fontes externas deverá ser implementada por conectores autorizados, com origem, data de atualização, limites de uso e revisão humana. Nenhuma coleta externa é ativada por esta entrega.
-
-### Segmentação territorial da Grande São Paulo
-
-O painel regional também oferece macro-regiões operacionais para organizar a carteira: Capital, ABC Paulista, Oeste, Norte e Leste, Noroeste e Sudoeste. O agrupamento é feito localmente a partir do texto informado em Cidade / UF; municípios não reconhecidos aparecem como **Fora da cobertura mapeada**, e registros sem cidade como **Não identificada**. Use o filtro de cidade para refinar a seleção. Os indicadores mostram quantidade de empresas, empresas com pontuação heurística igual ou superior a 70 e soma da demanda de notebooks informada nos cadastros. A soma não representa demanda confirmada de mercado. Revise o município e os dados de cada empresa antes da abordagem. A tabela também lista os dados de perfil ainda ausentes e a data da pesquisa; quando não houver data registrada, sinaliza a pendência. Use essas lacunas para orientar a próxima pesquisa, sem completar campos por suposição. A importação CSV também reconhece cabeçalhos alternativos para número de funcionários, fonte/referência da pesquisa, data da pesquisa e cargo do decisor (por exemplo: `funcionarios`, `numerodefuncionarios`, `fontereferencia`, `datadapesquisa`, `cargododecisor`).
-
-
-## Rastreabilidade e validação das fontes de prospecção
-
-O cadastro de empresas agora permite registrar o tipo de fonte (site oficial, cadastro público, diretório autorizado, indicação, pesquisa manual, evento ou outro), a confiabilidade informada (Alta, Média, Baixa ou Não avaliada) e o estado de validação (Pendente, Verificada ou Descartada). Esses campos descrevem a avaliação humana da equipe; não são validação automática nem certificação da fonte.
-
-No painel regional, os filtros de validação e confiabilidade ajudam a separar empresas verificadas de registros ainda pendentes. A tabela também classifica a atualidade da pesquisa: até 30 dias, 31–90 dias ou mais de 90 dias; registros sem data aparecem como sem data. A idade é calculada localmente e deve ser usada como lembrete de revisão, não como garantia de que os dados continuam corretos.
-
-O painel sinaliza possíveis duplicidades por nome normalizado + cidade, apenas como alerta para revisão manual. A proteção por CNPJ continua sendo a regra de bloqueio de duplicidade no cadastro. Não há mesclagem ou exclusão automática. A importação CSV reconhece cabeçalhos para tipo de fonte, confiabilidade e status de validação. Para registros antigos sem esses campos, o sistema assume visualmente **Pendente** e **Não avaliada**, sem alterar os dados salvos.
-
-
-## Centro de Campanhas B2B
-
-O módulo **Campanhas B2B** permite segmentar empresas já cadastradas por macro-região operacional, setor e porte informado (pequena até 99 funcionários, média de 100 a 499 e grande a partir de 500), selecionar registros e salvar campanhas com objetivo, canal, status, data, responsável, mensagem-base e observações. A campanha guarda os IDs das empresas selecionadas e a quantidade no momento da criação; a lista de empresas é uma seleção da carteira existente, não uma busca externa. A equipe deve revisar os dados e personalizar cada abordagem. A campanha não dispara mensagens, não confirma entrega/leitura e não mede respostas automaticamente. Use o histórico de interações e as etapas das empresas para registrar os resultados reais.
-
-
-### Indicadores do Centro de Campanhas
-
-O painel de desempenho das campanhas calcula contatos com base em interações ou data de último contato registrada; respostas com base em resultados explícitos do histórico; reuniões e propostas com base em resultados do histórico ou etapas comerciais correspondentes; e ganhos com base nas etapas Cliente/Ganha. Uma empresa pode contribuir para mais de um indicador. Os números representam o estado atual dos cadastros vinculados e não atribuem causalidade exclusiva à campanha. Registros sem histórico não são tratados como contato ou resposta.
-
-
-### Indicadores das campanhas
-
-O painel de campanhas calcula, por campanha, o total de empresas vinculadas, empresas com histórico de contato, empresas com resultados de interesse/retorno/reunião/proposta registrados, reuniões agendadas, propostas e ganhos. Os números são derivados dos registros atuais de cada empresa e não representam respostas inferidas ou entregas de mensagens. Empresas vinculadas são associadas por IDs de registros; se uma empresa for excluída ou não estiver carregada no workspace, ela não entra na contagem. Para manter os indicadores confiáveis, registre cada interação e atualize a etapa comercial da empresa.
-
-
-## Central de follow-ups
-
-O módulo **Tarefas e follow-ups** apresenta uma fila operacional combinando datas `next_followup` das empresas e `due_at` das tarefas abertas. A fila permite filtrar todos, atrasados, hoje e próximos sete dias, abrir o registro para atualização e preparar uma abordagem a partir da empresa. A criação de tarefa salva um prazo e status; concluir ou cancelar requer atualizar o status no cadastro. Preparar abordagem não envia mensagens. Os indicadores refletem apenas registros presentes no workspace e não comprovam que um contato foi realizado.
-
-
-## Assistente comercial · Próximas melhores ações
-
-No dashboard, o assistente prioriza empresas com retorno vencido ou previsto para hoje, sinais positivos sem novo prazo, contatos parados há pelo menos sete dias, primeiros contatos ainda não realizados e cadastros incompletos. Cada sugestão exibe o motivo, a ação recomendada e a pontuação heurística de potencial, com atalhos para abrir a empresa, preparar uma abordagem ou criar uma tarefa. A recomendação usa somente interações e campos já registrados; não faz enriquecimento externo, não confirma intenção de compra e não envia mensagens. Empresas marcadas como Cliente, Sem interesse ou Descartada são excluídas da fila.
-
-
-### Registro do resultado da abordagem
-
-Na fila do assistente comercial, a ação **Registrar resultado** abre o histórico de interações da empresa com data e canal preenchidos para facilitar o registro. O usuário deve informar o resultado real, um resumo e, quando aplicável, a próxima ação e data de retorno; a empresa precisa ser salva para persistir o histórico. Quando há sinal positivo sem data futura, a recomendação passa a ser registrar o próximo retorno. O sistema não presume que a abordagem foi enviada ou que houve resposta.
-
-
-## Painel de conversão comercial
-
-A Visão geral inclui um funil acumulado calculado a partir dos cadastros de empresas e dos resultados efetivamente registrados: empresas contatadas, respostas explícitas, reuniões, propostas e clientes. Também apresenta recortes por canal e campanha. Contato é contado quando existe interação ou data de último contato; resposta considera resultados explícitos diferentes de “Sem resposta” e “Em conversa”. Reuniões e propostas dependem dos resultados registrados no histórico ou da etapa comercial correspondente; cliente depende da etapa Cliente/Ganha. Atribuição por canal/campanha indica associação dos registros, não causalidade. Mensagens copiadas ou contatos feitos fora do CRM não são presumidos como enviados.
-
-
-
-**Consistência das métricas:** os indicadores gerais e por campanha usam o mesmo critério para propostas (etapa “Proposta enviada” ou “Preparando proposta”, ou resultado “Proposta solicitada”) e ganhos (etapa “Cliente” ou “Ganha”). A análise por canal conta empresas únicas com interações registradas naquele canal; isso não prova causalidade nem atribui uma venda exclusivamente ao canal.
-
-
-## Produtividade comercial diária
-
-O dashboard permite selecionar uma data e visualizar interações registradas, empresas únicas contatadas, respostas, sinais positivos, reuniões agendadas, propostas solicitadas e follow-ups previstos. Interações usam a data do evento; resultados dependem de outcomes explícitos. Follow-ups representam compromissos com vencimento na data, não tarefas concluídas. Não há meta diária presumida: o painel não conta mensagens preparadas/copias como contatos e não infere atividades sem registro.
-
-## Inteligência de carteira · Prioridade de locação
-
-O dashboard apresenta até 12 empresas priorizadas para prospecção de locação de notebooks. A classificação usa apenas dados cadastrados: pontuação heurística de qualificação (porte, quantidade estimada de notebooks, setor, interesse declarado e contato), ajuste por follow-up atrasado ou previsto para hoje, validação da empresa e confiabilidade da fonte. A lista exclui empresas nas etapas Cliente, Sem interesse e Descartada.
-
-A pontuação é um apoio operacional, não uma previsão garantida, não comprova intenção de compra e não representa demanda de mercado. A quantidade de notebooks é uma estimativa registrada no cadastro. Campos vazios permanecem como informação ausente, não como zero de demanda. As ações disponíveis abrem o cadastro ou preparam uma abordagem editável; o módulo não envia mensagens automaticamente.
-
-
-## Ranking de desempenho por meta
-
-Na visão geral, o ranking mensal ordena responsáveis com metas cadastradas pelo percentual de atingimento financeiro; em caso de empate, considera o atingimento do volume de oportunidades criadas. Os valores realizados vêm de oportunidades atribuídas pelo campo Responsável e com data de ganho/criação compatível com a competência. O ranking não atribui automaticamente interações, reuniões ou propostas do histórico de empresas a vendedores quando o evento não identifica seu responsável. Percentuais podem superar 100%; metas não cadastradas não são estimadas.
-
-
-## Responsável das interações e atividade diária por vendedor
-
-Novas interações registram o identificador do usuário autenticado (actor_id) e seu nome/e-mail (actor_name) tanto no histórico do cadastro quanto no registro de resultado da abordagem. A produtividade diária agrupa interações pela data selecionada e pelo responsável registrado, exibindo interações, empresas únicas, respostas, sinais positivos, reuniões e propostas solicitadas. Registros históricos sem esses campos permanecem como “Responsável não identificado”; não há atribuição retroativa ou inferência pelo responsável atual da empresa. Em modo demonstração, a identidade só existe se houver usuário autenticado.
-
-
-## Desempenho da equipe por período e responsável
-
-A Visão geral inclui um painel de atividade da equipe com data inicial, data final e filtro de responsável. Ele agrupa interações registradas no histórico das empresas por responsável identificado no momento do registro e apresenta interações, empresas únicas, respostas explícitas, sinais positivos, reuniões e propostas solicitadas. Eventos antigos sem identificação ficam em “Responsável não identificado”. O painel mede atividade registrada, não faturamento, comissão ou causalidade. Metas e valores continuam nos painéis mensais de oportunidades e metas.
-
-
-## Central de alertas gerenciais
-
-A Visão geral reúne alertas derivados dos dados registrados: follow-ups vencidos; oportunidades sinalizadas pelo radar de pipeline; metas mensais abaixo de 70% do valor ou volume; e propostas não finalizadas há pelo menos sete dias. Alertas vinculados a registros permitem abrir o cadastro correspondente. Os critérios são operacionais e configuráveis no código, não representam previsão garantida nem substituem a revisão comercial. Nenhuma mensagem é enviada automaticamente.
-
-
-## Inteligência da operação de locação
-
-A Visão geral apresenta notebooks disponíveis, unidades informadas em contratos ativos, quantidade solicitada em oportunidades abertas e cobertura potencial do estoque. Também agrupa o inventário por marca/modelo e lista contratos com término nos próximos 30 dias. A cobertura é uma comparação indicativa entre disponibilidade e demanda registrada, não uma reserva, alocação ou garantia de atendimento. Contratos não baixam o estoque automaticamente; a equipe deve revisar status, quantidades e modelos antes de confirmar uma locação.
-
-
-## Controle de alocação e ciclo de vida dos notebooks
-
-A reserva verifica se o equipamento está disponível, compara o modelo informado com o modelo do contrato e impede alocação acima da quantidade contratada já reservada/alugada. A atualização no Supabase usa condição de status para detectar alterações concorrentes; se outro operador já alterou o registro, a ação não sobrescreve silenciosamente o estado. Equipamentos vinculados a contrato não podem ter o status alterado pelo seletor genérico: use os fluxos de entrega e devolução. A entrega exige reserva vinculada; a devolução exige locação vinculada e limpa a associação atual, preservando referência ao último contrato. Na demonstração, as alterações permanecem apenas no estado local. A conferência física e a atualização da lista continuam necessárias.
-
-
-## Ordens de manutenção de notebooks
-
-O módulo Manutenção registra ordens por número de série, patrimônio, equipamento, defeito, diagnóstico, técnico, status, datas e custos de peças/mão de obra. A abertura pode ser iniciada diretamente no cadastro de um equipamento elegível. O sistema exige equipamento existente, impede ordem operacional duplicada em aberto para o mesmo notebook e bloqueia abertura quando o equipamento está reservado, alugado ou vendido. Ao salvar a ordem, o status do equipamento é atualizado para “Em manutenção”; ao concluir ou cancelar, retorna para “Disponível”, desde que a atualização condicional no banco não encontre alteração concorrente. Se a atualização do equipamento falhar após salvar a ordem, o sistema avisa para conferência manual: as duas gravações ainda não são uma transação atômica. Na demonstração, a sincronização ocorre somente no estado local. Custos são informativos e não geram lançamento financeiro automático.
-
-
-## Rentabilidade estimada por notebook
-
-No módulo Financeiro, a tabela por equipamento estima receita acumulada para notebooks vinculados a contratos ativos: mensalidade do contrato dividida pela quantidade contratada e multiplicada pelos meses desde o início. Deduz do valor estimado o custo de aquisição cadastrado e os custos de ordens de manutenção não canceladas. Equipamentos sem vínculo ativo aparecem sem receita estimada. O indicador é uma contribuição operacional aproximada, não lucro contábil: não inclui impostos, depreciação, inadimplência, frete, suporte ou custos financeiros. A qualidade depende do vínculo correto entre ativo, contrato e ordens de manutenção.
-
-
-## Cobranças, recebimentos e pontualidade
-
-O painel Financeiro consolida receitas registradas por empresa e contrato, separando valores recebidos, em aberto, vencidos e previstos a vencer. O histórico por contrato usa o vínculo `contract_id` quando disponível; registros sem vínculo são agrupados pelo nome da empresa.
-
-O índice de pontualidade considera somente cobranças com `due_date` e `paid_date` preenchidos: pagamentos realizados até o vencimento são pontuais; pagamentos posteriores são atrasados. Registros sem alguma dessas datas não entram no denominador. A previsão de recebimentos considera lançamentos em aberto com vencimento informado e mantém valores vencidos separados dos futuros.
-
-Esses indicadores refletem apenas os lançamentos existentes no VEYRION. Não há consulta bancária, conciliação automática, análise de crédito ou envio automático de cobrança. Revise os valores, datas, nomes de empresas e vínculos antes de tomar decisões.
-
-
-## Registro manual de recebimentos
-
-Na lista de receitas em atraso, a ação **Registrar pagamento** solicita o valor efetivamente recebido, a data e a forma de pagamento. O evento é acrescentado ao histórico; pagamentos parciais mantêm o saldo em aberto e o recebimento integral altera o status para `Pago`. No modo demonstração, a mudança permanece somente no estado local.
-
-O registro é manual: o sistema não consulta extratos bancários nem confirma crédito. Para evitar que dois operadores sobrescrevam parcelas simultâneas, a gravação compara a versão `updated_at` da cobrança com a versão carregada. Se outro operador editar ou registrar um pagamento primeiro, a atualização concorrente é bloqueada e o usuário precisa reabrir os dados atualizados antes de tentar novamente.
-
-
-## Pagamentos parciais e saldo por cobrança
-
-A ação **Registrar pagamento** na lista de receitas em atraso aceita um valor recebido menor ou igual ao saldo em aberto e solicita a data efetiva do recebimento. Cada parcela é adicionada a `payment_history`; o total acumulado fica em `paid_amount` e o saldo em `remaining_amount`. O status passa a `Parcial` enquanto houver saldo e a `Pago` quando a cobrança estiver quitada. O painel calcula recebido, em aberto e vencido pelo saldo remanescente, sem contar o valor original integral como ainda devido.
-
-A confirmação é manual: registre somente valores efetivamente recebidos e confira a data. O sistema não consulta banco, não concilia extratos automaticamente e não substitui uma rotina contábil. Em ambiente com múltiplos operadores, a atualização usa comparação otimista de `updated_at` para impedir que uma versão antiga sobrescreva pagamentos mais recentes. Isso protege a gravação concorrente do registro, mas não é uma transação bancária nem uma conciliação automática.
-
-
-### Detalhamento do histórico de pagamentos
-
-A tabela por contrato permite expandir cada contrato e consultar suas cobranças, valor original, total recebido, saldo atual e cada pagamento registrado, com data e forma de pagamento. A pontualidade considera cada evento de pagamento quando há histórico detalhado; para registros antigos sem histórico, utiliza a data de quitação disponível. Cada recebimento manual solicita a forma de pagamento informada pelo operador.
-
-
-### Integridade do histórico ao editar cobranças
-
-Ao editar uma receita que já recebeu pagamentos, o formulário preserva o histórico de parcelas, o total recebido e a data do último pagamento. O valor original não pode ser reduzido abaixo do que já foi recebido. A gravação da edição também compara `updated_at` para impedir que um formulário aberto com dados antigos sobrescreva recebimentos mais recentes. Uma receita ainda não quitada não pode ser marcada diretamente como paga pelo formulário comum: use **Registrar pagamento**, que exige valor e data e mantém a trilha de recebimentos.
-
-
-## Faixas de atraso de contas a receber
-
-O painel financeiro agrupa o saldo ainda não recebido em quatro faixas: 1–7, 8–30, 31–60 e mais de 60 dias após o vencimento. O cálculo usa o saldo remanescente de cada receita, portanto pagamentos parciais não são contados novamente como dívida. Lançamentos em aberto sem data de vencimento são informados separadamente e não entram nas faixas. Cada faixa agora oferece **Ver cobranças**, aplicando o filtro correspondente à tabela de receitas vencidas, com quantidade e saldo aberto atualizados e opção para limpar o filtro. A tabela completa continua ordenada pelo vencimento mais antigo quando nenhum filtro está ativo. Essa visão apoia a priorização manual da cobrança; não envia mensagens nem altera o status financeiro.
-
-
-### Ação comercial de cobrança a partir do contas a receber
-
-Na tabela de receitas em atraso, **Criar tarefa de cobrança** abre uma tarefa pré-preenchida no módulo de follow-ups. Além da empresa, cobrança, contrato, vencimento, valor original, total recebido, saldo remanescente e dias em atraso, procura telefone e e-mail nos dados da própria cobrança, contrato vinculado e cadastro da empresa, nessa ordem. A prioridade é sugerida pelo tempo de atraso: normal até 7 dias, alta de 8 a 30 dias e urgente acima de 30 dias. Se já existir tarefa aberta para a mesma receita, ela é reaberta para revisão com saldo, prioridade e contato atualizados, preservando observações anteriores. A tarefa não é salva automaticamente nem envia mensagens; o operador deve revisar, salvar e confirmar os dados antes de contatar o cliente.
-
-## Conciliação por forma de pagamento e responsável
-
-O painel financeiro também resume os eventos de pagamento registrados por forma informada (PIX, transferência, boleto etc.), com quantidade e soma dos valores. Cada novo evento passa a guardar identificador, valor, data, forma de pagamento, instante do registro e responsável autenticado quando disponível.
-
-O resumo apresenta totais por forma de pagamento e por responsável, agrupando os eventos por identificador autenticado quando disponível. O detalhamento usa somente eventos presentes em `payment_history`; lançamentos antigos sem esse histórico continuam aparecendo nos totais gerais, mas não são atribuídos a uma forma ou operador. A forma é informada manualmente e não representa confirmação bancária ou conciliação automática.
-
-
-### Rastreabilidade dos recebimentos
-
-Cada novo evento de pagamento também registra a forma informada pelo operador e o responsável identificado pela sessão (nome do perfil ou e-mail). O histórico exibe esses dados junto ao valor e à data. Se a sessão não fornecer uma identificação, o registro fica marcado como responsável não identificado. Dados históricos anteriores à melhoria não recebem atribuição retroativa.
-
-## Exportação do histórico de recebimentos
-
-No painel Financeiro, **Exportar histórico de recebimentos (CSV)** gera uma planilha com cada evento registrado, incluindo empresa, contrato, cobrança, vencimento, valor original, valor recebido, data, forma de pagamento e responsável. Pagamentos antigos quitados sem `payment_history` são exportados como um evento legado, com forma e responsável não identificados; não há atribuição retroativa. O arquivo usa UTF-8 com BOM e proteção básica contra fórmulas iniciadas por caracteres especiais em campos textuais.
-
-
-### Prevenção de tarefas de cobrança duplicadas
-
-Ao solicitar uma tarefa de cobrança, o VEYRION procura uma tarefa ainda aberta vinculada ao identificador exato da receita (finance_record_id). Se já existir uma tarefa pendente ou em andamento, o sistema abre essa tarefa para revisão em vez de criar outra. Tarefas concluídas ou canceladas não bloqueiam um novo follow-up. A verificação usa os registros carregados na sessão; para equipes com gravações simultâneas, uma restrição única no banco ou uma operação transacional será necessária para garantia absoluta contra duplicidade concorrente.
-
-
-### Navegação entre cobrança e tarefa
-
-Tarefas originadas do contas a receber mantêm o identificador da receita de origem. Na lista de tarefas, o sistema mostra o saldo atual da cobrança vinculada e oferece acesso direto ao lançamento financeiro. Se a receita não estiver mais carregada na sessão, a tarefa continua disponível e informa que o vínculo não foi localizado.
-
-
-### Histórico da régua de cobrança e promessas de pagamento
-
-Nas tarefas vinculadas a uma receita, **Registrar contato** grava uma tentativa de cobrança com resultado, resumo, data, responsável e próxima ação. Quando o cliente promete pagar, o operador informa data e valor; a promessa fica associada à tarefa e a data entra na fila de follow-ups. O histórico é preservado em `collection_history` no payload da tarefa, sem migration. Se o cliente apenas informar que pagou, o sistema orienta conferir o extrato e registrar o recebimento no Financeiro: a conversa não altera o saldo nem marca a cobrança como paga. A gravação autenticada compara `updated_at` para evitar sobrescrever o histórico se outro operador editar a tarefa ao mesmo tempo.
-
-
-### Verificação do build
-
-O comando de produção executa `tsc --noEmit` antes de `next build`, para apresentar erros de tipagem TypeScript de forma direta antes da compilação otimizada.
-
-
-### Alertas de promessas de pagamento
-
-A Central de follow-ups apresenta contadores separados para promessas vencidas e promessas com data para hoje. Uma promessa entra nesses indicadores somente enquanto a tarefa estiver aberta, o status da promessa for `Aguardando pagamento` e a receita vinculada ainda tiver saldo em aberto. A data prometida também aparece no detalhe do follow-up. O indicador não confirma inadimplência bancária; é um alerta operacional para o responsável conferir a situação do recebimento.
-
-
-### Indicadores de recuperação e produtividade da cobrança
-
-O painel Financeiro consolida tentativas de contato, quantidade de receitas acompanhadas, saldo ainda aberto nessas receitas, promessas pendentes e vencidas, valor prometido e pagamentos registrados após o primeiro contato. Também apresenta o volume de tentativas por responsável. O indicador **Recebido após primeiro contato** é uma associação temporal dos pagamentos registrados nas receitas acompanhadas, não uma atribuição causal nem uma taxa de recuperação. Receitas vinculadas a mais de uma tarefa são deduplicadas no saldo e no total de pagamentos; as tentativas continuam sendo contadas por registro de contato. Os indicadores dependem do histórico preenchido e não consultam bancos.
-
-
-### Radar de risco de inadimplência
-
-O painel Financeiro classifica receitas com saldo em aberto por uma pontuação operacional de 0 a 100. O cálculo considera dias de atraso (até 30 pontos), saldo remanescente (até 25), promessas de pagamento vencidas registradas em tarefas (até 25), tentativas com resultado explícito “Sem resposta” (até 15) e duas ou mais cobranças em aberto para a mesma empresa (10). As faixas são Baixo (0–34), Moderado (35–64) e Alto (65–100). A lista prioriza pontuação, saldo e tempo de atraso e permite abrir a cobrança ou preparar um follow-up.
-
-A pontuação é calculada por cobrança, não por pessoa ou empresa como avaliação global; a mesma empresa pode aparecer em mais de uma linha. Cobranças sem vencimento não recebem pontos de atraso, e só contam tentativas cujo resultado foi registrado exatamente como “Sem resposta”. Promessas são consideradas vencidas quando permanecem aguardando pagamento e a data prometida já passou. O indicador é uma heurística explicável para organizar o trabalho da equipe: não é score de crédito, não prevê inadimplência, não substitui análise humana e não toma decisões automáticas. Confira o saldo, o histórico e possíveis acordos antes de contatar o cliente.
-
-## Fechamento da etapa 5 — Gestão e rastreabilidade dos ativos
-
-A etapa de gestão individual dos equipamentos está concluída no código do produto. Cada notebook é tratado como um ativo individual identificado por número de série, com cadastro técnico, condição, custos, localização, garantia, status e dados de manutenção preventiva.
-
-Recursos entregues:
-- Entrada individual de unidades recebidas a partir de planos de aquisição, com validação de quantidade e número de série.
-- Proteção contra números de série duplicados.
-- Reserva de equipamentos disponíveis para contratos, com validação de modelo, quantidade contratada e ordens de manutenção abertas.
-- Conversão de proposta aceita em contrato e reserva dos equipamentos correspondentes quando há unidades cadastradas compatíveis.
-- Rastreabilidade por número de série e histórico de movimentações com data, responsável, origem, destino e referência do contrato.
-- Visão financeira por ativo, com aquisição, manutenção, depreciação estimada, receita contratada, contribuição, payback e comparação de venda.
-- Bloqueios para impedir reserva de equipamentos em manutenção e alteração manual indevida de ativos vinculados a contratos.
-
-O fluxo de assinatura e ativação mantém confirmação humana. O sistema não substitui assinatura eletrônica, conferência física, comprovante de entrega ou inspeção técnica. A etapa está encerrada como entrega de funcionalidades no código; validação de build, publicação e testes com dados reais permanecem pendentes e não são considerados aprovados.
-
-## Etapa 6 — Centro operacional: concluída no código
-
-A Etapa 6 consolida a rotina física de entregas, locações, devoluções e manutenção. Os fluxos são individualizados por ativo e número de série.
-
-### Entregas
-- Contrato agora aceita data prevista, janela/horário, endereço, contato recebedor, responsável interno e instruções logísticas.
-- Central operacional em Manutenção lista entregas pendentes ordenadas pela data prevista, com empresa, contrato, endereço, contato, responsável, modelo, patrimônio e série.
-- A entrega exige contrato ativo e equipamento reservado ao contrato.
-- Checklist obrigatório por unidade: recebedor, acessórios, condição física, configuração conferida e observações; permite registrar links de fotos/comprovantes (não há upload de arquivos nesta etapa).
-- A confirmação grava data, responsável, recebedor e checklist no ativo e na trilha de movimentações.
-- Termo de entrega imprimível reúne dados do contrato, equipamento, checklist e campos de assinatura física. Não é assinatura eletrônica certificada.
-
-### Locações e devoluções
-- Central lista equipamentos em clientes, prazo previsto de término, contratos e ação de receber/inspecionar por unidade.
-- Devolução exige confirmação de recebimento físico, condição, acessórios, teste funcional e links de evidências.
-- Devolução parcial mantém o contrato ativo enquanto houver unidades pendentes; cada ativo devolvido segue para disponibilidade somente após inspeção sem avarias, ou para manutenção quando houver avaria.
-- Quando há avarias, o sistema cria ordem de manutenção vinculada ao ativo, com diagnóstico e custos informados, mantendo o equipamento bloqueado.
-- O contrato só é encerrado automaticamente após a quantidade contratada de ativos estar individualizada e todas as unidades previstas terem sido recebidas.
-- A ação no contrato não faz mais uma devolução em lote sem inspeção: direciona o operador ao inventário para concluir a inspeção individual de cada notebook.
-- Relatório imprimível de devolução reúne condição, acessórios, teste funcional, avarias, custos, responsável e links de evidências.
-
-### Manutenção preventiva e corretiva
-- Ordens são vinculadas por ID interno e número de série; controlam tipo, prioridade, diagnóstico, solução, técnico, prestador, peças, custos, prazo, observações e links de evidências.
-- Cada mudança de status da ordem registra data/hora e responsável; o histórico fica disponível ao reabrir a ordem.
-- Não permite abrir ordens duplicadas para o mesmo ativo, nem manutenção operacional em notebook reservado, alugado ou vendido.
-- Concluir uma ordem exige diagnóstico e serviço executado; cancelar exige motivo nas observações.
-- Custos de peças e mão de obra são validados e totalizados; a data de conclusão e os dias parados são registrados.
-- Ao concluir, o ativo retorna a Disponível e atualiza última manutenção, prestador e próxima preventiva. Se houver intervalo preventivo configurado, a próxima data é calculada automaticamente.
-- A central mostra ordens abertas, ativos parados, reparos concluídos, custo registrado e preventivas vencidas ou previstas para os próximos 30 dias, com ação para abrir ordem preventiva.
-- A conclusão atualiza o histórico do ativo e, quando configurado, calcula a próxima preventiva usando o intervalo de manutenção cadastrado.
-
-### Limites operacionais conhecidos
-- Evidências são registradas por links informados pelo operador; upload de fotos/arquivos ainda não foi implementado.
-- O termo e o relatório são documentos imprimíveis para assinatura física; não há assinatura eletrônica ou validação jurídica integrada.
-- A atualização de ativo, ordem e contrato em operações com múltiplos registros usa compensação best-effort, não uma transação atômica do banco. Em falha parcial, a interface informa que é necessário conferir o estado antes de repetir.
-- Os dados permanecem no modelo atual de registros do workspace e payload. A execução/validação de migrations Supabase, testes com dados reais, build e deployment continuam pendentes e não são declarados concluídos.
-
-**Critério de encerramento funcional:** entrega, devolução unitária/parcial, impressão de termos, fila operacional, manutenção corretiva/preventiva, validações e trilha de movimentações estão implementadas no código. A validação de build e produção será retomada separadamente, conforme combinado.
-
-
-## Brokerage B2B (locação e intermediação de TI)
-
-Área disponível em `/brokerage`. Este fluxo cobre enriquecimento público de CNPJ, triagem cadastral, cadastro de parceiros, propostas com margem recorrente, contratos tripartites, assinatura e cobrança recorrente.
-
-### Persistência
-As migrations `013` a `021` criam e protegem:
-- `b2b_clients`, `b2b_credit_assessments`
-- `b2b_suppliers`, `b2b_supplier_products` (catálogo e estoque físico informado pelo parceiro)
-- `b2b_proposals`, `b2b_proposal_items`
-- `b2b_contracts`
-- `b2b_charges`, `b2b_integration_events`
-
-Todas as tabelas B2B têm RLS por organização. O estoque é validado na proposta e reservado ao ativar o contrato assinado; a devolução física precisa de confirmação operacional. A triagem de 0–100 é cadastral/comercial e não substitui bureau de crédito. CNPJ diferente de ATIVA bloqueia proposta; empresas com menos de seis meses exigem revisão; limite padrão de locação = 15% do faturamento mensal informado.
-
-### Endpoints
-- `GET /api/company-enrichment?q=<cnpj>&details=true`
-- `POST /api/b2b/clients`
-- `GET|POST /api/b2b/proposals`
-- `PATCH /api/b2b/proposals/:id/status`
-- `POST /api/b2b/contracts`
-- `GET /api/b2b/contracts/:id/document`
-- `POST /api/b2b/billing`
-- `POST /api/webhooks/zapsign`
-- `POST /api/webhooks/asaas`
-
-### Variáveis de ambiente B2B
-Copie os nomes de `.env.example` para Vercel. Chaves privadas nunca devem usar prefixo `NEXT_PUBLIC_`:
-`SUPABASE_SERVICE_ROLE_KEY`, `ASAAS_API_KEY`, `ASAAS_API_URL`, `ASAAS_WEBHOOK_TOKEN`, `ZAPSIGN_API_TOKEN`, `ZAPSIGN_API_URL`, `ZAPSIGN_WEBHOOK_SECRET`, `RESEND_API_KEY`, `RESEND_FROM_EMAIL`, `VEYRION_LEGAL_NAME`, `VEYRION_CNPJ`, `VEYRION_LEGAL_ADDRESS`.
-
-Configure no cadastro do parceiro o `asaas_wallet_id`. O split usa `fixedValue` para o parceiro; o restante líquido não distribuído permanece na conta VEYRION. A assinatura recorrente não é ativada sem chave Asaas, wallet do parceiro e contrato ativo. O contrato não deve ser enviado para assinatura sem a qualificação jurídica da VEYRION e revisão legal.
+Abra http://localhost:3000.
+
+## Validação
+```bash
+npm test
+npm run build
+```
+O comando `npm run build` executa automaticamente os testes estruturais, TypeScript e build Next.js. GitHub Actions não é requisito do projeto.
+
+## Banco de dados
+O projeto usa migrations versionadas em `supabase/migrations/`. O Supabase VEYRION conectado já contém o schema e as migrations do CRM, contratos, segurança, integrações e captação de leads. Não desligue RLS nem aplique migrations manualmente sem revisar o ambiente alvo.
+
+As migrations `034_public_lead_inquiries_role_restriction.sql` e `035_public_lead_inquiries_minimal_grants.sql` foram aplicadas ao Supabase conectado em 25/11/2026 e verificadas: somente perfis Owner/Admin/Manager/Sales leem os leads; anon tem apenas INSERT e authenticated apenas SELECT na tabela de leads.
+
+## Rotas e integrações
+- `/locacao`: página pública e formulário de qualificação comercial.
+- `/leads`: inbox autenticada; lista, pesquisa e contato por e-mail.
+- `/api/public-leads`: gravação de solicitações públicas e leitura autenticada.
+- `/api/company-enrichment`: consulta de empresas/CNPJ protegida por sessão e papel comercial.
+- `/api/integrations/zoho/sync-company`: sincronização manual e idempotente.
+- `/api/integrations/zoho/create-lead`: criação/atualização de Lead autenticada.
+- `/api/b2b/contracts`: criação de minuta e, se habilitado no Preview, envio para ZapSign Sandbox.
+- `/api/webhooks/zapsign`: confirmação de assinatura e ativação idempotente.
+- `/api/cron/notifications`: worker de notificações, bloqueado fora do Preview e em modo de destinatário de teste.
+
+Integrações exigem credenciais server-side no ambiente apropriado. Nenhuma chave privada deve ser commitada ou compartilhada no chat.
+
+## Situação de finalização
+- Pull request #8 está em Draft; alterações ainda não foram mescladas à branch principal.
+- O Preview da branch `finish/veyrion-lead-inbox` é usado para validação.
+- Produção não deve ser atualizada antes da validação humana de login, fluxo comercial, formulário e integrações.
+- ZapSign Sandbox, Zoho e e-mail de teste ainda dependem de credenciais/autorizações e teste end-to-end.
+- A minuta de contrato é operacional e precisa de revisão jurídica antes de uso real.
+
+Consulte `docs/lead-inbox.md` e `docs/ZOHO_CRM_INTEGRATION.md` para os detalhes de cada integração.
