@@ -91,3 +91,16 @@ GitDiagram provides an AI-generated overview, not a complete import graph. GitRe
 - A rota pública usa a chave anon, valida campos e honeypot, mas não apresenta rate limit. A mitigação de abuso precisa ser avaliada antes de abrir tráfego amplo.
 - PR #7 segue Draft/open e não deve ser mesclado até submissão controlada, confirmação de inserção e revisão de segurança.
 - A inbox ainda não está implementada. O caminho correto é uma tela interna autenticada, usando a sessão Supabase do usuário e a política RLS existente; não expor leitura pública nem inserir leads diretamente em `workspace_records` sem revisão de esquema e autorização.
+
+
+## Inbox comercial — atualização 25/11/2026
+- PR #7 continua Draft/open, sem merge e sem publicação em produção.
+- Implementada a página autenticada `app/inbox/page.tsx`, rota `/inbox`, com busca, filtro por status, detalhe do pedido, atribuição de responsável, follow-up e notas internas.
+- A barra lateral do CRM ganhou o atalho `Inbox de leads`.
+- Migration `008_public_lead_inbox.sql` versionada na branch do PR e aplicada ao Supabase conectado.
+- Colunas verificadas no banco: `assigned_to`, `follow_up_at`, `internal_notes`, `updated_at`.
+- Políticas RLS verificadas: INSERT para `anon` com restrições de organização/origem/status; SELECT e UPDATE para `authenticated` somente quando organização corresponde e papel é owner/admin/manager/sales.
+- Preview Vercel READY: https://veyrion-osblev72z-rodrigos-projects-5f32f252.vercel.app
+- Build executou `tsc --noEmit && next build`, compilou e gerou rota estática `/inbox` (6.35 kB). Build READY no commit `7c1402dd74bd528837ef949a954b7a21ea774176`.
+- Persistem avisos do lockfile: Vercel reportou erro de parsing de `package-lock.json` e dependências SWC ausentes; apesar disso, a instalação/build concluiu. Corrigir lockfile em tarefa isolada, sem reescrever dependências às cegas.
+- Teste ponta a ponta ainda pendente: envio real do formulário no Preview, conferência do registro, e teste de sessão/perfis para leitura e atualização. Não usar dados fictícios nem mesclar/publicar antes desses testes.
