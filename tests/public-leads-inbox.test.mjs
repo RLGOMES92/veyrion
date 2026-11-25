@@ -48,6 +48,14 @@ test("lead PII read policy is role-restricted and grants are minimized", () => {
   assert.match(migration, /grant insert .* anon/i);
 });
 
+test("lead table privileges are reduced to anonymous INSERT and authenticated SELECT", () => {
+  const migration = readFileSync(new URL("../supabase/migrations/035_public_lead_inquiries_minimal_grants.sql", import.meta.url), "utf8");
+  assert.match(migration, /revoke all privileges/i);
+  assert.match(migration, /grant insert .* anon/i);
+  assert.match(migration, /grant select .* authenticated/i);
+  assert.doesNotMatch(migration, /grant update|grant delete|grant truncate/i);
+});
+
 test("VEYRION login uses password and invitation-gated first access", () => {
   const crm = readFileSync(new URL("../app/page.tsx", import.meta.url), "utf8");
   const inviteMigration = readFileSync(new URL("../supabase/migrations/20261108153806_restrict_veyrion_signups_to_invites.sql", import.meta.url), "utf8");
