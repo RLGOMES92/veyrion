@@ -36,6 +36,7 @@ test("company enrichment API requires session and caps search input", () => {
   const crm = readFileSync(new URL("../app/page.tsx", import.meta.url), "utf8");
   assert.match(enrichment, /requireUser\(request\)/);
   assert.match(enrichment, /q\.length > 120/);
+  assert.match(enrichment, /\["owner", "admin", "manager", "sales"\]/);
   assert.match(crm, /Authorization:"Bearer "\+session\.access_token/);
 });
 
