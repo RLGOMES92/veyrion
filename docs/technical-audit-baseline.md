@@ -57,3 +57,26 @@ Base: `main` at `2c3278c07097c91069fe1e822591ec9193121bd9`
 - Hand-authored map and reconstruction brief: `docs/architecture-map.md` on this audit branch.
 
 GitDiagram provides an AI-generated overview, not a complete import graph. GitReverse generates a synthetic prompt based on repo metadata, shallow tree and README; it is not an original prompt or source-level reverse engineering. Because the repository is public, outputs may be cached or shared. The architecture map committed in this branch is a manual synthesis of inspected code and audit notes, not output copied from either service.
+
+
+## Continuação da auditoria — 25/11/2026
+
+### Captura pública de leads: Preview
+- PR #7 (feat/veyrion-public-lead-capture) permanece aberto em Draft, sem merge.
+- Commit atual: ee881902ed12c07afbe19c76a1c2400db974db49.
+- Deployment Vercel Preview: READY, URL https://veyrion-bsutos6i1-rodrigos-projects-5f32f252.vercel.app/locacao.
+- O build confirma compilação/deploy; não comprova teste ponta a ponta nem que uma submissão foi gravada. Teste manual controlado permanece pendente.
+- A migration 006_public_lead_inquiries.sql e a rota app/api/public-leads/route.ts constam nos arquivos do PR. Revisar o estado real do banco, RLS e inserção antes de aprovar.
+
+### GitDiagram / GitReverse
+- Links para o repositório público foram mantidos em docs/architecture-map.md.
+- Tentativa de abrir ambos os serviços a partir desta sessão não foi concluída (serviços inacessíveis pelo navegador de pesquisa); portanto, não afirmar que suas visualizações ou reconstruções foram geradas.
+- O mapa arquitetural manual continua como referência, não como resultado validado desses serviços.
+
+### Pendências prioritárias atualizadas
+1. Testar formulário de locação no Preview com envio controlado e confirmar registro no banco; confirmar comportamento de erro e prevenção de spam/honeypot.
+2. Expor uma inbox interna dos leads com leitura limitada a membros da organização e estado de acompanhamento.
+3. Revisar e validar a integração Zoho em PR #3; não sincronizar sem teste com contato/empresa controlados.
+4. Resolver aviso de parsing do package-lock.json e tornar build reprodutível; não habilitar GitHub Actions (restrição de billing permanece).
+5. Testar runtime/auth/RLS e fluxos críticos em Preview antes de merge/publicação.
+6. Revisar PRs #3, #4, #5, #6 e #7; todos devem permanecer isolados até validação específica e revisão do risco de conflitos/base desatualizada.
